@@ -180,16 +180,21 @@
       <input type="date" id="exam-date-input" onchange="saveExamDate()" style="margin-bottom:4px">
     </div>
     <div class="card">
-      <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:6px">📤 エクスポート</div>
-      <div style="font-size:12px;color:#666;margin-bottom:10px;line-height:1.6">ボタンでコピーして、メモアプリ等に保存してください。</div>
-      <textarea id="export-text" rows="3" readonly style="color:#555;font-size:10px;margin-bottom:8px"></textarea>
-      <button class="primary-btn" style="background:#e94560" onclick="copyExportText()">📋 コピーする</button>
+      <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:6px">📤 バックアップ</div>
+      <div style="font-size:12px;color:#666;margin-bottom:10px;line-height:1.6">データをファイルとして保存します（推奨。データが大きくてもOK）。</div>
+      <button class="primary-btn" style="background:#e94560" onclick="downloadExport()">⬇ ファイルとして保存</button>
+      <div style="font-size:11px;color:#555;margin:12px 0 6px">小さいデータならテキストでのコピーも使えます:</div>
+      <textarea id="export-text" rows="2" readonly style="color:#555;font-size:10px;margin-bottom:8px"></textarea>
+      <button class="ghost-btn-data" style="width:100%;padding:10px;border:1px solid #333;border-radius:10px;background:none;color:#888;font-size:13px;font-family:inherit;cursor:pointer" onclick="copyExportText()">📋 テキストをコピー</button>
     </div>
     <div class="card">
-      <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:6px">📥 インポート</div>
-      <div style="font-size:12px;color:#666;margin-bottom:10px;line-height:1.6">保存しておいたテキストを貼り付けて復元してください。</div>
-      <textarea id="import-text" rows="4" placeholder="ここに保存データを貼り付け..." style="margin-bottom:10px"></textarea>
-      <button class="primary-btn" style="background:#4a6fa5" onclick="importData()">復元する</button>
+      <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:6px">📥 復元</div>
+      <div style="font-size:12px;color:#666;margin-bottom:10px;line-height:1.6">バックアップしたファイルを選んで復元します。</div>
+      <input type="file" id="import-file" accept=".json,application/json,text/plain" onchange="importFromFile(this)"
+        style="width:100%;background:#0f0f1a;border:1px solid #333;border-radius:8px;padding:10px;color:#888;font-size:12px;font-family:inherit;margin-bottom:14px">
+      <div style="font-size:11px;color:#555;margin-bottom:6px">テキスト貼り付けでの復元:</div>
+      <textarea id="import-text" rows="3" placeholder="ここに保存データを貼り付け..." style="margin-bottom:10px"></textarea>
+      <button class="primary-btn" style="background:#4a6fa5" onclick="importData()">貼り付けたテキストから復元</button>
     </div>
   </div>
 </div>
@@ -681,18 +686,42 @@ function copyExportText() {
     try{document.execCommand('copy');showDataMsg(true,'コピーしました！');}catch{showDataMsg(true,'テキストを選択しました。長押し→コピーで保存してください。');}
   }
 }
-function importData() {
+function doImport(text) {
   try {
-    const text=document.getElementById('import-text').value.trim();
-    const parsed=JSON.parse(text);
+    const parsed=JSON.parse(text.trim());
     if(!parsed.problems) throw new Error();
     problems=parsed.problems;
     if(parsed.lastCh) currentCh=parsed.lastCh;
     if(parsed.settings) settings={...settings,...parsed.settings};
     migrate();
+    const n=Object.keys(problems).length;
+    showDataMsg(true,`復元しました！（${n}問分の記録）`); renderData(); renderToday(); renderHeader();
+    return true;
+  } catch { showDataMsg(false,'データが正しくありません。ファイルが途中で切れていないか確認してください。'); return false; }
+}
+function importData() {
+  if (doImport(document.getElementById('import-text').value)) {
     document.getElementById('import-text').value='';
-    showDataMsg(true,'復元しました！'); renderData(); renderToday(); renderHeader();
-  } catch { showDataMsg(false,'データが正しくありません。'); }
+  }
+}
+function importFromFile(input) {
+  const f = input.files && input.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => { doImport(r.result); input.value=''; };
+  r.onerror = () => showDataMsg(false,'ファイルを読み込めませんでした。');
+  r.readAsText(f);
+}
+function downloadExport() {
+  const blob = new Blob([JSON.stringify({problems,lastCh:currentCh,settings})], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `java-silver-data-${today()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(a.href);
+  showDataMsg(true,'バックアップファイルを保存しました。');
 }
 function showDataMsg(ok,text) {
   const el=document.getElementById('data-msg');
