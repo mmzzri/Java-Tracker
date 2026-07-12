@@ -63,6 +63,13 @@
   .slider:before { content: ""; position: absolute; height: 18px; width: 18px; left: 3px; top: 3px; background: #888; border-radius: 50%; transition: .2s; }
   .switch input:checked + .slider { background: #e94560; }
   .switch input:checked + .slider:before { transform: translateX(18px); background: #fff; }
+  .seg { display: flex; gap: 4px; background: #0f0f1a; border-radius: 8px; padding: 3px; }
+  .seg button { flex: 1; padding: 8px 4px; border: none; border-radius: 6px; background: none; color: #777; font-size: 12px; font-family: inherit; cursor: pointer; }
+  .seg button.on { background: #4a6fa5; color: #fff; font-weight: 700; }
+  .q-btn.s-pending { background: #4a6fa522; color: #9db4d8; border-color: #4a6fa566; }
+  .ans-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 18px; }
+  .ans-btn { padding: 13px 0; border-radius: 10px; border: 2px solid #333; background: #0f0f1a; color: #777; font-size: 16px; font-weight: 800; font-family: inherit; cursor: pointer; }
+  .ans-btn.sel { border-color: #4a6fa5; background: #4a6fa522; color: #9db4d8; }
   /* --- session overlay --- */
   .session { display: none; position: fixed; inset: 0; background: #0f0f1a; z-index: 200; padding: 20px 16px; overflow-y: auto; }
   .session.open { display: block; }
@@ -111,6 +118,11 @@
       <div id="session-summary" style="font-size:13px;color:#ccc;line-height:1.7;margin-bottom:12px"></div>
       <button class="primary-btn" style="background:#e94560" id="start-session-btn" onclick="startSession('due')">▶ 復習をはじめる</button>
     </div>
+    <div class="card hidden" id="pending-card-today">
+      <div class="card-title">答え合わせ待ち <span class="weak-count" id="pending-count-today"></span></div>
+      <div style="font-size:12px;color:#888;line-height:1.7;margin-bottom:10px">入力した解答を、問題集の解答ページと突き合わせて採点します。</div>
+      <button class="primary-btn" style="background:#4a6fa5" onclick="startGrading()">▶ まとめて答え合わせ</button>
+    </div>
     <div class="card">
       <div class="card-title">今日の復習リスト <span style="font-size:10px;color:#555">タップで個別に記録</span></div>
       <div id="today-list"></div>
@@ -120,9 +132,19 @@
 
   <!-- RECORD -->
   <div id="tab-record" class="hidden">
+    <div class="card hidden" id="pending-card-record">
+      <div class="card-title">答え合わせ待ち <span class="weak-count" id="pending-count-record"></span></div>
+      <div style="font-size:12px;color:#888;line-height:1.7;margin-bottom:10px">入力した解答を、問題集の解答ページと突き合わせて採点します。</div>
+      <button class="primary-btn" style="background:#4a6fa5" onclick="startGrading()">▶ まとめて答え合わせ</button>
+    </div>
     <div class="card">
       <div class="card-title">章を選択</div>
       <div class="ch-btns" id="ch-btns"></div>
+      <div style="font-size:11px;color:#666;margin-bottom:6px">問題をタップしたとき</div>
+      <div class="seg" style="margin-bottom:14px">
+        <button id="tapmode-result" onclick="setTapMode('result')">結果を記録（○×）</button>
+        <button id="tapmode-answer" onclick="setTapMode('answer')">解答を入力（A〜J）</button>
+      </div>
       <div class="toggle-row">
         <span class="toggle-label">連続入力モード（記録後、自動で次の問題を開く）</span>
         <label class="switch"><input type="checkbox" id="auto-next-toggle" onchange="toggleAutoNext()"><span class="slider"></span></label>
@@ -132,6 +154,7 @@
         <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:#666"><div style="width:12px;height:12px;background:#00d4a322;border:1px solid #00d4a366;border-radius:3px"></div>正解</div>
         <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:#666"><div style="width:12px;height:12px;background:#e9456022;border:1px solid #e9456066;border-radius:3px"></div>不正解</div>
         <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:#666"><div style="width:12px;height:12px;border-radius:3px;box-shadow:0 0 0 2px #f0a500"></div>復習あり</div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:#666"><div style="width:12px;height:12px;background:#4a6fa522;border:1px solid #4a6fa566;border-radius:3px"></div>解答入力済み</div>
       </div>
       <div class="q-grid" id="q-grid"></div>
     </div>
@@ -233,6 +256,33 @@
   </div>
 </div>
 
+<!-- Answer input modal -->
+<div class="modal-overlay" id="ans-modal" onclick="closeAnsModalOutside(event)">
+  <div class="modal">
+    <div class="modal-title" id="ans-title"></div>
+    <div class="modal-sub">自分の解答をタップ（複数選択可）</div>
+    <div class="ans-grid" id="ans-grid"></div>
+    <div class="modal-btns">
+      <button class="modal-btn" style="border-color:#4a6fa5;background:#4a6fa518;color:#9db4d8" onclick="saveAns(true)">💾 保存して次の問題へ</button>
+      <button class="modal-btn" style="border-color:#333;color:#888" onclick="saveAns(false)">保存して閉じる</button>
+      <button class="modal-btn mb-reset" onclick="clearAns()">🗑 この解答をクリア</button>
+    </div>
+    <button class="modal-close" onclick="closeAnsModal()">キャンセル</button>
+  </div>
+</div>
+
+<!-- Grading overlay -->
+<div class="session" id="grading">
+  <div class="session-inner">
+    <div class="session-top">
+      <span class="session-count" id="grading-count"></span>
+      <button class="session-quit" onclick="endGrading()">終了 ✕</button>
+    </div>
+    <div class="session-bar-wrap"><div class="session-bar" id="grading-bar" style="width:0%;background:#4a6fa5"></div></div>
+    <div id="grading-body"></div>
+  </div>
+</div>
+
 <script>
 const CHAPTERS = [
   {id:1,name:"1章",label:"Javaの基本"},
@@ -250,11 +300,16 @@ const SR_SPRINT = [1,1,2,2,3];   // 試験7日前からの短縮間隔
 const KEY = "java-silver-html-v1"; // ← 旧バージョンと同じキー。データを引き継ぐ
 
 let problems = {};
+let pendings = {};
 let currentCh = 1;
 let modalKey = null;
 let modalSource = null; // 'record' なら連続入力の対象
-let settings = { examDate: "2026-07-15", autoNext: true };
+let settings = { examDate: "2026-07-15", autoNext: true, tapMode: "result" };
 let session = null; // {queue, idx, results:{correct,incorrect,skip}}
+let ansKey = null;
+let ansSel = new Set();
+let grading = null;
+const ANS_LETTERS = ["A","B","C","D","E","F","G","H","I","J"];
 
 const today = () => new Date().toISOString().split("T")[0];
 const daysUntil = d => d ? Math.ceil((new Date(d)-new Date(today()))/86400000) : null;
@@ -271,7 +326,7 @@ function nextReviewDate(level) {
   return nr;
 }
 
-function save() { localStorage.setItem(KEY, JSON.stringify({problems, lastCh:currentCh, settings})); }
+function save() { localStorage.setItem(KEY, JSON.stringify({problems, pendings, lastCh:currentCh, settings})); }
 
 function migrate() {
   Object.keys(problems).forEach(k => {
@@ -289,6 +344,7 @@ function load() {
     if (r) {
       const p = JSON.parse(r);
       problems = p.problems || {};
+      pendings = p.pendings || {};
       currentCh = p.lastCh || 1;
       if (p.settings) settings = {...settings, ...p.settings};
     }
@@ -322,7 +378,7 @@ function openModal(k, source) {
   document.getElementById('modal-sub').textContent = `現在: ${sl}${stars}${nr}`;
   const hist = (p?.history||[]).slice(-8).map(h=>h.result==='read'?'📖':h.result==='correct'?'○':'×').join(' ');
   const ic = incCount(p);
-  document.getElementById('modal-hist').textContent = p ? `履歴: ${hist || 'なし'}${ic>0?`　（×${ic}回）`:''}` : '';
+  document.getElementById('modal-hist').textContent = p ? `履歴: ${hist || 'なし'}${ic>0?`　（×${ic}回）`:''}${p.ans?`　解答: ${p.ans}`:''}` : '';
   document.getElementById('modal-memo').value = p?.memo || '';
   document.getElementById('modal').classList.add('open');
 }
@@ -346,13 +402,13 @@ function applyResult(k, result) {
   const q = parseInt(k.split('-')[1]);
   if (result === 'reset') { delete problems[k]; return; }
   const prev = problems[k] || {level:0,history:[]};
-  const memo = prev.memo;
+  const memo = prev.memo, ans = prev.ans;
   if (result === 'read') {
-    problems[k] = {chapter:ch,question:q,status:'read',level:0,nextReview:nextReviewDate(0),history:[...(prev.history||[]),{date:today(),result:'read'}],memo};
+    problems[k] = {chapter:ch,question:q,status:'read',level:0,nextReview:nextReviewDate(0),history:[...(prev.history||[]),{date:today(),result:'read'}],memo,ans};
   } else {
     const isOk = result==='correct';
     const newLevel = isOk ? Math.min((prev.level||0)+1, SR.length-1) : 0;
-    problems[k] = {chapter:ch,question:q,status:'practiced',level:newLevel,nextReview:nextReviewDate(newLevel),history:[...(prev.history||[]),{date:today(),result}],memo};
+    problems[k] = {chapter:ch,question:q,status:'practiced',level:newLevel,nextReview:nextReviewDate(newLevel),history:[...(prev.history||[]),{date:today(),result}],memo,ans};
   }
 }
 
@@ -454,6 +510,7 @@ function renderToday() {
     paceHtml += `<div style="font-size:13px;color:#888">試験日が過ぎています。データタブから次の試験日を設定できます。</div>`;
   }
   document.getElementById('pace-card').innerHTML = paceHtml;
+  renderPendingCards();
 }
 
 /* ---------- session ---------- */
@@ -544,6 +601,8 @@ function renderRecord() {
     `<button class="ch-btn${c.id===currentCh?' active':''}" onclick="selectCh(${c.id})">${c.name}</button>`
   ).join('');
   document.getElementById('auto-next-toggle').checked = settings.autoNext;
+  syncTapModeSeg();
+  renderPendingCards();
   renderQGrid();
 }
 function toggleAutoNext() {
@@ -560,7 +619,7 @@ function renderQGrid() {
   if (!el) return;
   const total=TOTALS[currentCh];
   el.innerHTML=Array.from({length:total},(_,i)=>{
-    const q=i+1, k=`${currentCh}-${q}`, p=problems[k];
+    const q=i+1, k=`${currentCh}-${q}`, p=problems[k], pen=pendings[k];
     const last=p?.history?.[p.history.length-1];
     let cls='', icon='';
     if(p&&last){
@@ -568,9 +627,149 @@ function renderQGrid() {
       else if(last.result==='correct'){cls='s-correct';icon='○';}
       else{cls='s-incorrect';icon='×';}
     }
+    if(pen){cls='s-pending';icon=pen.ans.join('');}
     if(p?.nextReview&&daysUntil(p.nextReview)<=0) cls+=' due';
-    return `<button class="q-btn ${cls}" onclick="openModal('${k}','record')"><span>${q}</span>${icon?`<span class="q-icon">${icon}</span>`:p?.memo?'<span class="q-icon">✏️</span>':''}</button>`;
+    return `<button class="q-btn ${cls}" onclick="qTap('${k}')"><span>${q}</span>${icon?`<span class="q-icon">${icon}</span>`:p?.memo?'<span class="q-icon">✏️</span>':''}</button>`;
   }).join('');
+}
+
+function qTap(k) { settings.tapMode==='answer' ? openAnsModal(k) : openModal(k,'record'); }
+function setTapMode(m) { settings.tapMode=m; save(); syncTapModeSeg(); }
+function syncTapModeSeg() {
+  document.getElementById('tapmode-result')?.classList.toggle('on', settings.tapMode!=='answer');
+  document.getElementById('tapmode-answer')?.classList.toggle('on', settings.tapMode==='answer');
+}
+
+/* ---------- 解答入力 ---------- */
+function openAnsModal(k) {
+  ansKey = k;
+  ansSel = new Set(pendings[k]?.ans || []);
+  const [ch,q] = k.split('-');
+  const chName = CHAPTERS.find(c=>c.id===parseInt(ch))?.name;
+  document.getElementById('ans-title').textContent = `${chName} — Q${q}`;
+  renderAnsGrid();
+  document.getElementById('ans-modal').classList.add('open');
+}
+function renderAnsGrid() {
+  document.getElementById('ans-grid').innerHTML = ANS_LETTERS.map(L=>
+    `<button class="ans-btn${ansSel.has(L)?' sel':''}" onclick="toggleAnsLetter('${L}')">${L}</button>`).join('');
+}
+function toggleAnsLetter(L) { ansSel.has(L)?ansSel.delete(L):ansSel.add(L); renderAnsGrid(); }
+function saveAns(goNext) {
+  if (!ansKey) return;
+  if (ansSel.size===0) delete pendings[ansKey];
+  else pendings[ansKey] = { ans: ANS_LETTERS.filter(L=>ansSel.has(L)), date: today() };
+  save(); renderQGrid(); renderPendingCards();
+  const [ch,q] = ansKey.split('-').map(Number);
+  if (goNext && q < TOTALS[ch]) openAnsModal(`${ch}-${q+1}`);
+  else closeAnsModal();
+}
+function clearAns() {
+  if (!ansKey) return;
+  delete pendings[ansKey];
+  save(); renderQGrid(); renderPendingCards(); closeAnsModal();
+}
+function closeAnsModal() { document.getElementById('ans-modal').classList.remove('open'); ansKey=null; }
+function closeAnsModalOutside(e) { if(e.target===document.getElementById('ans-modal')) closeAnsModal(); }
+
+/* ---------- まとめて答え合わせ ---------- */
+function pendingKeys() {
+  return Object.keys(pendings).sort((a,b)=>{
+    const [c1,q1]=a.split('-').map(Number), [c2,q2]=b.split('-').map(Number);
+    return c1-c2 || q1-q2;
+  });
+}
+function renderPendingCards() {
+  const n = pendingKeys().length;
+  [['pending-card-today','pending-count-today'],['pending-card-record','pending-count-record']].forEach(([cid,nid])=>{
+    const c = document.getElementById(cid);
+    if (!c) return;
+    c.classList.toggle('hidden', n===0);
+    const ne = document.getElementById(nid);
+    if (ne) ne.textContent = `${n}問`;
+  });
+}
+function startGrading() {
+  const q = pendingKeys();
+  if (q.length===0) return;
+  grading = { queue:q, idx:0, results:{correct:0,incorrect:0,skip:0} };
+  document.getElementById('grading').classList.add('open');
+  renderGrading();
+}
+function endGrading() {
+  grading = null;
+  document.getElementById('grading').classList.remove('open');
+  renderQGrid(); renderToday(); renderPendingCards();
+}
+function renderGrading() {
+  if (!grading) return;
+  const total = grading.queue.length, done = grading.idx;
+  document.getElementById('grading-count').textContent = `${Math.min(done+1,total)} / ${total}`;
+  document.getElementById('grading-bar').style.width = `${(done/total)*100}%`;
+  const body = document.getElementById('grading-body');
+  if (done >= total) {
+    const r = grading.results;
+    document.getElementById('grading-bar').style.width = '100%';
+    body.innerHTML = `<div class="session-done">
+      <div style="font-size:40px;margin-bottom:14px">📝</div>
+      <div style="font-size:18px;font-weight:800;color:#fff;margin-bottom:16px">答え合わせ完了！</div>
+      <div style="font-size:14px;color:#ccc;line-height:2">
+        <span style="color:#00d4a3">○ 正解 ${r.correct}問</span>　
+        <span style="color:#e94560">× 不正解 ${r.incorrect}問</span>
+        ${r.skip>0?`　<span style="color:#666">保留 ${r.skip}問</span>`:''}
+      </div>
+      ${r.incorrect>0?`<div style="font-size:12px;color:#f0a500;margin-top:10px">×だった問題は復習リストに入ります</div>`:''}
+      <button class="primary-btn" style="background:#4a6fa5;margin-top:28px;max-width:280px" onclick="endGrading()">閉じる</button>
+    </div>`;
+    return;
+  }
+  const k = grading.queue[done];
+  const [ch,qn] = k.split('-').map(Number);
+  const c = CHAPTERS.find(x=>x.id===ch);
+  const pen = pendings[k];
+  const memo = problems[k]?.memo || '';
+  body.innerHTML = `
+    <div class="session-q">
+      <div class="session-q-ch">${c?.name}　${c?.label}</div>
+      <div class="session-q-num">Q${qn}</div>
+      <div style="font-size:16px;color:#9db4d8;font-weight:800;margin-top:14px;letter-spacing:4px">あなたの解答: ${pen.ans.join(' ')}</div>
+    </div>
+    <div class="session-memo">
+      <div class="session-memo-label">✏️ メモ（間違えたポイントなど・任意）</div>
+      <input type="text" value="${memo.replace(/"/g,'&quot;')}" placeholder="例: 拡大変換とボクシングの優先順位"
+        style="background:transparent;border:none;border-bottom:1px solid #333;border-radius:0;padding:6px 0;font-size:14px"
+        oninput="gradingMemoInput(this)">
+    </div>
+    <div style="text-align:center;font-size:12px;color:#555;margin-bottom:10px">問題集の解答ページと見比べて、結果をタップ</div>
+    <div class="session-btns">
+      <div class="session-row">
+        <button class="session-btn sb-correct" onclick="gradeAnswer('correct')">○ 正解</button>
+        <button class="session-btn sb-incorrect" onclick="gradeAnswer('incorrect')">× 不正解</button>
+      </div>
+      <button class="session-btn sb-skip" onclick="gradeAnswer('skip')">保留（あとで採点）</button>
+    </div>`;
+}
+function gradingMemoInput(el) {
+  const k = grading.queue[grading.idx];
+  if (!problems[k]) {
+    const [ch,q] = k.split('-').map(Number);
+    problems[k] = {chapter:ch,question:q,status:'read',level:0,nextReview:null,history:[]};
+  }
+  problems[k].memo = el.value; save();
+}
+function gradeAnswer(result) {
+  const k = grading.queue[grading.idx];
+  if (result==='skip') { grading.results.skip++; }
+  else {
+    const letters = pendings[k]?.ans?.join('・') || '';
+    applyResult(k, result);
+    if (problems[k]) problems[k].ans = letters;
+    delete pendings[k];
+    grading.results[result]++;
+    save();
+  }
+  grading.idx++;
+  renderGrading();
 }
 
 /* ---------- weak ---------- */
@@ -666,7 +865,7 @@ function renderProgress() {
 
 /* ---------- data ---------- */
 function renderData() {
-  document.getElementById('export-text').value=JSON.stringify({problems,lastCh:currentCh,settings});
+  document.getElementById('export-text').value=JSON.stringify({problems,pendings,lastCh:currentCh,settings});
   document.getElementById('exam-date-input').value = settings.examDate || '';
 }
 function saveExamDate() {
@@ -691,6 +890,7 @@ function doImport(text) {
     const parsed=JSON.parse(text.trim());
     if(!parsed.problems) throw new Error();
     problems=parsed.problems;
+    pendings=parsed.pendings||{};
     if(parsed.lastCh) currentCh=parsed.lastCh;
     if(parsed.settings) settings={...settings,...parsed.settings};
     migrate();
@@ -713,7 +913,7 @@ function importFromFile(input) {
   r.readAsText(f);
 }
 function downloadExport() {
-  const blob = new Blob([JSON.stringify({problems,lastCh:currentCh,settings})], {type:'application/json'});
+  const blob = new Blob([JSON.stringify({problems,pendings,lastCh:currentCh,settings})], {type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `java-silver-data-${today()}.json`;
