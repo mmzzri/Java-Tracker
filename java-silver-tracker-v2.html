@@ -228,6 +228,7 @@
     <div class="modal-title" id="modal-title"></div>
     <div class="modal-sub" id="modal-sub"></div>
     <div class="modal-hist" id="modal-hist"></div>
+    <div id="modal-ans" class="hidden" style="font-size:15px;font-weight:800;color:#9db4d8;letter-spacing:3px;background:#4a6fa518;border:1px solid #4a6fa544;border-radius:8px;padding:10px 14px;margin-bottom:16px"></div>
     <div style="margin-bottom:16px">
       <div style="font-size:11px;color:#666;margin-bottom:6px">✏️ 自分の回答メモ・間違いノート</div>
       <input id="modal-memo" type="text" placeholder="例: streamの終端操作を混同 / AとC"
@@ -380,6 +381,10 @@ function openModal(k, source) {
   const ic = incCount(p);
   document.getElementById('modal-hist').textContent = p ? `履歴: ${hist || 'なし'}${ic>0?`　（×${ic}回）`:''}${p.ans?`　解答: ${p.ans}`:''}` : '';
   document.getElementById('modal-memo').value = p?.memo || '';
+  const pen = pendings[k];
+  const ansEl = document.getElementById('modal-ans');
+  if (pen) { ansEl.textContent = `あなたの解答: ${pen.ans.join(' ')}`; ansEl.classList.remove('hidden'); }
+  else ansEl.classList.add('hidden');
   document.getElementById('modal').classList.add('open');
 }
 function closeModal() { document.getElementById('modal').classList.remove('open'); modalKey=null; modalSource=null; }
@@ -415,7 +420,13 @@ function applyResult(k, result) {
 function setResult(result) {
   if(!modalKey) return;
   const k = modalKey, src = modalSource;
+  const pen = pendings[k];
   applyResult(k, result);
+  if (result !== 'reset' && pen) {
+    if (problems[k]) problems[k].ans = pen.ans.join('・');
+    delete pendings[k];
+  }
+  if (result === 'reset') delete pendings[k];
   save(); closeModal(); renderQGrid(); renderToday();
   // 連続入力モード：記録タブから開いた場合、次の問題を自動で開く
   if (src==='record' && settings.autoNext && result!=='reset') {
