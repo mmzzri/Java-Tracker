@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Java Silver 模擬試験 — 初見問題ドリル</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f0f1a; color: #e0e0e0; font-family: 'Noto Sans JP', 'Helvetica Neue', sans-serif; min-height: 100vh; padding: 16px; }
+  .wrap { max-width: 520px; margin: 0 auto; }
+  .header-label { font-size: 11px; letter-spacing: 4px; color: #e94560; text-transform: uppercase; margin-bottom: 4px; }
+  .header-title { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+  .header-sub { font-size: 12px; color: #888; margin-bottom: 20px; }
+  .card { background: #1a1a2e; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+  .card-title { font-size: 12px; color: #888; margin-bottom: 10px; }
+  .primary-btn { width: 100%; padding: 14px; border: none; border-radius: 10px; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; background: #e94560; }
+  .primary-btn:disabled { opacity: .4; }
+  .ghost-btn { width: 100%; padding: 11px; border: 1px solid #333; border-radius: 10px; color: #888; font-size: 13px; cursor: pointer; font-family: inherit; background: none; }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { padding: 6px 11px; border-radius: 20px; border: 1px solid #333; background: none; color: #777; font-size: 12px; font-family: inherit; cursor: pointer; }
+  .chip.on { border-color: #e94560; background: #e9456018; color: #e94560; font-weight: 700; }
+  .seg { display: flex; gap: 4px; background: #0f0f1a; border-radius: 8px; padding: 3px; }
+  .seg button { flex: 1; padding: 8px 4px; border: none; border-radius: 6px; background: none; color: #777; font-size: 12px; font-family: inherit; cursor: pointer; }
+  .seg button.on { background: #e94560; color: #fff; font-weight: 700; }
+  .cfg-label { font-size: 11px; color: #666; margin: 14px 0 6px; }
+  /* exam */
+  .exam-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; color: #888; }
+  .qtimer { font-weight: 800; font-variant-numeric: tabular-nums; }
+  .qtimer.warn { color: #f0a500; }
+  .qtimer.over { color: #e94560; }
+  .exam-bar-wrap { height: 4px; background: #1a1a2e; border-radius: 4px; overflow: hidden; margin-bottom: 16px; }
+  .exam-bar { height: 100%; background: #e94560; transition: width .3s; }
+  .q-text { font-size: 14px; color: #eee; line-height: 1.8; margin-bottom: 12px; }
+  .multi-tag { display: inline-block; font-size: 10px; font-weight: 700; color: #f0a500; border: 1px solid #f0a50066; border-radius: 4px; padding: 1px 6px; margin-left: 6px; vertical-align: 1px; }
+  pre.code { background: #12121f; border: 1px solid #2a2a3e; border-radius: 8px; padding: 12px; font-size: 12.5px; line-height: 1.65; overflow-x: auto; color: #cdd6f4; font-family: 'Roboto Mono', Consolas, monospace; margin-bottom: 14px; white-space: pre; }
+  .choices { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .choice { display: flex; gap: 10px; align-items: flex-start; padding: 12px; border: 1px solid #2a2a3e; border-radius: 10px; background: #12121f; color: #ccc; font-size: 13px; line-height: 1.6; font-family: inherit; text-align: left; cursor: pointer; width: 100%; }
+  .choice .mark { font-weight: 800; color: #555; flex-shrink: 0; }
+  .choice.sel { border-color: #e94560; background: #e9456012; }
+  .choice.sel .mark { color: #e94560; }
+  .choice.ok { border-color: #00d4a3; background: #00d4a312; }
+  .choice.ok .mark { color: #00d4a3; }
+  .choice.ng { border-color: #e94560; background: #e9456012; }
+  .choice.ng .mark { color: #e94560; }
+  .choice code, .q-text code { font-family: 'Roboto Mono', Consolas, monospace; font-size: 12px; background: #0f0f1a; padding: 1px 4px; border-radius: 4px; }
+  .exam-btns { display: flex; gap: 8px; }
+  .flag-btn { border: 1px solid #333; background: none; color: #777; border-radius: 10px; padding: 0 14px; font-size: 13px; cursor: pointer; font-family: inherit; }
+  .flag-btn.on { border-color: #f0a500; color: #f0a500; background: #f0a50012; }
+  .expl { background: #12121f; border-left: 3px solid #00d4a3; border-radius: 0 8px 8px 0; padding: 12px 14px; font-size: 13px; line-height: 1.8; color: #ccc; margin-bottom: 14px; white-space: pre-wrap; }
+  .expl.ng { border-left-color: #e94560; }
+  .verdict { font-size: 17px; font-weight: 800; margin-bottom: 10px; }
+  /* review */
+  .rev-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 14px; }
+  .rev-btn { aspect-ratio: 1; border-radius: 8px; border: 1px solid #2a2a3e; background: #12121f; color: #888; font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer; position: relative; }
+  .rev-btn.done { border-color: #4a6fa5; color: #9db4d8; background: #4a6fa512; }
+  .rev-btn.flagged::after { content: "🚩"; position: absolute; top: -5px; right: -3px; font-size: 9px; }
+  /* results */
+  .score-big { text-align: center; margin: 10px 0 16px; }
+  .score-val { font-size: 52px; font-weight: 800; }
+  .score-sub { font-size: 12px; color: #888; margin-top: 2px; }
+  .bar-wrap { height: 12px; background: #0f0f1a; border-radius: 6px; overflow: hidden; position: relative; margin: 8px 0 4px; }
+  .bar { height: 100%; border-radius: 6px; }
+  .passline { position: absolute; left: 65%; top: -2px; bottom: -2px; width: 2px; background: #f0a500; }
+  table.cat { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  table.cat td { padding: 7px 4px; border-bottom: 1px solid #23233a; color: #ccc; }
+  table.cat td:last-child { text-align: right; font-weight: 700; }
+  .res-item { border: 1px solid #23233a; border-radius: 10px; margin-bottom: 8px; overflow: hidden; }
+  .res-head { display: flex; justify-content: space-between; align-items: center; padding: 11px 13px; cursor: pointer; background: #12121f; width: 100%; border: none; color: inherit; font-family: inherit; font-size: 13px; text-align: left; }
+  .res-body { padding: 13px; border-top: 1px solid #23233a; display: none; }
+  .res-item.open .res-body { display: block; }
+  .hist-row { display: flex; justify-content: space-between; font-size: 12px; color: #888; padding: 6px 0; border-bottom: 1px solid #1f1f33; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===== CONFIG ===== -->
+  <div id="view-config">
+    <div class="header-label">Java SE 17 Silver</div>
+    <div class="header-title">初見問題 模擬試験</div>
+    <div class="header-sub">オリジナル36問・本番想定の時間訓練用</div>
+
+    <div class="card">
+      <div class="cfg-label" style="margin-top:0">モード</div>
+      <div class="seg" id="seg-mode">
+        <button class="on" data-v="exam" onclick="setMode('exam',this)">模試（採点は最後）</button>
+        <button data-v="drill" onclick="setMode('drill',this)">ドリル（1問ごと解説）</button>
+      </div>
+      <div class="cfg-label">出題数</div>
+      <div class="seg" id="seg-count">
+        <button data-v="10" onclick="setCount(10,this)">10問</button>
+        <button data-v="20" onclick="setCount(20,this)">20問</button>
+        <button class="on" data-v="0" onclick="setCount(0,this)">全問</button>
+      </div>
+      <div class="cfg-label">1問の時間目安（超過すると赤く表示）</div>
+      <div class="seg" id="seg-time">
+        <button data-v="90" onclick="setLimit(90,this)">1:30</button>
+        <button class="on" data-v="120" onclick="setLimit(120,this)">2:00</button>
+        <button data-v="150" onclick="setLimit(150,this)">2:30</button>
+      </div>
+      <div class="cfg-label">出題分野（タップで絞り込み）</div>
+      <div class="chip-row" id="cat-chips"></div>
+      <button class="primary-btn" style="margin-top:18px" onclick="startExam()" id="start-btn">▶ 開始する</button>
+    </div>
+
+    <div class="card" id="history-card">
+      <div class="card-title">これまでの結果</div>
+      <div id="history-list"></div>
+    </div>
+  </div>
+
+  <!-- ===== EXAM ===== -->
+  <div id="view-exam" class="hidden">
+    <div class="exam-top">
+      <span id="exam-pos"></span>
+      <span>合計 <span id="total-timer">0:00</span>　問 <span class="qtimer" id="q-timer">0:00</span></span>
+    </div>
+    <div class="exam-bar-wrap"><div class="exam-bar" id="exam-bar"></div></div>
+    <div class="q-text" id="q-text"></div>
+    <pre class="code" id="q-code"></pre>
+    <div class="choices" id="q-choices"></div>
+    <div id="drill-feedback" class="hidden">
+      <div class="verdict" id="drill-verdict"></div>
+      <div class="expl" id="drill-expl"></div>
+    </div>
+    <div class="exam-btns">
+      <button class="flag-btn" id="flag-btn" onclick="toggleFlag()">🚩</button>
+      <button class="primary-btn" id="next-btn" onclick="nextAction()">回答して次へ</button>
+    </div>
+    <button class="ghost-btn" style="margin-top:10px" id="skip-btn" onclick="skipQuestion()">スキップ（未回答のまま次へ）</button>
+    <button class="ghost-btn" style="margin-top:10px;border:none;color:#555" onclick="quitExam()">中断して最初に戻る</button>
+  </div>
+
+  <!-- ===== REVIEW ===== -->
+  <div id="view-review" class="hidden">
+    <div class="header-title" style="font-size:18px">見直し</div>
+    <div class="header-sub">タップで戻れます。🚩=見直しフラグ、青=回答済み</div>
+    <div class="card">
+      <div class="rev-grid" id="rev-grid"></div>
+      <button class="primary-btn" onclick="grade()">採点する</button>
+    </div>
+  </div>
+
+  <!-- ===== RESULT ===== -->
+  <div id="view-result" class="hidden">
+    <div class="header-label">Result</div>
+    <div class="header-title" style="font-size:18px">採点結果</div>
+    <div class="card">
+      <div class="score-big">
+        <div class="score-val" id="score-val"></div>
+        <div class="score-sub" id="score-sub"></div>
+      </div>
+      <div style="font-size:11px;color:#666">合格ライン 65%</div>
+      <div class="bar-wrap"><div class="bar" id="score-bar"></div><div class="passline"></div></div>
+      <div style="font-size:12px;color:#888;margin-top:10px" id="time-summary"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">分野別正答率</div>
+      <table class="cat" id="cat-table"></table>
+    </div>
+    <div class="card">
+      <div class="card-title">全問題の解説 <span style="font-size:10px;color:#555">タップで展開</span></div>
+      <div id="res-list"></div>
+    </div>
+    <button class="primary-btn" onclick="backToConfig()">最初に戻る</button>
+    <div style="height:20px"></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   問題データ
+   answers: 正解の選択肢インデックス（0始まり）。複数=複数選択問題
+   ============================================================ */
+const QUESTIONS = [
+// ---------- switch ----------
+{cat:"switch式・switch文", text:"次のコードの実行結果はどれか。", code:
+`int i = 3;
+String s = switch (i) {
+    case 1 -> "one";
+    case 2 -> "two";
+    default -> {
+        yield "other";
+    }
+};
+System.out.println(s);`,
+choices:["one","two","other","コンパイルエラーになる"], answers:[2],
+expl:`正解: other
+
+switch式でブロック { } を使う場合は yield で値を返す。default があるため網羅性も満たしており、正常にコンパイル・実行される。i=3 はどのcaseにも一致しないので default に入り "other" が返る。
+
+・A/B: i=3 なので一致しない
+・D: yield の使い方は正しい。「ブロック内で return を使う」と誤解しやすいが、switch式のブロックでは yield が正しい`},
+
+{cat:"switch式・switch文", text:"次のコードをコンパイル・実行するとどうなるか。", code:
+`int x = 2;
+String s = switch (x) {
+    case 1 -> "A";
+    case 2 -> "B";
+};
+System.out.println(s);`,
+choices:["B と出力される","A と出力される","実行時に例外が発生する","コンパイルエラーになる"], answers:[3],
+expl:`正解: コンパイルエラーになる
+
+switch「式」は値を必ず生成しなければならないため、すべての入力を網羅する必要がある。int型はcase 1とcase 2だけでは網羅できないので、defaultが必須。これがないためコンパイルエラー。
+
+・A: x=2 なので default があれば "B" になるが、そもそもコンパイルが通らない
+・switch「文」であれば default なしでも合法。式と文の違いを問う定番論点`},
+
+{cat:"switch式・switch文", text:"次のコードの実行結果はどれか。", code:
+`int i = 1;
+switch (i) {
+    case 1: System.out.print("A");
+    case 2: System.out.print("B"); break;
+    case 3: System.out.print("C");
+}`,
+choices:["A","AB","ABC","コンパイルエラーになる"], answers:[1],
+expl:`正解: AB
+
+従来型のswitch文（コロン形式）は break がないと次のcaseに落ちる（フォールスルー）。case 1 で "A" を出力後、breakがないので case 2 に落ちて "B" を出力し、break で抜ける。
+
+・アロー形式（case 1 ->）ならフォールスルーは起きない。コロン形式かアロー形式かを最初に確認する癖をつけると速く解ける`},
+
+// ---------- instanceof ----------
+{cat:"instanceofパターンマッチング", text:"次のコードの実行結果はどれか。", code:
+`Object obj = "hello";
+if (obj instanceof String s && s.length() > 3) {
+    System.out.println(s.toUpperCase());
+} else {
+    System.out.println("no");
+}`,
+choices:["hello","HELLO","no","コンパイルエラーになる"], answers:[1],
+expl:`正解: HELLO
+
+instanceofのパターンマッチングでは、型判定が成立した場合にパターン変数 s が使える。&& の右側では s のスコープが有効（左側がtrueの場合しか評価されないため）。"hello" は長さ5 > 3 なので大文字化して出力。
+
+・D: 「&&の右でsは使えない」と考えるとひっかかる。|| の場合は右側で使えない点との対比で覚える`},
+
+{cat:"instanceofパターンマッチング", text:"次のコードをコンパイル・実行するとどうなるか。", code:
+`Object o = Integer.valueOf(10);
+if (!(o instanceof String s)) {
+    System.out.println("not string");
+} else {
+    System.out.println(s.length());
+}`,
+choices:["not string と出力される","10 と出力される","コンパイルエラーになる（elseブロックでsは未定義）","実行時に例外が発生する"], answers:[0],
+expl:`正解: not string と出力される
+
+フロースコープの応用問題。条件が !(o instanceof String s) の場合、条件がfalse＝「oはString」であるelseブロック側でパターン変数 s が有効になる。コンパイルは正常に通る。実行時は o がIntegerなので条件はtrueとなり "not string" が出力される。
+
+・C: 否定形のときはスコープが反転する、が正しい理解。ここを問う問題は本番でも頻出`},
+
+// ---------- record ----------
+{cat:"record", text:"次のコードの実行結果はどれか。", code:
+`record Point(int x, int y) {
+    Point {
+        if (x < 0) throw new IllegalArgumentException();
+    }
+}
+public class Main {
+    public static void main(String[] args) {
+        Point p = new Point(3, 4);
+        System.out.println(p.x() + p.y());
+    }
+}`,
+choices:["7","34","コンパイルエラーになる（getX()が存在しない）","実行時に例外が発生する"], answers:[0],
+expl:`正解: 7
+
+recordのアクセサは getX() ではなく x() という名前で自動生成される。Point { ... } はコンパクトコンストラクタで、引数リストを書かずに検証処理だけを記述できる。x=3 は負でないので例外は発生せず、int同士の加算 3+4=7 が出力される。
+
+・B: どちらもintなので文字列連結にはならない
+・C: get形式でないことがrecordの特徴`},
+
+{cat:"record", text:"recordに関する説明として正しいものはどれか。", code:null,
+choices:["各コンポーネントに対応するフィールドは暗黙的にprivate finalである","recordは他のクラスをextendsできる","recordはabstract宣言できる","アクセサメソッドはgetX()の形式で生成される"], answers:[0],
+expl:`正解: フィールドは暗黙的にprivate final
+
+recordは不変（イミュータブル）なデータキャリアで、コンポーネントのフィールドはprivate finalになる。
+
+・B: recordは暗黙的にjava.lang.Recordを継承するため、他クラスをextendsできない（インタフェースの実装は可能）
+・C: recordは暗黙的にfinalクラスなのでabstractにできない
+・D: アクセサは x() 形式`},
+
+// ---------- sealed ----------
+{cat:"sealedクラス", text:"次のコードをコンパイルするとどうなるか。", code:
+`sealed interface Shape permits Circle, Square {}
+final class Circle implements Shape {}
+class Square implements Shape {}`,
+choices:["正常にコンパイルできる","Squareでコンパイルエラーになる","Circleでコンパイルエラーになる","permits句が不要なためエラーになる"], answers:[1],
+expl:`正解: Squareでコンパイルエラーになる
+
+sealed型を実装（継承）するクラスは、final・sealed・non-sealed のいずれかで修飾しなければならない。Squareは無修飾なのでエラー。
+
+・C: Circleはfinalなので合法
+・D: permitsで許可する型を列挙するのはsealedの基本構文。同一ファイル内なら省略も可能だが、あってもエラーにはならない`},
+
+// ---------- インタフェース ----------
+{cat:"インタフェース", text:"次のコードの実行結果はどれか。", code:
+`interface Greet {
+    private String name() { return "Java"; }
+    default void hello() {
+        System.out.println("Hello " + name());
+    }
+}
+public class Main implements Greet {
+    public static void main(String[] args) {
+        new Main().hello();
+    }
+}`,
+choices:["Hello Java","コンパイルエラーになる（インタフェースにprivateメソッドは定義できない）","コンパイルエラーになる（Mainがname()を実装していない）","実行時に例外が発生する"], answers:[0],
+expl:`正解: Hello Java
+
+Java 9以降、インタフェースにはprivateメソッドを定義できる（実装を持つ）。defaultメソッドの共通処理をまとめる用途で使う。privateメソッドは実装クラスに継承されないので、Mainが実装する必要もない。
+
+・B: 「インタフェース=実装なし」はJava 7までの知識。default/static/privateメソッドは実装を持てる`},
+
+{cat:"インタフェース", text:"次のコードをコンパイルするとどうなるか。", code:
+`interface A { default String m() { return "A"; } }
+interface B { default String m() { return "B"; } }
+class C implements A, B { }`,
+choices:["正常にコンパイルでき、C の m() は \"A\" を返す","正常にコンパイルでき、C の m() は \"B\" を返す","クラスCでコンパイルエラーになる","インタフェースBでコンパイルエラーになる"], answers:[2],
+expl:`正解: クラスCでコンパイルエラーになる
+
+同じシグネチャのdefaultメソッドを持つ2つのインタフェースを実装すると衝突が起き、実装クラスでm()をオーバーライドして解決しなければならない。オーバーライド内で A.super.m() のように特定の親を呼ぶこともできる。
+
+・A/B: どちらかが自動的に優先されることはない（クラスの継承と違い、インタフェース間に優先順位はない）`},
+
+// ---------- オーバーライド／オーバーロード ----------
+{cat:"オーバーライド／オーバーロード", text:"次のコードをコンパイルするとどうなるか。", code:
+`import java.io.IOException;
+class Parent {
+    void run() throws IOException { }
+}
+class Child extends Parent {
+    @Override
+    void run() throws Exception { }
+}`,
+choices:["正常にコンパイルできる","Childでコンパイルエラーになる","Parentでコンパイルエラーになる","@Overrideを外せばコンパイルできる"], answers:[1],
+expl:`正解: Childでコンパイルエラーになる
+
+オーバーライドでは、親メソッドより「広い」チェック例外をthrowsに宣言できない。ExceptionはIOExceptionのスーパークラスなので違反。逆に狭くする・無くす・非チェック例外を足すのは合法。
+
+・D: @Overrideを外しても、シグネチャが同じ以上オーバーライドの規則は適用されるためエラーのまま`},
+
+{cat:"オーバーライド／オーバーロード", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    static void m(long x)    { System.out.println("long"); }
+    static void m(Integer x) { System.out.println("Integer"); }
+    public static void main(String[] args) {
+        m(5);
+    }
+}`,
+choices:["long","Integer","コンパイルエラーになる（呼び出しが曖昧）","実行時に例外が発生する"], answers:[0],
+expl:`正解: long
+
+オーバーロード解決の優先順位は ①完全一致 → ②暗黙の型変換（拡大: int→long） → ③オートボクシング（int→Integer） → ④可変長引数。int→longの拡大変換がボクシングより優先されるため m(long) が選ばれる。
+
+・この優先順位は頻出。「拡大 > ボクシング > 可変長」と覚える`},
+
+{cat:"オーバーライド／オーバーロード", text:"次のコードの実行結果はどれか。", code:
+`class A { static String who() { return "A"; } }
+class B extends A { static String who() { return "B"; } }
+public class Main {
+    public static void main(String[] args) {
+        A a = new B();
+        System.out.println(a.who());
+    }
+}`,
+choices:["A","B","コンパイルエラーになる","実行時に例外が発生する"], answers:[0],
+expl:`正解: A
+
+staticメソッドはオーバーライドではなく「隠蔽（hiding）」になる。呼び出しは参照の型（コンパイル時の型）で解決されるため、A型変数経由なら A.who() が呼ばれる。インスタンスメソッドなら実際のオブジェクトの型で "B" になるところ。
+
+・staticメソッドをインスタンス参照経由で呼ぶこと自体は合法（警告は出るがエラーではない）`},
+
+// ---------- キャストとポリモーフィズム ----------
+{cat:"キャストとポリモーフィズム", text:"次のコードをコンパイル・実行するとどうなるか。", code:
+`class Animal {
+    void sound() { System.out.print("A"); }
+}
+class Dog extends Animal {
+    void sound() { System.out.print("D"); }
+    void fetch() { System.out.print("F"); }
+}
+public class Main {
+    public static void main(String[] args) {
+        Animal a = new Dog();
+        a.sound();
+        a.fetch();
+    }
+}`,
+choices:["DF と出力される","AF と出力される","D と出力された後、実行時例外が発生する","コンパイルエラーになる"], answers:[3],
+expl:`正解: コンパイルエラーになる
+
+呼び出せるメソッドは「参照の型」で決まる。Animal型にはfetch()が存在しないため、a.fetch() はコンパイルエラー。((Dog) a).fetch() とキャストすれば呼べる。
+
+・C: コンパイルエラーなので実行自体されない。「途中まで出力されてからエラー」という選択肢は、コンパイルエラーと実行時例外の混同を誘うひっかけ`},
+
+{cat:"キャストとポリモーフィズム", text:"次のコードをコンパイル・実行するとどうなるか。", code:
+`class Animal { }
+class Dog extends Animal {
+    void bark() { System.out.println("bow"); }
+}
+public class Main {
+    public static void main(String[] args) {
+        Animal a = new Animal();
+        Dog d = (Dog) a;
+        d.bark();
+    }
+}`,
+choices:["bow と出力される","コンパイルエラーになる","実行時にClassCastExceptionが発生する","実行時にNullPointerExceptionが発生する"], answers:[2],
+expl:`正解: 実行時にClassCastExceptionが発生する
+
+親→子へのダウンキャストは、継承関係がある以上コンパイルは通る。しかし実行時、aの実体はAnimalであってDogではないため、キャストの瞬間にClassCastExceptionが発生する。
+
+・実体が new Dog() であればこのキャストは成功する。「コンパイル可否は宣言型、実行時可否は実体」で判断する`},
+
+{cat:"キャストとポリモーフィズム", text:"次のコードの実行結果はどれか。", code:
+`class A {
+    String name = "A";
+    String get() { return "a"; }
+}
+class B extends A {
+    String name = "B";
+    String get() { return "b"; }
+}
+public class Main {
+    public static void main(String[] args) {
+        A obj = new B();
+        System.out.println(obj.name + obj.get());
+    }
+}`,
+choices:["Ab","Bb","Aa","Ba"], answers:[0],
+expl:`正解: Ab
+
+フィールドはポリモーフィズムの対象外で、参照の型（A）で解決される → "A"。メソッドは実体の型（B）で動的に解決される → "b"。
+
+・「フィールドは静的、メソッドは動的」は超頻出。フィールドとメソッドが同名系で並んでいたらこの論点を疑う`},
+
+// ---------- 例外処理 ----------
+{cat:"例外処理", text:"非チェック例外（unchecked exception）はどれか。2つ選べ。", code:null, multi:true,
+choices:["IOException","NullPointerException","FileNotFoundException","ArithmeticException"], answers:[1,3],
+expl:`正解: NullPointerException と ArithmeticException
+
+RuntimeExceptionとそのサブクラス、およびErrorが非チェック例外。NullPointerException・ArithmeticExceptionはどちらもRuntimeExceptionのサブクラスで、throws宣言もtry-catchも強制されない。
+
+・IOException / FileNotFoundException（IOExceptionのサブクラス）はチェック例外で、コンパイラが処理を強制する
+・代表例の分類は暗記必須: 非チェック → NPE, ArrayIndexOutOfBounds, ClassCast, NumberFormat, Arithmetic, IllegalArgument`},
+
+{cat:"例外処理", text:"次のコードをコンパイルするとどうなるか。", code:
+`import java.io.*;
+public class Main {
+    public static void main(String[] args) {
+        try {
+            throw new FileNotFoundException();
+        } catch (FileNotFoundException | IOException e) {
+            System.out.println("caught");
+        }
+    }
+}`,
+choices:["caught と出力される","コンパイルエラーになる","実行時に例外がそのままスローされる","何も出力されない"], answers:[1],
+expl:`正解: コンパイルエラーになる
+
+multi-catchに並べる例外同士は、継承関係にあってはならない。FileNotFoundExceptionはIOExceptionのサブクラスなのでエラー。catch (IOException e) だけにすれば両方捕捉できる。
+
+・関連知識: multi-catchの変数 e は暗黙的にfinalで、再代入できない`},
+
+{cat:"例外処理", text:"次のコードの実行結果はどれか。", code:
+`class Res implements AutoCloseable {
+    private final String id;
+    Res(String id) { this.id = id; }
+    public void close() { System.out.print(id); }
+}
+public class Main {
+    public static void main(String[] args) {
+        try (Res r1 = new Res("1"); Res r2 = new Res("2")) {
+            System.out.print("T");
+        }
+    }
+}`,
+choices:["T12","T21","12T","コンパイルエラーになる"], answers:[1],
+expl:`正解: T21
+
+try-with-resourcesでは、リソースは「宣言と逆順」でクローズされる。tryブロックで "T" を出力後、r2 → r1 の順にclose()が呼ばれる。
+
+・逆順になる理由は、後に作ったリソースが先のリソースに依存している可能性があるため
+・close()のthrows Exceptionを宣言しないオーバーライドは「例外を狭める」方向なので合法`},
+
+{cat:"例外処理", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    static int m() {
+        try {
+            return 1;
+        } finally {
+            System.out.print("F");
+        }
+    }
+    public static void main(String[] args) {
+        System.out.print(m());
+    }
+}`,
+choices:["1F","F1","1","コンパイルエラーになる"], answers:[1],
+expl:`正解: F1
+
+finallyブロックはreturnの「後」ではなく、メソッドが呼び出し元に戻る「前」に実行される。return 1 の値が確定 → finallyで "F" を出力 → 呼び出し元に1が返り "1" が出力される。
+
+・出力順は F → 1。「returnしたらfinallyは実行されない」という誤解を突く定番問題`},
+
+{cat:"例外処理", text:"次のコードをコンパイルするとどうなるか。", code:
+`class MyException extends Exception { }
+public class Main {
+    static void doIt() {
+        throw new MyException();
+    }
+    public static void main(String[] args) {
+        doIt();
+    }
+}`,
+choices:["正常にコンパイルでき、実行時にMyExceptionがスローされる","doIt()でコンパイルエラーになる","main()でコンパイルエラーになる","MyExceptionの定義でコンパイルエラーになる"], answers:[1],
+expl:`正解: doIt()でコンパイルエラーになる
+
+Exceptionを継承したMyExceptionはチェック例外。チェック例外をスローするメソッドは、throws宣言するかtry-catchで処理しなければならない。doIt()はどちらもしていないためエラー。
+
+・MyExceptionが extends RuntimeException なら非チェック例外となり、そのままコンパイルできる。カスタム例外は「何を継承しているか」を最初に見る`},
+
+// ---------- 変数とスコープ ----------
+{cat:"変数とスコープ", text:"次のコードをコンパイルするとどうなるか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        int x;
+        if (args.length > 0) {
+            x = 1;
+        }
+        System.out.println(x);
+    }
+}`,
+choices:["引数があれば1、なければ0と出力される","引数がなければ実行時例外が発生する","コンパイルエラーになる","常に0と出力される"], answers:[2],
+expl:`正解: コンパイルエラーになる
+
+ローカル変数はデフォルト値で初期化されない。if文を通らない経路ではxが未初期化のままなので、「初期化されていない可能性がある」としてコンパイルエラー。
+
+・A/D: デフォルト値0が入るのはフィールド（メンバ変数）だけ。ローカル変数との違いは頻出
+・else節でも代入するか、宣言時に初期化すればコンパイルできる`},
+
+{cat:"変数とスコープ", text:"varの使い方として正しいものはどれか。", code:null,
+choices:["var s = null;","var x; x = 10;","var list = new java.util.ArrayList<String>();","クラスのフィールドを var count = 0; と宣言する"], answers:[2],
+expl:`正解: var list = new ArrayList<String>();
+
+varはローカル変数の型推論。初期化子から型が推論できる場合のみ使える。
+
+・A: nullからは型を推論できないためエラー
+・B: 宣言と同時に初期化しなければならない
+・D: varが使えるのはローカル変数（と拡張for・従来for）のみ。フィールド、メソッド引数、戻り値には使えない`},
+
+// ---------- 文字列操作 ----------
+{cat:"文字列操作", text:"次のコードの実行結果はどれか。", code:
+`String s = "java";
+s.concat(" silver");
+s.toUpperCase();
+System.out.println(s);`,
+choices:["java","java silver","JAVA SILVER","JAVA"], answers:[0],
+expl:`正解: java
+
+Stringは不変（イミュータブル）。concat()もtoUpperCase()も「新しい文字列を返す」だけで、元のsは一切変わらない。戻り値をsに再代入していないため、sは "java" のまま。
+
+・s = s.concat(...) のように受け取れば変化する。「戻り値を捨てていないか」をチェックするのが定石`},
+
+{cat:"文字列操作", text:"次のコードをコンパイルするとどうなるか。", code:
+`String s = """Hello""";
+System.out.println(s);`,
+choices:["Hello と出力される","空文字が出力される","コンパイルエラーになる","実行時に例外が発生する"], answers:[2],
+expl:`正解: コンパイルエラーになる
+
+テキストブロックの開始デリミタ \"\"\" の直後には改行が必須。1行で完結する書き方はできない。
+
+正しい書き方:
+String s = \"\"\"
+    Hello\"\"\";
+
+・終了デリミタの位置が各行の共通インデント（除去される空白）を決める点もあわせて頻出`},
+
+{cat:"文字列操作", text:"次のコードの実行結果はどれか。", code:
+`StringBuilder sb = new StringBuilder("abcde");
+sb.delete(1, 3).insert(1, "X");
+System.out.println(sb);`,
+choices:["aXde","aXcde","Xade","abXde"], answers:[0],
+expl:`正解: aXde
+
+delete(1, 3) は開始インデックス1から「終了インデックス3の直前まで」（=インデックス1と2、"bc"）を削除 → "ade"。続けて insert(1, "X") でインデックス1に挿入 → "aXde"。
+
+・StringBuilderは可変なのでメソッドチェーンで自身が書き換わる
+・「endは含まない」はsubstringと共通のルール`},
+
+{cat:"文字列操作", text:"次のコードの実行結果はどれか。", code:
+`String s = "programming";
+System.out.println(s.substring(3, 7));`,
+choices:["gram","gramm","ogra","ramm"], answers:[0],
+expl:`正解: gram
+
+substring(begin, end) はbeginを含み、endを含まない。インデックスは0始まりなので、p(0) r(1) o(2) g(3) r(4) a(5) m(6) → インデックス3〜6の "gram"。
+
+・迷ったら「文字数 = end - begin」（7-3=4文字）で検算すると速い`},
+
+// ---------- 繰り返し文 ----------
+{cat:"繰り返し文", text:"次のコードの実行結果はどれか。", code:
+`int i = 5;
+do {
+    System.out.print(i + " ");
+    i--;
+} while (i > 5);`,
+choices:["何も出力されない","5 と出力される","5 4 3 2 1 と出力される","無限ループになる"], answers:[1],
+expl:`正解: 5 と出力される
+
+do-whileは条件判定の「前」に必ず1回ボディを実行する。"5 " を出力してi=4になった後、条件 i > 5 はfalseなのでループ終了。
+
+・whileループなら最初の判定でfalseとなり何も出力されない。do-whileとの違いはここだけ`},
+
+{cat:"繰り返し文", text:"次のコードの実行結果はどれか。", code:
+`int[][] arr = { {1, 2}, {3, 4, 5} };
+int sum = 0;
+for (int[] row : arr) {
+    for (int v : row) {
+        sum += v;
+    }
+}
+System.out.println(sum);`,
+choices:["15","10","6","コンパイルエラーになる"], answers:[0],
+expl:`正解: 15
+
+2次元配列は「配列の配列」。各行の長さが異なってもよい（ジャグ配列）。拡張forの外側はint[]型、内側はint型で受ける。1+2+3+4+5 = 15。
+
+・D: 拡張forの変数型が要素型と一致していれば合法。外側を int で受けていたらコンパイルエラー`},
+
+{cat:"繰り返し文", text:"次のコードの実行結果はどれか。", code:
+`outer:
+for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+        if (j == 1) continue outer;
+        System.out.print(i + "" + j + " ");
+    }
+}`,
+choices:["00 10 20","00 01 02","00","00 01 02 10 11 12 20 21 22"], answers:[0],
+expl:`正解: 00 10 20
+
+continue outer はラベル付きcontinueで、外側ループの「次の周回」に進む。各iについてj=0で出力した後、j=1でcontinue outerにより外側のi++へ飛ぶ。よって00, 10, 20のみ出力。
+
+・break outer なら外側ループごと終了して "00" だけになる。breakとcontinueの違いに注意`},
+
+// ---------- main・パッケージ ----------
+{cat:"main・パッケージ", text:"次のプログラムを java Main one two three と実行した場合の出力はどれか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        System.out.println(args[1]);
+    }
+}`,
+choices:["one","two","Main","three"], answers:[1],
+expl:`正解: two
+
+コマンドライン引数にクラス名（Main）は含まれない。args[0]="one", args[1]="two", args[2]="three"。
+
+・C言語のargv[0]（プログラム名が入る）と混同させるひっかけが定番。Javaでは引数のみが渡る`},
+
+{cat:"main・パッケージ", text:"エントリーポイント（プログラムの起動メソッド）として有効なmainメソッドはどれか。2つ選べ。", code:null, multi:true,
+choices:["public static void main(String[] args)","public void main(String[] args)","static public void main(String... args)","public static int main(String[] args)"], answers:[0,2],
+expl:`正解: AとC
+
+mainはpublic・static・戻り値void・引数はString配列（可変長引数String...も可）が条件。修飾子の順序（static public）は自由。
+
+・B: staticがないため起動できない
+・D: 戻り値はvoidでなければならない（intを返すのはC言語の慣習）
+・argsという引数名は自由に変えてよい`},
+
+{cat:"main・パッケージ", text:"import文に関する説明として正しいものはどれか。", code:null,
+choices:["java.langパッケージのクラスは明示的なimportが必要である","import java.util.*; と書いてもjava.util.regexパッケージのクラスはインポートされない","import文はクラス宣言の後に書くことができる","package宣言はimport文の後に書く"], answers:[1],
+expl:`正解: ワイルドカードにサブパッケージは含まれない
+
+import java.util.*; がインポートするのはjava.util直下のクラスのみ。java.util.regexやjava.util.functionは別パッケージ扱いで、必要なら個別にimportする。
+
+・A: java.lang（String, System, Mathなど）は暗黙的にインポート済み
+・C/D: ソースファイルの順序は package → import → クラス宣言 で固定`},
+
+// ---------- コンストラクタ・抽象クラス ----------
+{cat:"コンストラクタ・抽象クラス", text:"次のコードの実行結果はどれか。", code:
+`class A {
+    A() { System.out.print("A"); }
+}
+class B extends A {
+    B() { System.out.print("B"); }
+}
+public class Main {
+    public static void main(String[] args) {
+        new B();
+    }
+}`,
+choices:["B","AB","BA","コンパイルエラーになる"], answers:[1],
+expl:`正解: AB
+
+サブクラスのコンストラクタの先頭では、明示していなくても暗黙的に super() が呼ばれる。よってAのコンストラクタが先に実行され "A" → 続いてBの本体で "B"。
+
+・親に引数なしコンストラクタが存在しない（引数ありのみ定義されている）場合は、明示的にsuper(引数)を書かないとコンパイルエラーになる点もセットで頻出`},
+
+{cat:"コンストラクタ・抽象クラス", text:"次のコードをコンパイルするとどうなるか。", code:
+`public class Main {
+    Main(int x) { System.out.print("X"); }
+    Main() {
+        System.out.print("C");
+        this(1);
+    }
+    public static void main(String[] args) {
+        new Main();
+    }
+}`,
+choices:["CX と出力される","XC と出力される","コンパイルエラーになる","実行時に例外が発生する"], answers:[2],
+expl:`正解: コンパイルエラーになる
+
+this()（別コンストラクタの呼び出し）はコンストラクタの「先頭文」でなければならない。System.out.printの後に書いているためエラー。super()も同じルール。
+
+・A: this(1)を先頭に移動すれば "XC" と出力される
+・this()とsuper()を同じコンストラクタ内に両方書くこともできない（どちらも先頭でなければならないため）`},
+
+{cat:"コンストラクタ・抽象クラス", text:"次のコードの実行結果はどれか。", code:
+`abstract class Shape {
+    abstract double area();
+    void print() { System.out.println("area=" + area()); }
+}
+class Circle extends Shape {
+    double area() { return 3.0; }
+}
+public class Main {
+    public static void main(String[] args) {
+        Shape s = new Circle();
+        s.print();
+    }
+}`,
+choices:["area=3.0","コンパイルエラーになる（抽象クラスに具象メソッドは定義できない）","コンパイルエラーになる（抽象クラス型の変数は宣言できない）","実行時に例外が発生する"], answers:[0],
+expl:`正解: area=3.0
+
+抽象クラスは、抽象メソッドと具象メソッド（実装あり）を混在できる。インスタンス化（new Shape()）はできないが、参照型としての利用は自由。print()内のarea()呼び出しは実体Circleのarea()に動的に解決される（テンプレートメソッドの形）。
+
+・B: 混在可能。「全メソッドが抽象」なのはインタフェースの古いイメージ
+・C: 抽象クラス型・インタフェース型の変数宣言は多態性の基本`},
+];
+
+/* ============================================================ */
+const CATS = [...new Set(QUESTIONS.map(q=>q.cat))];
+const HKEY = "java-silver-mock-v1";
+const LETTERS = ["A","B","C","D","E"];
+
+let cfg = { mode:"exam", count:0, limit:120, cats:new Set(CATS) };
+let ex = null; // {items:[{q, order, selected:Set, flagged, timeMs}], idx, startedAt, qStartedAt, drillAnswered}
+let timerId = null;
+
+const esc = s => s==null?"":String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const fmt = ms => { const t=Math.floor(ms/1000); return `${Math.floor(t/60)}:${String(t%60).padStart(2,"0")}`; };
+const shuffle = a => { const x=[...a]; for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]];} return x; };
+
+/* ---------- config ---------- */
+function setMode(v,el){ cfg.mode=v; segOn(el); }
+function setCount(v,el){ cfg.count=v; segOn(el); }
+function setLimit(v,el){ cfg.limit=v; segOn(el); }
+function segOn(el){ [...el.parentElement.children].forEach(b=>b.classList.toggle("on",b===el)); }
+
+function renderChips() {
+  document.getElementById("cat-chips").innerHTML = CATS.map((c,i)=>
+    `<button class="chip${cfg.cats.has(c)?' on':''}" onclick="toggleCat(${i})">${esc(c)} <span style="opacity:.6">${QUESTIONS.filter(q=>q.cat===c).length}</span></button>`
+  ).join("");
+  const n = QUESTIONS.filter(q=>cfg.cats.has(q.cat)).length;
+  const btn = document.getElementById("start-btn");
+  btn.disabled = n===0;
+  btn.textContent = n===0 ? "分野を選んでください" : `▶ 開始する（対象 ${n}問）`;
+}
+function toggleCat(i) {
+  const c = CATS[i];
+  if (cfg.cats.has(c)) { if (cfg.cats.size>1 || true) cfg.cats.delete(c); } else cfg.cats.add(c);
+  renderChips();
+}
+
+function renderHistory() {
+  let hist = [];
+  try { hist = JSON.parse(localStorage.getItem(HKEY)||"[]"); } catch {}
+  const el = document.getElementById("history-list");
+  if (hist.length===0) { el.innerHTML = '<div style="font-size:12px;color:#555">まだ記録がありません</div>'; return; }
+  el.innerHTML = hist.slice(-6).reverse().map(h=>
+    `<div class="hist-row"><span>${esc(h.date)}　${h.mode==='drill'?'ドリル':'模試'} ${h.total}問</span><span style="color:${h.pct>=65?'#00d4a3':'#e94560'};font-weight:700">${h.pct}%</span></div>`
+  ).join("");
+  // 弱点分野
+  const catAgg = {};
+  hist.forEach(h=>Object.entries(h.cats||{}).forEach(([c,v])=>{ catAgg[c]=catAgg[c]||{ok:0,n:0}; catAgg[c].ok+=v.ok; catAgg[c].n+=v.n; }));
+  const weak = Object.entries(catAgg).filter(([,v])=>v.n>=2).map(([c,v])=>({c,pct:Math.round(v.ok/v.n*100)})).sort((a,b)=>a.pct-b.pct).slice(0,3);
+  if (weak.length) el.innerHTML += `<div style="font-size:11px;color:#f0a500;margin-top:10px">要注意分野: ${weak.map(w=>`${esc(w.c)} ${w.pct}%`).join(" ／ ")}</div>`;
+}
+
+/* ---------- exam flow ---------- */
+function startExam() {
+  let pool = QUESTIONS.filter(q=>cfg.cats.has(q.cat));
+  pool = shuffle(pool);
+  if (cfg.count>0) pool = pool.slice(0, cfg.count);
+  ex = {
+    items: pool.map(q=>({ q, order: shuffle(q.choices.map((_,i)=>i)), selected:new Set(), flagged:false, timeMs:0 })),
+    idx: 0, startedAt: Date.now(), qStartedAt: Date.now(), drillAnswered:false
+  };
+  showView("exam");
+  renderQuestion();
+  timerId = setInterval(tickTimers, 500);
+}
+function showView(name) {
+  ["config","exam","review","result"].forEach(v=>document.getElementById("view-"+v).classList.toggle("hidden", v!==name));
+  window.scrollTo(0,0);
+}
+function tickTimers() {
+  if (!ex) return;
+  document.getElementById("total-timer").textContent = fmt(Date.now()-ex.startedAt);
+  const cur = ex.items[ex.idx];
+  if (!cur) return;
+  const elapsed = cur.timeMs + (Date.now()-ex.qStartedAt);
+  const el = document.getElementById("q-timer");
+  el.textContent = fmt(elapsed);
+  el.className = "qtimer" + (elapsed > cfg.limit*1000 ? " over" : elapsed > cfg.limit*800 ? " warn" : "");
+}
+
+function renderQuestion() {
+  const it = ex.items[ex.idx];
+  const q = it.q;
+  document.getElementById("exam-pos").textContent = `問 ${ex.idx+1} / ${ex.items.length}`;
+  document.getElementById("exam-bar").style.width = `${(ex.idx/ex.items.length)*100}%`;
+  document.getElementById("q-text").innerHTML = esc(q.text) + (q.multi?'<span class="multi-tag">2つ選択</span>':"");
+  const codeEl = document.getElementById("q-code");
+  if (q.code) { codeEl.textContent = q.code; codeEl.classList.remove("hidden"); }
+  else codeEl.classList.add("hidden");
+  document.getElementById("q-choices").innerHTML = it.order.map((origIdx,pos)=>
+    `<button class="choice${it.selected.has(origIdx)?' sel':''}" onclick="pick(${origIdx})">
+      <span class="mark">${LETTERS[pos]}</span><span>${esc(q.choices[origIdx])}</span></button>`
+  ).join("");
+  document.getElementById("flag-btn").className = "flag-btn"+(it.flagged?" on":"");
+  document.getElementById("drill-feedback").classList.add("hidden");
+  ex.drillAnswered = false;
+  document.getElementById("next-btn").textContent = "回答して次へ";
+  document.getElementById("next-btn").disabled = it.selected.size===0;
+  document.getElementById("skip-btn").classList.remove("hidden");
+  ex.qStartedAt = Date.now();
+  tickTimers();
+}
+
+function pick(origIdx) {
+  if (ex.drillAnswered) return;
+  const it = ex.items[ex.idx];
+  if (it.q.multi) {
+    it.selected.has(origIdx) ? it.selected.delete(origIdx) : it.selected.add(origIdx);
+  } else {
+    it.selected.clear(); it.selected.add(origIdx);
+  }
+  [...document.getElementById("q-choices").children].forEach((btn,pos)=>{
+    btn.classList.toggle("sel", it.selected.has(it.order[pos]));
+  });
+  document.getElementById("next-btn").disabled = it.selected.size===0;
+}
+
+function stopQClock() {
+  const it = ex.items[ex.idx];
+  it.timeMs += Date.now() - ex.qStartedAt;
+  ex.qStartedAt = Date.now();
+}
+
+function nextAction() {
+  const it = ex.items[ex.idx];
+  if (cfg.mode==="drill" && !ex.drillAnswered) {
+    // ドリル: まず答え合わせを表示
+    stopQClock();
+    ex.drillAnswered = true;
+    const ok = isCorrect(it);
+    const fb = document.getElementById("drill-feedback");
+    fb.classList.remove("hidden");
+    document.getElementById("drill-verdict").innerHTML = ok
+      ? '<span style="color:#00d4a3">○ 正解！</span>'
+      : '<span style="color:#e94560">× 不正解</span>';
+    const ex2 = document.getElementById("drill-expl");
+    ex2.className = "expl"+(ok?"":" ng");
+    ex2.textContent = it.q.expl;
+    // 選択肢に正誤の色付け
+    [...document.getElementById("q-choices").children].forEach((btn,pos)=>{
+      const oi = it.order[pos];
+      btn.classList.remove("sel");
+      if (it.q.answers.includes(oi)) btn.classList.add("ok");
+      else if (it.selected.has(oi)) btn.classList.add("ng");
+    });
+    document.getElementById("next-btn").textContent = ex.idx < ex.items.length-1 ? "次の問題へ" : "結果を見る";
+    document.getElementById("next-btn").disabled = false;
+    document.getElementById("skip-btn").classList.add("hidden");
+    return;
+  }
+  if (cfg.mode==="exam") stopQClock();
+  advance();
+}
+function skipQuestion() {
+  stopQClock();
+  const it = ex.items[ex.idx];
+  it.selected.clear();
+  advance();
+}
+function advance() {
+  if (ex.idx < ex.items.length-1) { ex.idx++; renderQuestion(); }
+  else if (cfg.mode==="exam") { renderReview(); showView("review"); }
+  else grade();
+}
+function toggleFlag() {
+  const it = ex.items[ex.idx];
+  it.flagged = !it.flagged;
+  document.getElementById("flag-btn").className = "flag-btn"+(it.flagged?" on":"");
+}
+function quitExam() {
+  if (!confirm("中断しますか？この回の記録は保存されません。")) return;
+  clearInterval(timerId); ex=null;
+  showView("config"); renderHistory();
+}
+
+/* ---------- review ---------- */
+function renderReview() {
+  document.getElementById("rev-grid").innerHTML = ex.items.map((it,i)=>
+    `<button class="rev-btn${it.selected.size?' done':''}${it.flagged?' flagged':''}" onclick="jumpTo(${i})">${i+1}</button>`
+  ).join("");
+}
+function jumpTo(i) {
+  ex.idx = i;
+  showView("exam");
+  renderQuestion();
+  // 見直しから来た場合、次へで見直しに戻す
+  document.getElementById("next-btn").textContent = "回答して見直しへ戻る";
+  const orig = advance;
+  window.advance = function(){ window.advance = orig; renderReview(); showView("review"); };
+}
+
+/* ---------- grading ---------- */
+function isCorrect(it) {
+  const a = it.q.answers;
+  return it.selected.size===a.length && a.every(x=>it.selected.has(x));
+}
+function grade() {
+  clearInterval(timerId);
+  const total = ex.items.length;
+  const okItems = ex.items.filter(isCorrect);
+  const pct = Math.round(okItems.length/total*100);
+  const pass = pct>=65;
+
+  document.getElementById("score-val").innerHTML = `<span style="color:${pass?'#00d4a3':'#e94560'}">${pct}%</span>`;
+  document.getElementById("score-sub").textContent = `${okItems.length} / ${total} 問正解 ${pass?"— 合格ライン突破！":"— あと"+(Math.ceil(total*0.65)-okItems.length)+"問で合格ライン"}`;
+  const bar = document.getElementById("score-bar");
+  bar.style.width = pct+"%"; bar.style.background = pass?"#00d4a3":"#e94560";
+
+  const totalMs = ex.items.reduce((s,it)=>s+it.timeMs,0);
+  const avg = totalMs/total;
+  const overCnt = ex.items.filter(it=>it.timeMs>cfg.limit*1000).length;
+  document.getElementById("time-summary").textContent =
+    `所要 ${fmt(totalMs)}　平均 ${fmt(avg)}/問　目安(${fmt(cfg.limit*1000)})超過 ${overCnt}問`;
+
+  // 分野別
+  const cats = {};
+  ex.items.forEach(it=>{
+    cats[it.q.cat] = cats[it.q.cat]||{ok:0,n:0};
+    cats[it.q.cat].n++;
+    if(isCorrect(it)) cats[it.q.cat].ok++;
+  });
+  document.getElementById("cat-table").innerHTML = Object.entries(cats)
+    .map(([c,v])=>({c,...v,pct:Math.round(v.ok/v.n*100)}))
+    .sort((a,b)=>a.pct-b.pct)
+    .map(r=>`<tr><td>${esc(r.c)}</td><td style="color:#666">${r.ok}/${r.n}</td><td style="color:${r.pct>=65?'#00d4a3':'#e94560'}">${r.pct}%</td></tr>`).join("");
+
+  // 全問リスト
+  document.getElementById("res-list").innerHTML = ex.items.map((it,i)=>{
+    const ok = isCorrect(it);
+    const over = it.timeMs>cfg.limit*1000;
+    const selTxt = it.selected.size ? [...it.selected].map(x=>esc(it.q.choices[x])).join("、") : "（未回答）";
+    const ansTxt = it.q.answers.map(x=>esc(it.q.choices[x])).join("、");
+    return `<div class="res-item" id="res-${i}">
+      <button class="res-head" onclick="document.getElementById('res-${i}').classList.toggle('open')">
+        <span><b style="color:${ok?'#00d4a3':'#e94560'}">${ok?'○':'×'}</b> 問${i+1}　<span style="color:#888;font-size:11px">${esc(it.q.cat)}</span></span>
+        <span style="font-size:11px;color:${over?'#e94560':'#666'}">${fmt(it.timeMs)}${over?' ⏱':''}</span>
+      </button>
+      <div class="res-body">
+        <div style="font-size:13px;color:#eee;margin-bottom:8px">${esc(it.q.text)}</div>
+        ${it.q.code?`<pre class="code">${esc(it.q.code)}</pre>`:""}
+        <div style="font-size:12px;color:#888;margin-bottom:4px">あなたの回答: <span style="color:${ok?'#00d4a3':'#e94560'}">${selTxt}</span></div>
+        <div style="font-size:12px;color:#888;margin-bottom:10px">正解: <span style="color:#00d4a3">${ansTxt}</span></div>
+        <div class="expl${ok?'':' ng'}">${esc(it.q.expl)}</div>
+      </div>
+    </div>`;
+  }).join("");
+
+  // 保存
+  try {
+    const hist = JSON.parse(localStorage.getItem(HKEY)||"[]");
+    hist.push({date:new Date().toISOString().slice(0,10), mode:cfg.mode, total, pct,
+      cats:Object.fromEntries(Object.entries(cats).map(([c,v])=>[c,{ok:v.ok,n:v.n}]))});
+    localStorage.setItem(HKEY, JSON.stringify(hist.slice(-50)));
+  } catch {}
+
+  showView("result");
+}
+function backToConfig() { ex=null; showView("config"); renderHistory(); }
+
+renderChips();
+renderHistory();
+</script>
+</body>
+</html>
