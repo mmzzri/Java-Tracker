@@ -46,6 +46,7 @@
   .exam-btns { display: flex; gap: 8px; }
   .flag-btn { border: 1px solid #333; background: none; color: #777; border-radius: 10px; padding: 0 14px; font-size: 13px; cursor: pointer; font-family: inherit; }
   .flag-btn.on { border-color: #f0a500; color: #f0a500; background: #f0a50012; }
+  .flag-btn:disabled { opacity: .3; }
   .expl { background: #12121f; border-left: 3px solid #00d4a3; border-radius: 0 8px 8px 0; padding: 12px 14px; font-size: 13px; line-height: 1.8; color: #ccc; margin-bottom: 14px; white-space: pre-wrap; }
   .expl.ng { border-left-color: #e94560; }
   .verdict { font-size: 17px; font-weight: 800; margin-bottom: 10px; }
@@ -125,6 +126,7 @@
       <div class="expl" id="drill-expl"></div>
     </div>
     <div class="exam-btns">
+      <button class="flag-btn" id="prev-btn" onclick="prevQuestion()">←</button>
       <button class="flag-btn" id="flag-btn" onclick="toggleFlag()">🚩</button>
       <button class="primary-btn" id="next-btn" onclick="nextAction()">回答して次へ</button>
     </div>
@@ -819,9 +821,19 @@ function tickTimers() {
   el.className = "qtimer" + (elapsed > cfg.limit*1000 ? " over" : elapsed > cfg.limit*800 ? " warn" : "");
 }
 
+function prevQuestion() {
+  if (!ex || ex.idx === 0 || cfg.mode !== "exam") return;
+  stopQClock();
+  ex.idx--;
+  renderQuestion();
+}
+
 function renderQuestion() {
   const it = ex.items[ex.idx];
   const q = it.q;
+  const prevBtn = document.getElementById("prev-btn");
+  prevBtn.style.display = cfg.mode === "exam" ? "" : "none";
+  prevBtn.disabled = ex.idx === 0;
   document.getElementById("exam-pos").textContent = `問 ${ex.idx+1} / ${ex.items.length}`;
   document.getElementById("exam-bar").style.width = `${(ex.idx/ex.items.length)*100}%`;
   document.getElementById("q-text").innerHTML = esc(q.text) + (q.multi?'<span class="multi-tag">2つ選択</span>':"");
