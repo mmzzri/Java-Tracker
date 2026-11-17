@@ -702,7 +702,8 @@ function startSession(type) {
     if (src.length===0) return;
     queue = src.map(([k])=>k);
   }
-  session = { queue, idx: 0, results:{correct:0,incorrect:0,skip:0}, combo:0, bestCombo:0, xp:0, startLevel: levelFromXp(totalXp()), type };
+  session = { queue, idx: 0, results:{correct:0,incorrect:0,skip:0,saved:0}, combo:0, bestCombo:0, xp:0, startLevel: levelFromXp(totalXp()), type, sel: new Set() };
+  loadSessionSel();
   document.getElementById('session').classList.add('open');
   renderSession();
 }
@@ -715,7 +716,10 @@ function sessionAnswer(result) {
   const k = session.queue[session.idx];
   if (result==='skip') { session.results.skip++; session.combo = 0; }
   else {
+    const letters = pendings[k]?.ans?.join('・') || '';
     applyResult(k, result);
+    if (letters && problems[k]) problems[k].ans = letters;
+    delete pendings[k];
     session.results[result]++;
     session.xp += XP_TABLE[result] || 0;
     if (result==='correct') {
@@ -727,11 +731,38 @@ function sessionAnswer(result) {
       session.combo = 0;
       floatText('+2 XP', '#e8304f');
     }
-    save();
+    save(); renderPendingCards();
   }
   session.idx++;
+  loadSessionSel();
   renderSession();
 }
+function loadSessionSel() {
+  if (!session) return;
+  const k = session.queue[session.idx];
+  session.sel = new Set(k ? (pendings[k]?.ans || []) : []);
+}
+function sessionToggleAns(L) { if (!session) return; session.sel.has(L)?session.sel.delete(L):session.sel.add(L); renderSessionAns(); }
+function renderSessionAns() {
+  const el = document.getElementById('session-ans-grid');
+  if (el && session) el.innerHTML = ANS_LETTERS.map(L=>
+    `<button class="ans-btn${session.sel.has(L)?' sel':''}" onclick="sessionToggleAns('${L}')">${L}</button>`).join('');
+  const b = document.getElementById('session-save-btn');
+  if (b && session) { const s = ANS_LETTERS.filter(L=>session.sel.has(L)); b.textContent = s.length ? `💾 保存して次へ（${s.join(' ')}）` : '💾 保存して次へ'; }
+}
+function sessionSaveAnswer() {
+  if (!session) return;
+  if (session.sel.size===0) { sessionAnswer('skip'); return; }
+  const k = session.queue[session.idx];
+  pendings[k] = { ans: ANS_LETTERS.filter(L=>session.sel.has(L)), date: today() };
+  session.results.saved++;
+  session.combo = 0;
+  save(); renderPendingCards();
+  session.idx++;
+  loadSessionSel();
+  renderSession();
+}
+function sessionGradeNow() { endSession(); startGrading(); }
 function sessionMemoInput(el) {
   const k = session.queue[session.idx];
   if (!problems[k]) return;
@@ -766,7 +797,9 @@ function renderSession() {
         ${session.bestCombo>=2?`　<span style="color:#d98a06;font-weight:700">🔥 最大${session.bestCombo}連続正解</span>`:''}
       </div>
       ${leveledUp?`<div><span class="levelup">LEVEL UP! Lv.${newLevel} ${rankName(newLevel)}</span></div>`:''}
+      ${r.saved>0?`<div style="font-size:13px;color:#2f5aa8;font-weight:700;margin-top:8px">💾 解答を保存 ${r.saved}問（答え合わせはまだ）</div>`:''}
       ${r.incorrect>0?`<div style="font-size:12px;color:#d98a06;margin-top:12px">×だった問題は明日以降また出てきます</div>`:''}
+      ${pendingKeys().length>0?`<button class="primary-btn btn-blue" style="margin-top:24px;max-width:280px" onclick="sessionGradeNow()">▶ 今すぐまとめて答え合わせ（${pendingKeys().length}問）</button>`:''}
       <button class="primary-btn btn-main" style="margin-top:28px;max-width:280px" onclick="endSession()">閉じる</button>
     </div>`;
     confetti(allCorrect ? 90 : 45);
@@ -792,14 +825,18 @@ function renderSession() {
         style="background:transparent;border:none;border-bottom:2px solid #efe6d4;border-radius:0;padding:6px 0;font-size:14px;width:100%;color:#2b2b3a"
         oninput="sessionMemoInput(this)">
     </div>` : ''}
-    <div style="text-align:center;font-size:12px;color:#666;margin-bottom:10px">問題集の該当ページを解いてから、結果をタップ</div>
+    <div style="text-align:center;font-size:12px;color:#666;margin-bottom:8px">解いたら、選んだ解答を保存。答え合わせはあとでまとめてできます${pendings[k]?'（保存済みの解答があります）':''}</div>
+    <div class="ans-grid" id="session-ans-grid"></div>
     <div class="session-btns">
+      <button class="primary-btn btn-blue" id="session-save-btn" onclick="sessionSaveAnswer()">💾 保存して次へ</button>
+      <div style="text-align:center;font-size:11px;color:#9a8f7d">もう答え合わせ済みなら、その場で記録もできます</div>
       <div class="session-row">
         <button class="session-btn sb-correct" onclick="sessionAnswer('correct')">○ 正解</button>
         <button class="session-btn sb-incorrect" onclick="sessionAnswer('incorrect')">× 不正解</button>
       </div>
       <button class="session-btn sb-skip" onclick="sessionAnswer('skip')">スキップ（あとで）</button>
     </div>`;
+  renderSessionAns();
 }
 
 /* ---------- record ---------- */
