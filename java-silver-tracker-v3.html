@@ -146,6 +146,28 @@
   @keyframes floatUp { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-56px); opacity: 0; } }
   .confetti { position: fixed; top: -16px; z-index: 400; pointer-events: none; border-radius: 2px; }
   .weak-count { font-size: 11px; font-weight: 900; color: #D81B4C; background: #FFE0E7; border-radius: 20px; padding: 2px 8px; }
+  .sc-bar { height: 12px; background: #F7EFDD; border-radius: 8px; overflow: hidden; margin: 8px 0 4px; }
+  .sc-bar-fill { height: 100%; background: linear-gradient(90deg, #00d4a3, #4a6fa5); border-radius: 8px; transition: width .3s; }
+  .sc-filter { display: flex; gap: 8px; margin-top: 10px; }
+  .sc-filter button { flex: 1; padding: 8px; border-radius: 10px; border: 2px solid #EFE6D4; background: #fff; color: #8a8578; font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer; }
+  .sc-filter button.active { background: #2b2b3a; color: #fff; border-color: #2b2b3a; }
+  .sc-topic-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .sc-book { font-size: 10px; font-weight: 900; color: #2f5aa8; background: #4a6fa51c; border: 1px solid #4a6fa555; border-radius: 20px; padding: 2px 8px; white-space: nowrap; }
+  .sc-item { border-top: 2px solid #F7EFDD; padding: 10px 2px; }
+  .sc-item-head { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  .sc-dot { width: 12px; height: 12px; border-radius: 50%; background: #E5DCC8; flex-shrink: 0; }
+  .sc-dot.ok { background: #00d4a3; }
+  .sc-dot.weak { background: #FF5C7A; }
+  .sc-name { font-size: 14px; font-weight: 700; color: #2b2b3a; flex: 1; line-height: 1.5; }
+  .sc-star { color: #f0a500; font-size: 12px; }
+  .sc-extra { font-size: 9px; font-weight: 900; color: #8a8578; background: #F7EFDD; border-radius: 6px; padding: 1px 5px; }
+  .sc-body { margin-top: 8px; font-size: 13px; line-height: 1.8; color: #4a4a5a; }
+  .sc-body .sc-q { font-size: 10px; font-weight: 900; color: #9a8f7d; letter-spacing: 1px; margin-top: 8px; }
+  .sc-body .sc-trap { color: #B02547; }
+  .sc-rate { display: flex; gap: 8px; margin-top: 12px; }
+  .sc-rate button { flex: 1; padding: 10px; border-radius: 12px; border: 2px solid #EFE6D4; background: #fff; font-size: 13px; font-weight: 900; font-family: inherit; cursor: pointer; color: #8a8578; }
+  .sc-rate button.on-ok { background: #00d4a3; border-color: #00d4a3; color: #fff; }
+  .sc-rate button.on-weak { background: #FF5C7A; border-color: #FF5C7A; color: #fff; }
 </style>
 </head>
 <body>
@@ -163,6 +185,7 @@
     <button class="tab" onclick="switchTab('record')">記録</button>
     <button class="tab" onclick="switchTab('weak')">弱点</button>
     <button class="tab" onclick="switchTab('progress')">進捗</button>
+    <button class="tab" onclick="switchTab('scope')">範囲</button>
     <button class="tab" onclick="switchTab('data')">データ</button>
   </div>
 
@@ -252,6 +275,20 @@
       <div class="stats-grid-2" id="progress-stats"></div>
       <div id="pass-line" style="margin-top:14px"></div>
     </div>
+  </div>
+
+  <!-- SCOPE -->
+  <div id="tab-scope" class="hidden">
+    <div class="card">
+      <div class="card-title">試験範囲チェック <span style="font-size:10px;color:#666">公式32細目＋補足1</span></div>
+      <div id="scope-summary"></div>
+      <div class="sc-filter">
+        <button id="sc-filter-all" onclick="setScopeFilter(0)">全部</button>
+        <button id="sc-filter-weak" onclick="setScopeFilter(1)">あやしいだけ</button>
+      </div>
+      <div style="font-size:11px;color:#8a8578;line-height:1.7;margin-top:10px">項目をタップすると「何の機能か／なんで書くのか／試験の引っかけ」が出ます。思い出せたら「言える」、あやしければ「あやしい」を付けておくと、見直しで優先できます。</div>
+    </div>
+    <div id="scope-list"></div>
   </div>
 
   <!-- DATA -->
@@ -470,7 +507,7 @@ function floatText(text, color, x, y) {
 function buzz(ms) { try { navigator.vibrate && navigator.vibrate(ms); } catch {} }
 
 function switchTab(name) {
-  ['today','record','weak','progress','data'].forEach((t,i)=>{
+  ['today','record','weak','progress','scope','data'].forEach((t,i)=>{
     document.getElementById('tab-'+t).classList.toggle('hidden',t!==name);
     document.querySelectorAll('.tab')[i].classList.toggle('active',t===name);
   });
@@ -478,6 +515,7 @@ function switchTab(name) {
   if(name==='record') renderRecord();
   if(name==='weak') renderWeak();
   if(name==='progress') renderProgress();
+  if(name==='scope') renderScope();
   if(name==='data') renderData();
 }
 
@@ -1190,7 +1228,114 @@ function renderHeader() {
   el.innerHTML = `試験日 ${settings.examDate}（${wd}）` + (isSprint() ? '<span class="sprint-badge">🔥 直前モード</span>' : '');
 }
 
+/* ---------- scope checklist（試験範囲チェック） ---------- */
+const SCOPE_KEY = "java-silver-scope-v1";
+const SCOPE = [
+ {topic:"Javaの概要と簡単なJavaプログラムの作成", book:1, items:[
+  {id:"1-1", name:"mainメソッドを持つ実行可能なプログラム", what:"プログラムの入口。JVMはまずこのメソッドを探して、ここから実行を始める。", why:"Javaは「どこから実行するか」をこの形に固定している。実行できるプログラムにするには、この通りに書く必要がある。", trap:"static がない・戻り値が void でない main は、コンパイルが通っても実行できない。"},
+  {id:"1-2", name:"コマンドラインでのコンパイルと実行", what:"javac でソースコードを .class（バイトコード）に変換し、java コマンドで JVM がそれを実行する仕組み。", why:"バイトコードという中間形式にすることで、OSが違っても同じ .class ファイルが動く。", trap:"java コマンドに拡張子は付けない。コマンドライン引数は args[0] から入り、無いのに読むと実行時例外。"},
+  {id:"1-3", name:"パッケージの使用（宣言とインポート）", what:"package はクラスをグループ分けする仕組み、import は他のパッケージのクラスを短い名前で使うための宣言。", why:"クラス名の衝突を避け、クラスが「何の集まりか」を表すため。", trap:"package 宣言は先頭に1つだけ。同名クラスを2つの * インポートから使うと曖昧でエラー。java.lang は import 不要。"}
+ ]},
+ {topic:"Javaの基本データ型と文字列の操作", book:2, items:[
+  {id:"2-1", name:"変数の宣言および初期化と変数のスコープ", what:"変数はデータを入れる箱。型で「何が入るか」が決まり、スコープは「その箱が見える範囲」。", why:"型で間違いを早く見つけ、スコープで影響範囲を狭くして、プログラムを壊れにくくするため。", trap:"フィールドはデフォルト値で初期化されるが、ローカル変数は初期化しないと使えない（コンパイルエラー）。"},
+  {id:"2-2", name:"ローカル変数型推論（var）", star:true, what:"右辺の式からコンパイラが型を決めてくれる、ローカル変数専用の書き方。", why:"型名の繰り返しを減らしてコードを読みやすくするため。型が無くなるわけではない。", trap:"初期化なし・null 代入・フィールド・引数・戻り値には使えない。決まった型は後から変えられない。"},
+  {id:"2-3", name:"文字列の作成と操作（テキスト・ブロックを含む）", star:true, what:"String は文字の並びを表す不変のクラス。テキストブロックは複数行の文字列をそのまま書ける記法。", why:"文字列は最もよく使うデータなので専用の書き方があり、改行を含む文章を読みやすく書く記法も用意された。", trap:"String のメソッドは元の文字列を変えず新しい文字列を返す。戻り値を受け取らないと何も起きない。== は中身でなく参照の比較。"},
+  {id:"2-4", name:"配列（一次元・二次元）の宣言、インスタンス化、初期化および使用", what:"同じ型のデータを並べ、番号（インデックス）で出し入れする仕組み。", why:"複数の値をひとまとまりとして扱うため。長さは作ったときに決まる。", trap:"length はメソッドではなくフィールド（括弧なし）。int a[], b; と書くと b は配列にならない。"},
+  {id:"2-5", name:"ArrayList の使用", what:"要素の数を後から増やしたり減らしたりできるリスト。", why:"配列は長さが固定なので、増減するデータを扱うときに使う。", trap:"remove(1) は「値の1」ではなく「インデックス1」を消す。size() はメソッド。"}
+ ]},
+ {topic:"演算子と制御構造", book:3, items:[
+  {id:"3-0", name:"演算子そのもの", extra:true, what:"計算や比較を行う記号。式の「値」と「型」を決める、プログラムの基本部品。", why:"値同士の関係や変化を表すため。", trap:"i++ は使ってから増え、++i は増えてから使う。&& は右辺を評価しないことがある。byte 同士の演算結果は int になる。"},
+  {id:"3-1", name:"分岐文（if、if/else、switch）の使用", what:"条件によって実行する処理を分ける文。", why:"状況ごとに違う動きをさせるため。", trap:"if の条件は boolean のみ。switch に long・double・boolean は使えない。break がないと次の case に処理が落ちる。"},
+  {id:"3-2", name:"繰り返し文（do/while、while、for、拡張for）の使用", what:"同じ処理を、条件が続く間くり返す文。", why:"決まった回数や条件での反復を、同じコードを何度も書かずに済ませるため。", trap:"do-while は条件が false でも最低1回は実行される。拡張for のループ変数を書き換えても元の配列は変わらない。"},
+  {id:"3-3", name:"break、continue を使用した制御", what:"ループの流れを途中で変える文。break は脱出、continue はその周回だけ飛ばす。", why:"「条件を満たしたら終わり」「この回は処理しない」を自然に書くため。", trap:"ラベルなしでは一番内側のループにだけ効く。外側を抜けたいときはラベルを付ける。"},
+  {id:"3-4", name:"switch 式の使用", star:true, what:"switch を「値を返す式」として書く新しい形。case は -> でつなぐ。", why:"従来の switch は break の書き忘れで下に落ちる事故が多く、値を返すのに一旦変数を経由する必要もあったため。", trap:"式として使うときは全ケースの網羅が必須。ブロックで値を返すときは yield を使う。"}
+ ]},
+ {topic:"クラスの定義とインスタンスの使用", book:4, items:[
+  {id:"4-1", name:"クラスの定義とインスタンス化とオブジェクトのライフサイクル", what:"クラスはオブジェクトの設計図。new で実体が生まれ、参照がなくなると GC（ガベージコレクション）の対象になる。", why:"データと処理を「モノ」としてひとまとめに扱う、オブジェクト指向の出発点。", trap:"初期化の順序は「親クラス→フィールドや初期化ブロック→コンストラクタ」。GC のタイミングは保証されず、System.gc() はお願いにすぎない。"},
+  {id:"4-2", name:"メソッドとコンストラクタの作成", what:"コンストラクタは new の瞬間に呼ばれる初期化専用の処理。メソッドはオブジェクトの振る舞い。", why:"オブジェクトが「作られた直後から正しい状態」であることを保証するため。", trap:"戻り値の型を書くとコンストラクタではなく普通のメソッドになる。コンストラクタを1つでも書くと、デフォルトコンストラクタは付かなくなる。"},
+  {id:"4-3", name:"メソッドのオーバーロード", what:"同じ名前で、引数（数・型・順序）の違うメソッドを複数用意すること。", why:"同じ働きのメソッドに、渡すデータごとに別名を付けなくて済むようにするため。", trap:"戻り値だけが違うものは作れない。呼び出しの解決は「完全一致→拡大変換→ボクシング→可変長引数」の順に優先される。"},
+  {id:"4-4", name:"static 変数と static メソッド", what:"インスタンスではなく、クラス自体に属する変数・メソッド。", why:"全オブジェクトで共有したいデータや、インスタンスを作らずに使う道具メソッドのため。", trap:"static メソッドの中からは、インスタンス変数や this に直接触れない。"},
+  {id:"4-5", name:"アクセス修飾子の使用", what:"メンバーを「どこから見えるか」決める制限（public / protected / なし / private）。", why:"外から勝手に書き換えられないようにして、オブジェクト内部の正しさを守るため（カプセル化）。", trap:"別パッケージの継承先から protected に触れるのは「自分の型の参照」経由だけ。"},
+  {id:"4-6", name:"instanceof のパターン・マッチング", star:true, what:"型を調べると同時に、その型の変数として取り出せる書き方（if (o instanceof String s) の形）。", why:"従来は instanceof で調べてからキャストする二度手間だったのを、1回で済ませるため。", trap:"パターン変数が使えるのは「型が一致すると確実に言える範囲」だけ。|| の右側では使えない。null は常に false。"},
+  {id:"4-7", name:"レコード・クラスの作成と使用", star:true, what:"値を運ぶだけのクラスを短く書ける仕組み。フィールド・コンストラクタ・equals などが自動で作られる。", why:"データを入れるだけのクラスに毎回必要だった定型コードをなくすため。", trap:"中身は書き換えられない（final）。アクセサは getX ではなくフィールド名そのまま。継承はできない。"}
+ ]},
+ {topic:"継承とインタフェースの使用", book:5, items:[
+  {id:"5-1", name:"スーパークラスとサブクラスの作成と使用", what:"既存のクラスの性質を引き継いで、新しいクラスを作ること（継承）。", why:"共通部分を親に寄せて、子では差分だけを書くため。", trap:"継承できる親は1つだけ。コンストラクタは継承されない。親のコンストラクタは super() で最初に呼ばれる。"},
+  {id:"5-2", name:"抽象クラスの作成と継承", what:"中身のないメソッド（抽象メソッド）を持てる、継承専用のクラス。", why:"子クラスに「この処理は必ず用意しろ」と強制しつつ、共通の処理は親に置くため。", trap:"new でインスタンス化できない。抽象メソッドに final や private は付けられない。"},
+  {id:"5-3", name:"メソッドのオーバーライド", what:"親のメソッドを、子クラスで同じ名前・引数のまま書き換えること。", why:"基本は親の動きを使い、必要なクラスだけ振る舞いを変えるため。", trap:"アクセス修飾子を狭くできない。親より広いチェック例外は投げられない。戻り値は子の型に変えてよい。"},
+  {id:"5-4", name:"参照型のキャストとポリモーフィックなメソッド呼び出し", what:"参照の型を変えて見せるのがキャスト。同じ呼び出しでも実体のクラスによって動きが変わるのがポリモーフィズム。", why:"親の型でひとまとめに扱いながら、中身ごとに違う動きをさせるため。", trap:"メソッドは「実体のクラス」で決まるが、フィールドは「参照変数の型」で決まる。実体と違う型へキャストすると実行時に ClassCastException。"},
+  {id:"5-5", name:"final クラスの作成と使用", what:"継承を禁止する印を付けたクラス（String など）。", why:"設計を固定して、書き換えによる事故を防ぐため。", trap:"final の変数も再代入不可。ただし参照型の場合、参照先の中身までは固定されない。"},
+  {id:"5-6", name:"インタフェースの作成と実装", what:"「何ができるか」の約束事だけを集めたもの。実装の中身はクラス側が書く。", why:"継承と違って複数付けられ、クラス同士をゆるくつなぐため。", trap:"メソッドは暗黙で public abstract、変数は public static final の定数になる。実装するとき public を弱めるとエラー。"},
+  {id:"5-7", name:"デフォルト・メソッドとプライベート・メソッドの使用", what:"インタフェースに実装そのものを持たせる仕組み（default）と、その内部専用の補助メソッド（private）。", why:"インタフェースに後からメソッドを足しても、既存の実装クラスを壊さないため。", trap:"同じ default が2つのインタフェースで衝突したら、クラス側で書き換えて解決が必須。クラスのメソッドは default より優先される。"},
+  {id:"5-8", name:"シール・クラスの作成と使用", star:true, what:"継承できるクラスを permits で限定したクラス。", why:"「この型の種類はこれだけ」と閉じることで、switch 式などの網羅チェックを効かせるため。", trap:"継承する側は final / sealed / non-sealed のいずれかの宣言が必須。permits にないクラスは継承できない。"}
+ ]},
+ {topic:"例外処理", book:6, items:[
+  {id:"6-1", name:"例外処理の仕組みとチェック例外、非チェック例外、エラーの違い", what:"想定外の事態を「例外オブジェクト」として投げ、通常の処理を中断して知らせる仕組み。", why:"正常な処理のコードと、異常時の対応を分けて書くため。", trap:"チェック例外は catch か throws が必須。RuntimeException 系は任意。Error は JVM の危機で、catch (Exception) では捕まらない。throw は「投げる行為」、throws は「投げるかもの宣言」。"},
+  {id:"6-2", name:"try-catch 文による例外処理", what:"例外が起きうる処理を try で囲み、起きたら catch で受け止める。finally は後始末。", why:"プログラムを落とさずに、回復処理や後片付けをするため。", trap:"catch は子クラスの例外から先に書く。親を先に書くと到達不能でコンパイルエラー。finally は return の前にも実行される。"},
+  {id:"6-3", name:"try-with-resources 文による例外処理", what:"ファイルなど「閉じる必要がある資源」を、終わったら自動で閉じてくれる try の形。", why:"close の書き忘れで資源が枯渇する事故を防ぐため。", trap:"close は開いた順の逆順。本体で例外が出たときはそちらが優先され、close の例外は抑制（suppressed）される。"},
+  {id:"6-4", name:"カスタム例外の作成", what:"自分のプログラム専用に作る例外クラス。", why:"「何が起きたか」を、例外の型の名前そのもので伝えるため。", trap:"Exception を継承するとチェック例外、RuntimeException を継承すると非チェック例外になる。"},
+  {id:"6-5", name:"multi-catch 句の使用", what:"複数の種類の例外を、1つの catch でまとめて受ける書き方（catch (A | B e) の形）。", why:"同じ対応でよい例外ごとに、同じ処理を何度も書かなくて済むため。", trap:"親子関係にある例外同士は並べられない。例外変数は暗黙で final 扱い。"}
+ ]}
+];
+let scopeState = {r:{}, f:0};
+let scopeOpen = null;
+function loadScope() {
+  try { const raw = localStorage.getItem(SCOPE_KEY); if (raw) scopeState = Object.assign({r:{}, f:0}, JSON.parse(raw)); } catch(e) {}
+}
+function saveScope() { localStorage.setItem(SCOPE_KEY, JSON.stringify(scopeState)); }
+function setScopeFilter(f) { scopeState.f = f; saveScope(); renderScope(); }
+function toggleScopeItem(id) { scopeOpen = (scopeOpen === id) ? null : id; renderScope(); }
+function setScopeRating(id, v) {
+  if (scopeState.r[id] === v) delete scopeState.r[id]; else scopeState.r[id] = v;
+  saveScope(); renderScope();
+}
+function renderScope() {
+  const c = {ok:0, weak:0, total:0};
+  SCOPE.forEach(t => t.items.forEach(it => {
+    if (it.extra) return;
+    c.total++;
+    if (scopeState.r[it.id] === 1) c.ok++;
+    if (scopeState.r[it.id] === 2) c.weak++;
+  }));
+  const pct = c.total ? Math.round(c.ok / c.total * 100) : 0;
+  document.getElementById('scope-summary').innerHTML =
+    `<div style="font-size:14px;font-weight:700;color:#2b2b3a">言える ${c.ok} / ${c.total} ・ あやしい ${c.weak} ・ 未確認 ${c.total - c.ok - c.weak}</div>` +
+    `<div class="sc-bar"><div class="sc-bar-fill" style="width:${pct}%"></div></div>` +
+    (c.weak > 0 ? `<div style="font-size:11px;color:#B02547">あやしい項目は、模試の解き直しと前日の見直しで優先しよう。</div>` : ``);
+  document.getElementById('sc-filter-all').classList.toggle('active', scopeState.f === 0);
+  document.getElementById('sc-filter-weak').classList.toggle('active', scopeState.f === 1);
+  let html = '';
+  SCOPE.forEach((t, ti) => {
+    const items = t.items.filter(it => scopeState.f === 0 || scopeState.r[it.id] === 2);
+    if (!items.length) return;
+    const off = t.items.filter(it => !it.extra);
+    const okN = off.filter(it => scopeState.r[it.id] === 1).length;
+    html += `<div class="card"><div class="card-title sc-topic-head"><span>主題${ti+1}：${t.topic}</span><span class="sc-book">黒本${t.book}章 ・ 言える ${okN}/${off.length}</span></div>`;
+    items.forEach(it => {
+      const r = scopeState.r[it.id] || 0;
+      const open = scopeOpen === it.id;
+      html += `<div class="sc-item"><div class="sc-item-head" onclick="toggleScopeItem('${it.id}')">` +
+        `<div class="sc-dot ${r===1?'ok':r===2?'weak':''}"></div>` +
+        `<div class="sc-name">${it.id} ${it.name}${it.star?' <span class="sc-star">★SE17新範囲</span>':''}${it.extra?' <span class="sc-extra">補足</span>':''}</div>` +
+        `<div style="color:#B0A58F;font-size:12px">${open?'▾':'▸'}</div></div>`;
+      if (open) {
+        html += `<div class="sc-body">` +
+          `<div class="sc-q">何の機能？</div><div>${it.what}</div>` +
+          `<div class="sc-q">なんで書く？</div><div>${it.why}</div>` +
+          `<div class="sc-q">試験の引っかけ</div><div class="sc-trap">${it.trap}</div>` +
+          `<div class="sc-rate"><button class="${r===1?'on-ok':''}" onclick="setScopeRating('${it.id}',1)">言える</button>` +
+          `<button class="${r===2?'on-weak':''}" onclick="setScopeRating('${it.id}',2)">あやしい</button></div></div>`;
+      }
+      html += `</div>`;
+    });
+    html += `</div>`;
+  });
+  if (!html) html = `<div class="card"><div style="font-size:13px;color:#8a8578">あやしい項目はまだありません。各項目を開いて「あやしい」を付けると、ここに集まります。</div></div>`;
+  document.getElementById('scope-list').innerHTML = html;
+}
+
 load();
+loadScope();
 renderHeader();
 renderToday();
 </script>
