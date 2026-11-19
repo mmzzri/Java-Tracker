@@ -223,6 +223,12 @@
     <div class="card">
       <div class="card-title">章を選択</div>
       <div class="ch-btns" id="ch-btns"></div>
+      <div style="background:#FFF8EC;border:2px solid #FFE1B8;border-radius:14px;padding:12px;margin-bottom:14px">
+        <div style="font-size:12px;font-weight:900;color:#B97A0A;margin-bottom:4px">▶ 順番に解く</div>
+        <div id="ch-session-info" style="font-size:12px;color:#8a7f6d;line-height:1.7;margin-bottom:10px"></div>
+        <button class="primary-btn btn-main" onclick="startChapterSession(false)">Q1から順番に解く</button>
+        <button class="primary-btn btn-sub" id="ch-continue-btn" onclick="startChapterSession(true)" style="margin-top:8px">⏩ 続きから解く</button>
+      </div>
       <div style="font-size:11px;color:#777;margin-bottom:6px">問題をタップしたとき</div>
       <div class="seg" style="margin-bottom:14px">
         <button id="tapmode-result" onclick="setTapMode('result')">結果を記録（○×）</button>
@@ -727,6 +733,12 @@ function allKeys() {
   CHAPTERS.forEach(c=>{ for(let q=1;q<=TOTALS[c.id];q++) ks.push(`${c.id}-${q}`); });
   return ks;
 }
+function beginSession(queue, type) {
+  session = { queue, idx: 0, results:{correct:0,incorrect:0,skip:0,saved:0}, combo:0, bestCombo:0, xp:0, startLevel: levelFromXp(totalXp()), type, sel: new Set() };
+  loadSessionSel();
+  document.getElementById('session').classList.add('open');
+  renderSession();
+}
 function startSession(type) {
   let queue;
   if (type==='weak') {
@@ -740,15 +752,46 @@ function startSession(type) {
     if (src.length===0) return;
     queue = src.map(([k])=>k);
   }
-  session = { queue, idx: 0, results:{correct:0,incorrect:0,skip:0,saved:0}, combo:0, bestCombo:0, xp:0, startLevel: levelFromXp(totalXp()), type, sel: new Set() };
-  loadSessionSel();
-  document.getElementById('session').classList.add('open');
-  renderSession();
+  beginSession(queue, type);
+}
+/* ---------- 章を順番に解く（記録タブ） ---------- */
+function chapterKeys(ch) {
+  return Array.from({length:TOTALS[ch]},(_,i)=>`${ch}-${i+1}`);
+}
+function startChapterSession(fromContinue) {
+  let queue = chapterKeys(currentCh);
+  if (fromContinue) {
+    const idx = queue.findIndex(k=>!problems[k] && !pendings[k]);
+    if (idx < 0) return;
+    queue = queue.slice(idx);
+  }
+  if (queue.length===0) return;
+  beginSession(queue, fromContinue ? 'chapterContinue' : 'chapter');
+}
+function updateChapterSessionUI() {
+  const info = document.getElementById('ch-session-info');
+  if (!info) return;
+  const keys = chapterKeys(currentCh);
+  const c = CHAPTERS.find(x=>x.id===currentCh);
+  const doneN = keys.filter(k=>problems[k]).length;
+  const penN = keys.filter(k=>pendings[k]).length;
+  const firstOpen = keys.find(k=>!problems[k] && !pendings[k]);
+  info.textContent = `${c?.name}（全${keys.length}問）をQ1から順にセッション形式で解けます。記録済み ${doneN}問${penN?`／解答を保存済み ${penN}問`:''}。解きながら解答を保存して、あとでまとめて答え合わせもできます。`;
+  const btn = document.getElementById('ch-continue-btn');
+  if (btn) {
+    if (firstOpen) {
+      btn.disabled = false; btn.style.opacity = 1;
+      btn.textContent = `⏩ 続きから解く（Q${firstOpen.split('-')[1]}から）`;
+    } else {
+      btn.disabled = true; btn.style.opacity = .4;
+      btn.textContent = '⏩ 続きから解く（未記録なし）';
+    }
+  }
 }
 function endSession() {
   session = null;
   document.getElementById('session').classList.remove('open');
-  renderToday(); renderWeak();
+  renderToday(); renderWeak(); renderRecord();
 }
 function sessionAnswer(result) {
   const k = session.queue[session.idx];
@@ -824,9 +867,10 @@ function renderSession() {
     const newLevel = levelFromXp(totalXp());
     const leveledUp = newLevel > session.startLevel;
     const allCorrect = r.incorrect===0 && r.correct>0;
+    const doneTitle = allCorrect ? '全問正解！すごい！' : (session.type && session.type.startsWith('chapter') ? 'おつかれさま！' : '復習おつかれさま！');
     body.innerHTML = `<div class="session-done">
       <span class="done-emoji">${allCorrect?'🏆':'🎉'}</span>
-      <div style="font-size:19px;font-weight:800;color:#2b2b3a;margin-bottom:16px;font-family:'Zen Maru Gothic',sans-serif">${allCorrect?'全問正解！すごい！':'復習おつかれさま！'}</div>
+      <div style="font-size:19px;font-weight:800;color:#2b2b3a;margin-bottom:16px;font-family:'Zen Maru Gothic',sans-serif">${doneTitle}</div>
       <div style="font-size:14px;color:#4a4a5a;line-height:2.1">
         <span style="color:#0aa87e">○ 正解 ${r.correct}問</span>　
         <span style="color:#e8304f">× 不正解 ${r.incorrect}問</span>
@@ -885,6 +929,7 @@ function renderRecord() {
   }).join('');
   document.getElementById('auto-next-toggle').checked = settings.autoNext;
   syncTapModeSeg();
+  updateChapterSessionUI();
   renderPendingCards();
   renderQGrid();
 }
