@@ -192,6 +192,7 @@
   <!-- TODAY -->
   <div id="tab-today">
     <div class="stats-grid" id="today-stats"></div>
+    <div id="today-goal"></div>
     <div class="card" id="session-card">
       <div class="card-title">復習セッション</div>
       <div id="session-summary" style="font-size:13px;color:#4a4a5a;line-height:1.7;margin-bottom:12px"></div>
@@ -353,6 +354,7 @@
   <div class="session-inner">
     <div class="session-top">
       <span class="session-count" id="session-count"></span>
+      <span class="session-count" id="session-goal" style="color:#e8930c"></span>
       <button class="session-quit" onclick="endSession()">終了 ✕</button>
     </div>
     <div class="combo" id="session-combo"></div>
@@ -409,7 +411,7 @@ let pendings = {};
 let currentCh = 1;
 let modalKey = null;
 let modalSource = null; // 'record' なら連続入力の対象
-let settings = { examDate: "2026-11-28", autoNext: true, tapMode: "result" };
+let settings = { examDate: "2026-11-28", autoNext: true, tapMode: "result", dailyGoals: {} };
 let session = null; // {queue, idx, results:{correct,incorrect,skip}, combo, bestCombo, xp, startLevel}
 let ansKey = null;
 let ansSel = new Set();
@@ -624,6 +626,54 @@ function todayRecordedEntries() {
   return {count:c, correct:ok};
 }
 
+/* ---------- 今日の目標 ---------- */
+const PLAN_GOALS = {"2026-11-20":45,"2026-11-21":75,"2026-11-22":35,"2026-11-23":15,"2026-11-24":20,"2026-11-25":60,"2026-11-26":18};
+function todayGoalTarget() {
+  const g = settings.dailyGoals ? settings.dailyGoals[today()] : undefined;
+  if (g !== undefined && g !== null) return g;
+  return PLAN_GOALS[today()] ?? null;
+}
+function goalLeft() {
+  const goal = todayGoalTarget();
+  if (goal === null) return null;
+  return Math.max(0, goal - todayRecordedEntries().count);
+}
+function editTodayGoal() {
+  const cur = todayGoalTarget();
+  const v = prompt('今日の目標（問題数）を入力してください。空欄にすると予定表のデフォルトに戻ります', cur===null?'':cur);
+  if (v === null) return;
+  if (!settings.dailyGoals) settings.dailyGoals = {};
+  const n = parseInt(v, 10);
+  if (isNaN(n) || n < 0) delete settings.dailyGoals[today()];
+  else settings.dailyGoals[today()] = n;
+  save(); renderToday();
+}
+function renderGoal() {
+  const el = document.getElementById('today-goal');
+  if (!el) return;
+  const goal = todayGoalTarget();
+  const btn = `<button onclick="editTodayGoal()" style="border:2px solid #EFE6D4;background:#fff;border-radius:8px;padding:4px 12px;font-size:12px;font-weight:700;color:#8a7f6d;font-family:inherit;cursor:pointer">${goal===null?'設定する':'変更'}</button>`;
+  if (goal === null) {
+    el.innerHTML = `<div class="card" style="display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:14px;font-weight:800;color:#2b2b3a">🎯 今日の目標は未設定</div>${btn}</div>`;
+    return;
+  }
+  const done = todayRecordedEntries().count;
+  const left = Math.max(0, goal - done);
+  const pct = goal > 0 ? Math.min(100, Math.round(done/goal*100)) : 100;
+  el.innerHTML = `<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div style="font-size:14px;font-weight:800;color:#2b2b3a">🎯 今日の目標 ${goal}問</div>${btn}
+    </div>
+    ${left > 0
+      ? `<div style="font-size:24px;font-weight:900;color:#2b2b3a;font-family:'Zen Maru Gothic',sans-serif">あと <span style="color:#e8930c">${left}</span> 問</div>
+         <div style="font-size:12px;color:#8a7f6d;margin:2px 0 10px">${done}問 記録済み</div>`
+      : `<div style="font-size:20px;font-weight:900;color:#0aa87e;font-family:'Zen Maru Gothic',sans-serif">🎉 目標達成！（${done}問記録）</div>
+         <div style="font-size:12px;color:#8a7f6d;margin:2px 0 10px">ここからは上積みです</div>`}
+    <div class="xp-wrap"><div class="xp-bar" style="width:${pct}%"></div></div>
+  </div>`;
+}
+
 function renderHero() {
   const totalQ = Object.values(TOTALS).reduce((a,b)=>a+b,0);
   const mastered = Object.values(problems).filter(p=>(p.level||0)>=3).length;
@@ -665,6 +715,7 @@ function renderHero() {
 
 function renderToday() {
   renderHero();
+  renderGoal();
   const review = dueList();
   const t = todayRecordedEntries();
   document.getElementById('today-stats').innerHTML=[
@@ -855,6 +906,8 @@ function renderSession() {
   const total = session.queue.length;
   const done = session.idx;
   document.getElementById('session-count').textContent = done < total ? `${done+1} / ${total}` : `${total} / ${total}`;
+  const gel = document.getElementById('session-goal');
+  if (gel) { const gl = goalLeft(); gel.textContent = gl===null ? '' : (gl>0 ? `🎯 今日の目標まで あと${gl}問` : '🎯 今日の目標達成！'); }
   document.getElementById('session-bar').style.width = `${(done/total)*100}%`;
   const comboEl = document.getElementById('session-combo');
   comboEl.textContent = (done < total && session.combo >= 2) ? `🔥 ${session.combo}連続正解！` : '';
