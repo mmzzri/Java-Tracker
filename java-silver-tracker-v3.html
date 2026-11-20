@@ -809,12 +809,17 @@ function startSession(type) {
 function chapterKeys(ch) {
   return Array.from({length:TOTALS[ch]},(_,i)=>`${ch}-${i+1}`);
 }
+function doneTodayKey(k) {
+  if (pendings[k]) return true; // 解答を保存済み＝今日手をつけた
+  const h = problems[k]?.history;
+  return !!(h && h.some(x=>x.date===today()));
+}
 function startChapterSession(fromContinue) {
   let queue = chapterKeys(currentCh);
   if (fromContinue) {
-    const idx = queue.findIndex(k=>!problems[k] && !pendings[k]);
+    const idx = queue.findIndex(k=>!doneTodayKey(k));
     if (idx < 0) return;
-    queue = queue.slice(idx);
+    queue = queue.slice(idx).filter(k=>!doneTodayKey(k));
   }
   if (queue.length===0) return;
   beginSession(queue, fromContinue ? 'chapterContinue' : 'chapter');
@@ -826,8 +831,9 @@ function updateChapterSessionUI() {
   const c = CHAPTERS.find(x=>x.id===currentCh);
   const doneN = keys.filter(k=>problems[k]).length;
   const penN = keys.filter(k=>pendings[k]).length;
-  const firstOpen = keys.find(k=>!problems[k] && !pendings[k]);
-  info.textContent = `${c?.name}（全${keys.length}問）をQ1から順にセッション形式で解けます。記録済み ${doneN}問${penN?`／解答を保存済み ${penN}問`:''}。解きながら解答を保存して、あとでまとめて答え合わせもできます。`;
+  const todayN = keys.filter(k=>doneTodayKey(k)).length;
+  const firstOpen = keys.find(k=>!doneTodayKey(k));
+  info.textContent = `${c?.name}（全${keys.length}問）をQ1から順にセッション形式で解けます。記録済み ${doneN}問／今日解いた ${todayN}問${penN?`（うち解答を保存済み ${penN}問）`:''}。途中でやめても「続きから解く」で、今日まだ解いていない問題から再開できます。`;
   const btn = document.getElementById('ch-continue-btn');
   if (btn) {
     if (firstOpen) {
@@ -835,7 +841,7 @@ function updateChapterSessionUI() {
       btn.textContent = `⏩ 続きから解く（Q${firstOpen.split('-')[1]}から）`;
     } else {
       btn.disabled = true; btn.style.opacity = .4;
-      btn.textContent = '⏩ 続きから解く（未記録なし）';
+      btn.textContent = '⏩ 続きから解く（今日は全問解きました🎉）';
     }
   }
 }
