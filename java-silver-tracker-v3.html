@@ -229,6 +229,11 @@
         <div id="ch-session-info" style="font-size:12px;color:#8a7f6d;line-height:1.7;margin-bottom:10px"></div>
         <button class="primary-btn btn-main" onclick="startChapterSession(false)">Q1から順番に解く</button>
         <button class="primary-btn btn-sub" id="ch-continue-btn" onclick="startChapterSession(true)" style="margin-top:8px">⏩ 続きから解く</button>
+        <div style="border-top:1px dashed #FFE1B8;margin-top:12px;padding-top:10px">
+          <div style="font-size:12px;font-weight:900;color:#B97A0A;margin-bottom:4px">🔁 復習ありだけ順番に解く</div>
+          <div id="due-ordered-info" style="font-size:12px;color:#8a7f6d;line-height:1.7;margin-bottom:10px"></div>
+          <button class="primary-btn btn-sub" id="due-ordered-btn" onclick="startDueOrderedSession()">🔁 復習ありだけ順番に解く</button>
+        </div>
       </div>
       <div style="font-size:11px;color:#777;margin-bottom:6px">問題をタップしたとき</div>
       <div class="seg" style="margin-bottom:14px">
@@ -824,6 +829,26 @@ function startChapterSession(fromContinue) {
   if (queue.length===0) return;
   beginSession(queue, fromContinue ? 'chapterContinue' : 'chapter');
 }
+/* ---------- 復習ありだけ順番に解く（記録タブ・全章） ---------- */
+function startDueOrderedSession() {
+  const keys = dueList().map(([k])=>k).sort((a,b)=>{
+    const [ca,qa]=a.split('-').map(Number), [cb,qb]=b.split('-').map(Number);
+    return ca!==cb ? ca-cb : qa-qb;
+  });
+  if (keys.length===0) return;
+  beginSession(keys, 'dueOrdered');
+}
+function updateDueOrderedUI() {
+  const info = document.getElementById('due-ordered-info');
+  const btn = document.getElementById('due-ordered-btn');
+  if (!info || !btn) return;
+  const n = dueList().length;
+  info.textContent = n>0
+    ? `復習あり（オレンジ枠）の問題だけを、章・Q番号の順に全章まとめて解けます。今は ${n}問。解いた問題は復習リストから外れるので、途中でやめても押し直せば残りの続きから解けます。`
+    : '今は復習ありの問題はありません。';
+  btn.disabled = n===0; btn.style.opacity = n===0 ? .4 : 1;
+  btn.textContent = n>0 ? `🔁 復習ありだけ順番に解く（${n}問）` : '🔁 復習ありだけ順番に解く';
+}
 function updateChapterSessionUI() {
   const info = document.getElementById('ch-session-info');
   if (!info) return;
@@ -844,6 +869,7 @@ function updateChapterSessionUI() {
       btn.textContent = '⏩ 続きから解く（今日は全問解きました🎉）';
     }
   }
+  updateDueOrderedUI();
 }
 function endSession() {
   session = null;
