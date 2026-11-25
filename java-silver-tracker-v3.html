@@ -125,6 +125,20 @@
   .session-quit { background: none; border: none; color: #B0A58F; font-size: 13px; font-family: inherit; font-weight: 900; cursor: pointer; padding: 4px 8px; }
   .session-bar-wrap { height: 8px; background: #F6EDD9; border-radius: 5px; overflow: hidden; margin-bottom: 24px; }
   .session-bar { height: 100%; background: linear-gradient(90deg, #FF5C7A, #FF9E3D); border-radius: 5px; transition: width .3s; }
+  /* --- mock exam timer (模擬1・模擬2専用) --- */
+  .mock-timer { position: sticky; top: 0; z-index: 5; background: #ffffff; border: 2px solid #F3E7D3; border-radius: 14px; padding: 10px 14px; margin-bottom: 14px; box-shadow: 0 2px 10px rgba(90,70,30,.08); text-align: center; }
+  .mock-timer-main { display: flex; align-items: baseline; justify-content: center; gap: 10px; flex-wrap: wrap; }
+  .mock-timer-label { font-size: 12px; font-weight: 900; color: #9a8f7d; letter-spacing: 1px; }
+  .mock-timer-time { font-size: 32px; font-weight: 900; color: #2b2b3a; line-height: 1; font-variant-numeric: tabular-nums; }
+  .mock-timer-elapsed { font-size: 12px; font-weight: 700; color: #9a8f7d; font-variant-numeric: tabular-nums; }
+  .mock-timer-btns { display: flex; gap: 8px; justify-content: center; margin-top: 8px; }
+  .mock-timer-btn { background: #FFF6E9; border: 2px solid #F3E7D3; color: #8a8578; border-radius: 999px; padding: 6px 16px; font-size: 12px; font-weight: 900; font-family: inherit; cursor: pointer; transition: transform .12s; }
+  .mock-timer-btn:active { transform: scale(.96); }
+  .mock-timer.warn { border-color: #FFB340; background: #FFFAEC; }
+  .mock-timer.warn .mock-timer-time { color: #D98A06; }
+  .mock-timer.over { border-color: #E8304F; background: #FFF0F2; }
+  .mock-timer.over .mock-timer-time { color: #E8304F; }
+  .mock-timer-done { margin-top: 8px; font-size: 13px; font-weight: 900; color: #E8304F; line-height: 1.6; }
   .session-q { text-align: center; margin-bottom: 8px; }
   .session-q-ch { font-size: 13px; color: #E84A6F; font-weight: 900; letter-spacing: 1px; margin-bottom: 6px; }
   .session-q-num { font-size: 48px; font-weight: 900; color: #2b2b3a; line-height: 1.1; }
@@ -202,6 +216,10 @@
     .modal-btn { font-size: 16px; padding: 17px; }
     .session-inner { max-width: 880px; }
     .session-q-num { font-size: 56px; }
+    .mock-timer-time { font-size: 42px; }
+    .mock-timer-label { font-size: 13px; }
+    .mock-timer-elapsed { font-size: 13px; }
+    .mock-timer-btn { font-size: 13px; padding: 8px 20px; }
     .session-memo { font-size: 15px; padding: 16px 18px; }
     .session-btn { font-size: 19px; padding: 22px 8px; }
     .sc-name { font-size: 15px; }
@@ -402,6 +420,18 @@
       <span class="session-count" id="session-count"></span>
       <span class="session-count" id="session-goal" style="color:#e8930c"></span>
       <button class="session-quit" onclick="endSession()">終了 ✕</button>
+    </div>
+    <div class="mock-timer hidden" id="session-timer">
+      <div class="mock-timer-main">
+        <span class="mock-timer-label">⏱ 残り時間</span>
+        <span class="mock-timer-time" id="mock-timer-remain">90:00</span>
+        <span class="mock-timer-elapsed" id="mock-timer-elapsed">経過 0:00</span>
+      </div>
+      <div class="mock-timer-done hidden" id="mock-timer-done">⏰ 時間終了（90分経過）— 記録はそのまま残っています。このまま答え合わせへ進めます</div>
+      <div class="mock-timer-btns">
+        <button class="mock-timer-btn" id="mock-timer-toggle" onclick="mockTimerToggle()">⏸ 一時停止</button>
+        <button class="mock-timer-btn" onclick="mockTimerReset()">↺ リセット（90:00に戻す）</button>
+      </div>
     </div>
     <div class="combo" id="session-combo"></div>
     <div class="session-bar-wrap"><div class="session-bar" id="session-bar" style="width:0%"></div></div>
@@ -834,6 +864,7 @@ function beginSession(queue, type) {
   session = { queue, idx: 0, results:{correct:0,incorrect:0,skip:0,saved:0}, combo:0, bestCombo:0, xp:0, startLevel: levelFromXp(totalXp()), type, sel: new Set() };
   loadSessionSel();
   document.getElementById('session').classList.add('open');
+  setupMockTimer(queue);
   renderSession();
 }
 function startSession(type) {
@@ -913,9 +944,80 @@ function updateChapterSessionUI() {
   updateDueOrderedUI();
 }
 function endSession() {
+  stopMockTimer();
   session = null;
   document.getElementById('session').classList.remove('open');
   renderToday(); renderWeak(); renderRecord();
+}
+
+/* ---------- 模試タイマー（模擬1・模擬2の章セッション専用／本番形式 60問・90分） ---------- */
+const MOCK_SECONDS = 90 * 60;
+let mockTimer = null; // {remain(秒), endAt, intId, running, finished} ※保存しない（セッション中のみ有効）
+function isMockQueue(queue) {
+  if (!queue || queue.length === 0) return false;
+  const chs = new Set(queue.map(k => +k.split('-')[0]));
+  return chs.size === 1 && (chs.has(7) || chs.has(8)); // 7=模擬1, 8=模擬2
+}
+function fmtClock(sec) {
+  sec = Math.max(0, Math.ceil(sec));
+  return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
+}
+function setupMockTimer(queue) {
+  stopMockTimer();
+  if (!isMockQueue(queue)) return;
+  mockTimer = { remain: MOCK_SECONDS, endAt: Date.now() + MOCK_SECONDS * 1000, intId: null, running: true, finished: false };
+  document.getElementById('session-timer').classList.remove('hidden');
+  mockTimer.intId = setInterval(mockTimerTick, 250);
+  renderMockTimer();
+}
+function mockTimerTick() {
+  if (!mockTimer || !mockTimer.running) return;
+  mockTimer.remain = Math.max(0, (mockTimer.endAt - Date.now()) / 1000);
+  if (mockTimer.remain <= 0) {
+    mockTimer.remain = 0;
+    mockTimer.running = false;
+    mockTimer.finished = true;
+    if (mockTimer.intId) { clearInterval(mockTimer.intId); mockTimer.intId = null; }
+  }
+  renderMockTimer();
+}
+function renderMockTimer() {
+  if (!mockTimer) return;
+  const box = document.getElementById('session-timer');
+  document.getElementById('mock-timer-remain').textContent = fmtClock(mockTimer.remain);
+  document.getElementById('mock-timer-elapsed').textContent = `経過 ${fmtClock(MOCK_SECONDS - mockTimer.remain)}`;
+  box.classList.toggle('warn', !mockTimer.finished && mockTimer.remain < 600); // 残り10分未満で色を変える
+  box.classList.toggle('over', mockTimer.finished);
+  document.getElementById('mock-timer-done').classList.toggle('hidden', !mockTimer.finished);
+  document.getElementById('mock-timer-toggle').textContent =
+    mockTimer.running ? '⏸ 一時停止' : (mockTimer.remain >= MOCK_SECONDS ? '▶ スタート' : '▶ 再開');
+}
+function pauseMockTimer() {
+  if (!mockTimer || !mockTimer.running) return;
+  mockTimer.remain = Math.max(0, (mockTimer.endAt - Date.now()) / 1000);
+  mockTimer.running = false;
+  if (mockTimer.intId) { clearInterval(mockTimer.intId); mockTimer.intId = null; }
+  renderMockTimer();
+}
+function mockTimerToggle() {
+  if (!mockTimer || mockTimer.finished) return;
+  if (mockTimer.running) { pauseMockTimer(); return; }
+  mockTimer.endAt = Date.now() + mockTimer.remain * 1000;
+  mockTimer.running = true;
+  mockTimer.intId = setInterval(mockTimerTick, 250);
+  renderMockTimer();
+}
+function mockTimerReset() {
+  if (!mockTimer) return;
+  if (mockTimer.intId) clearInterval(mockTimer.intId);
+  mockTimer = { remain: MOCK_SECONDS, endAt: 0, intId: null, running: false, finished: false };
+  renderMockTimer();
+}
+function stopMockTimer() {
+  if (mockTimer?.intId) clearInterval(mockTimer.intId);
+  mockTimer = null;
+  const box = document.getElementById('session-timer');
+  if (box) { box.classList.add('hidden'); box.classList.remove('warn', 'over'); }
 }
 function sessionAnswer(result) {
   const k = session.queue[session.idx];
@@ -987,6 +1089,7 @@ function renderSession() {
   const body = document.getElementById('session-body');
 
   if (done >= total) {
+    pauseMockTimer(); // 全問終了したらタイマーはその時点の残り時間で止める（表示は残す）
     const r = session.results;
     document.getElementById('session-bar').style.width = '100%';
     comboEl.textContent = '';
