@@ -57,6 +57,21 @@
   .expl { background: #E9FBF4; border: 2px solid #2BD9A9; border-radius: 14px; padding: 12px 14px; font-size: 13px; line-height: 1.8; color: #4a4a5a; margin-bottom: 14px; white-space: pre-wrap; }
   .expl.ng { background: #FFF0F3; border-color: #FF7A93; }
   .verdict { font-size: 18px; font-weight: 900; margin-bottom: 10px; }
+  /* pace mode */
+  .pace-panel { background: #ffffff; border: 2px solid #F3E7D3; border-radius: 18px; box-shadow: 0 4px 0 #F3E7D3; padding: 14px 16px; margin-bottom: 14px; text-align: center; }
+  .pace-time { font-size: 44px; font-weight: 900; font-variant-numeric: tabular-nums; color: #2b2b3a; line-height: 1.1; }
+  .pace-time.warn { color: #D98A06; }
+  .pace-time.over { color: #E8304F; }
+  .pace-bar-wrap { height: 10px; background: #F6EDD9; border-radius: 6px; overflow: hidden; margin: 10px 0 6px; }
+  .pace-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #5B8DEF, #2BD9A9); border-radius: 6px; transition: width .3s linear; }
+  .pace-bar.warn { background: #D98A06; }
+  .pace-bar.over { background: #E8304F; }
+  .pace-note { font-size: 11px; color: #9a8f7d; font-weight: 900; letter-spacing: 1px; }
+  .pace-line { font-size: 20px; font-weight: 900; margin-bottom: 8px; font-variant-numeric: tabular-nums; }
+  .pace-stats { display: flex; gap: 8px; }
+  .pace-stat { flex: 1; background: #FFFDF8; border: 2px solid #F3E7D3; border-radius: 14px; padding: 14px 6px; text-align: center; }
+  .pace-stat .v { font-size: 25px; font-weight: 900; color: #2b2b3a; font-variant-numeric: tabular-nums; }
+  .pace-stat .l { font-size: 11px; color: #9a8f7d; font-weight: 900; margin-top: 4px; }
   /* review */
   .rev-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 14px; }
   .rev-btn { aspect-ratio: 1; border-radius: 12px; border: 2px solid #F0E7D2; background: #FFFDF8; color: #C9BC9F; font-size: 12px; font-weight: 900; font-family: inherit; cursor: pointer; position: relative; transition: all .15s; }
@@ -94,6 +109,7 @@
     .seg button { font-size: 13px; padding: 10px 4px; }
     .cfg-label { font-size: 12px; }
     .exam-top { font-size: 15px; }
+    .pace-time { font-size: 56px; }
     .q-text { font-size: 16.5px; line-height: 1.9; margin-bottom: 16px; }
     pre.code { font-size: 14.5px; line-height: 1.7; padding: 18px 20px; margin-bottom: 18px; }
     .choices { gap: 10px; margin-bottom: 18px; }
@@ -126,6 +142,7 @@
       <div class="seg" id="seg-mode">
         <button class="on" data-v="exam" onclick="setMode('exam',this)">模試（採点は最後）</button>
         <button data-v="drill" onclick="setMode('drill',this)">ドリル（1問ごと解説）</button>
+        <button data-v="pace" onclick="setMode('pace',this)">ペース（1問の時間を意識）</button>
       </div>
       <div class="cfg-label">問題セット</div>
       <div class="seg" id="seg-qset">
@@ -161,13 +178,19 @@
   <div id="view-exam" class="hidden">
     <div class="exam-top">
       <span id="exam-pos"></span>
-      <span><span id="total-label">合計</span> <span id="total-timer">0:00</span>　問 <span class="qtimer" id="q-timer">0:00</span></span>
+      <span><span id="exam-timers"><span id="total-label">合計</span> <span id="total-timer">0:00</span>　問 <span class="qtimer" id="q-timer">0:00</span></span></span>
     </div>
     <div class="exam-bar-wrap"><div class="exam-bar" id="exam-bar"></div></div>
+    <div id="pace-panel" class="pace-panel hidden">
+      <div class="pace-time" id="pace-time">0:00</div>
+      <div class="pace-bar-wrap"><div class="pace-bar" id="pace-bar"></div></div>
+      <div class="pace-note">目標 1:30 / 問（本番ペース）</div>
+    </div>
     <div class="q-text" id="q-text"></div>
     <pre class="code" id="q-code"></pre>
     <div class="choices" id="q-choices"></div>
     <div id="drill-feedback" class="hidden">
+      <div class="pace-line hidden" id="pace-line"></div>
       <div class="verdict" id="drill-verdict"></div>
       <div class="expl" id="drill-expl"></div>
     </div>
@@ -210,6 +233,18 @@
     <div class="card">
       <div class="card-title">全問題の解説 <span style="font-size:10px;color:#B0A58F">タップで展開</span></div>
       <div id="res-list"></div>
+    </div>
+    <button class="primary-btn" onclick="backToConfig()">最初に戻る</button>
+    <div style="height:20px"></div>
+  </div>
+
+  <!-- ===== PACE RESULT ===== -->
+  <div id="view-pace-result" class="hidden">
+    <div class="header-label">Pace</div>
+    <div class="header-title" style="font-size:18px">ペース練習のまとめ</div>
+    <div class="card">
+      <div class="pace-stats" id="pace-stats"></div>
+      <div style="font-size:12px;color:#9a8f7d;margin-top:12px">目標は本番ペースの1問90秒。この結果は履歴に保存されません。</div>
     </div>
     <button class="primary-btn" onclick="backToConfig()">最初に戻る</button>
     <div style="height:20px"></div>
@@ -2491,10 +2526,11 @@ function startExam() {
   timerId = setInterval(tickTimers, 500);
 }
 function showView(name) {
-  ["config","exam","review","result"].forEach(v=>document.getElementById("view-"+v).classList.toggle("hidden", v!==name));
+  ["config","exam","review","result","pace-result"].forEach(v=>document.getElementById("view-"+v).classList.toggle("hidden", v!==name));
   window.scrollTo(0,0);
 }
 const EXAM3_LIMIT_MS = 90*60*1000; // 本番形式（模試モード＋第3セット）の制限時間90分
+const PACE_TARGET = 90; // ペースモードの目標秒数/問（本番ペース＝90分÷60問）
 function tickTimers() {
   if (!ex) return;
   const totalEl = document.getElementById("total-timer");
@@ -2515,6 +2551,14 @@ function tickTimers() {
   const el = document.getElementById("q-timer");
   el.textContent = fmt(elapsed);
   el.className = "qtimer" + (elapsed > cfg.limit*1000 ? " over" : elapsed > cfg.limit*800 ? " warn" : "");
+  if (cfg.mode==="pace") {
+    const pt = document.getElementById("pace-time");
+    pt.textContent = fmt(elapsed);
+    pt.className = "pace-time" + (elapsed > PACE_TARGET*1000 ? " over" : elapsed > PACE_TARGET*800 ? " warn" : "");
+    const pb = document.getElementById("pace-bar");
+    pb.style.width = Math.min(100, elapsed/(PACE_TARGET*1000)*100) + "%";
+    pb.className = "pace-bar" + (elapsed > PACE_TARGET*1000 ? " over" : elapsed > PACE_TARGET*800 ? " warn" : "");
+  }
 }
 
 function prevQuestion() {
@@ -2541,6 +2585,9 @@ function renderQuestion() {
       <span class="mark">${LETTERS[pos]}</span><span>${esc(q.choices[origIdx])}</span></button>`
   ).join("");
   document.getElementById("flag-btn").className = "flag-btn"+(it.flagged?" on":"");
+  document.getElementById("pace-panel").classList.toggle("hidden", cfg.mode!=="pace");
+  document.getElementById("exam-timers").classList.toggle("hidden", cfg.mode==="pace");
+  document.getElementById("pace-line").classList.add("hidden");
   document.getElementById("drill-feedback").classList.add("hidden");
   ex.drillAnswered = false;
   document.getElementById("next-btn").textContent = "回答して次へ";
@@ -2572,8 +2619,8 @@ function stopQClock() {
 
 function nextAction() {
   const it = ex.items[ex.idx];
-  if (cfg.mode==="drill" && !ex.drillAnswered) {
-    // ドリル: まず答え合わせを表示
+  if ((cfg.mode==="drill" || cfg.mode==="pace") && !ex.drillAnswered) {
+    // ドリル/ペース: まず答え合わせを表示
     stopQClock();
     ex.drillAnswered = true;
     const ok = isCorrect(it);
@@ -2585,6 +2632,16 @@ function nextAction() {
     const ex2 = document.getElementById("drill-expl");
     ex2.className = "expl"+(ok?"":" ng");
     ex2.textContent = it.q.expl;
+    if (cfg.mode==="pace") {
+      // ペース: かかった秒数と90秒以内かどうかを即フィードバック
+      it.paceDone = true;
+      const sec = Math.round(it.timeMs/1000);
+      const within = it.timeMs <= PACE_TARGET*1000;
+      const pl = document.getElementById("pace-line");
+      pl.textContent = `⏱ ${sec}秒 — ${within ? "目標90秒以内！" : "90秒オーバー"}`;
+      pl.style.color = within ? "#0A8A68" : "#E8304F";
+      pl.classList.remove("hidden");
+    }
     // 選択肢に正誤の色付け
     [...document.getElementById("q-choices").children].forEach((btn,pos)=>{
       const oi = it.order[pos];
@@ -2609,6 +2666,7 @@ function skipQuestion() {
 function advance() {
   if (ex.idx < ex.items.length-1) { ex.idx++; renderQuestion(); }
   else if (cfg.mode==="exam") { renderReview(); showView("review"); }
+  else if (cfg.mode==="pace") { finishPace(); }
   else grade();
 }
 function toggleFlag() {
@@ -2705,6 +2763,21 @@ function grade() {
   showView("result");
 }
 function backToConfig() { ex=null; showView("config"); renderHistory(); }
+
+/* ---------- pace summary（履歴には保存しない） ---------- */
+function finishPace() {
+  clearInterval(timerId);
+  const done = ex.items.filter(it=>it.paceDone);
+  const n = done.length;
+  const avgSec = n ? done.reduce((s,it)=>s+it.timeMs,0)/n/1000 : 0;
+  const within = done.filter(it=>it.timeMs<=PACE_TARGET*1000).length;
+  const pctWithin = n ? Math.round(within/n*100) : 0;
+  document.getElementById("pace-stats").innerHTML =
+    `<div class="pace-stat"><div class="v">${n}問</div><div class="l">解いた問題数（全${ex.items.length}問）</div></div>` +
+    `<div class="pace-stat"><div class="v">${avgSec.toFixed(1)}秒</div><div class="l">平均 / 問</div></div>` +
+    `<div class="pace-stat"><div class="v">${pctWithin}%</div><div class="l">90秒以内（${within}問）</div></div>`;
+  showView("pace-result");
+}
 
 renderChips();
 renderHistory();
