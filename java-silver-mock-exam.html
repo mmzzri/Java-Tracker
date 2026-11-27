@@ -93,6 +93,14 @@
   .res-body { padding: 13px; border-top: 2px solid #F3E7D3; display: none; }
   .res-item.open .res-body { display: block; }
   .hist-row { display: flex; justify-content: space-between; font-size: 12px; color: #8a7f6d; font-weight: 700; padding: 6px 0; border-bottom: 2px solid #F7EFDD; }
+  /* unit review mode */
+  .unit-ch { font-size: 12px; color: #9a8f7d; font-weight: 900; letter-spacing: 1px; margin: 16px 0 8px; }
+  .unit-ch:first-child { margin-top: 0; }
+  .unit-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%; padding: 12px 13px; border: 2px solid #EFE6D4; border-radius: 14px; background: #FFFDF8; color: #4a4a5a; font-family: inherit; font-size: 13px; font-weight: 700; text-align: left; cursor: pointer; margin-bottom: 8px; transition: all .15s; }
+  .unit-row:active { transform: scale(.98); }
+  .unit-row .u-name { line-height: 1.5; }
+  .unit-row .u-meta { flex-shrink: 0; text-align: right; font-size: 11px; color: #9a8f7d; line-height: 1.6; }
+  .unit-row .u-meta .u-pct { font-size: 14px; font-weight: 900; }
   .hidden { display: none; }
 
   /* ---------- PC向けレスポンシブ（768px以上） ---------- */
@@ -143,6 +151,7 @@
         <button class="on" data-v="exam" onclick="setMode('exam',this)">模試（採点は最後）</button>
         <button data-v="drill" onclick="setMode('drill',this)">ドリル（1問ごと解説）</button>
         <button data-v="pace" onclick="setMode('pace',this)">ペース（1問の時間を意識）</button>
+        <button data-v="unit" onclick="setMode('unit',this)">単元復習</button>
       </div>
       <div class="cfg-label">問題セット</div>
       <div class="seg" id="seg-qset">
@@ -152,21 +161,27 @@
         <button data-v="all" onclick="setQSet('all',this)">全部</button>
       </div>
       <div id="pace-note" class="hidden" style="font-size:12px;color:#9a8f7d;margin-top:6px">ペース練習は専用問題30問（第1〜第3セットとは別の問題）から出題されます。問題セットの選択は反映されません。</div>
-      <div class="cfg-label">出題数</div>
+      <div id="unit-note" class="hidden" style="font-size:12px;color:#9a8f7d;margin-top:6px">単元復習は、公式範囲の単元ごとに全セットから集めた問題を、基礎の順（第1→第2→第3→ペース専用）に出題します。下の「単元を選んで復習」から単元を選んで開始してください。</div>
+      <div class="cfg-label" id="lbl-count">出題数</div>
       <div class="seg" id="seg-count">
         <button data-v="10" onclick="setCount(10,this)">10問</button>
         <button data-v="20" onclick="setCount(20,this)">20問</button>
         <button class="on" data-v="0" onclick="setCount(0,this)">全問</button>
       </div>
-      <div class="cfg-label">1問の時間目安（超過すると赤く表示）</div>
+      <div class="cfg-label" id="lbl-time">1問の時間目安（超過すると赤く表示）</div>
       <div class="seg" id="seg-time">
         <button data-v="90" onclick="setLimit(90,this)">1:30</button>
         <button class="on" data-v="120" onclick="setLimit(120,this)">2:00</button>
         <button data-v="150" onclick="setLimit(150,this)">2:30</button>
       </div>
-      <div class="cfg-label">出題分野（タップで絞り込み）</div>
+      <div class="cfg-label" id="lbl-cats">出題分野（タップで絞り込み）</div>
       <div class="chip-row" id="cat-chips"></div>
       <button class="primary-btn" style="margin-top:18px" onclick="startExam()" id="start-btn">▶ 開始する</button>
+    </div>
+
+    <div class="card hidden" id="unit-card">
+      <div class="card-title">単元を選んで復習</div>
+      <div id="unit-list"></div>
     </div>
 
     <div class="card" id="history-card">
@@ -248,6 +263,19 @@
       <div style="font-size:12px;color:#9a8f7d;margin-top:12px">目標は本番ペースの1問90秒。この結果は履歴に保存されません。</div>
     </div>
     <button class="primary-btn" onclick="backToConfig()">最初に戻る</button>
+    <div style="height:20px"></div>
+  </div>
+
+  <!-- ===== UNIT RESULT ===== -->
+  <div id="view-unit-result" class="hidden">
+    <div class="header-label">Unit Review</div>
+    <div class="header-title" style="font-size:18px">単元復習のまとめ</div>
+    <div class="card">
+      <div style="font-size:14px;font-weight:900;color:#2b2b3a;margin-bottom:12px" id="unit-result-name"></div>
+      <div class="pace-stats" id="unit-stats"></div>
+      <div style="font-size:12px;color:#9a8f7d;margin-top:12px">1問90秒は本番ペースの目安です。この結果は通常の履歴には保存されず、単元の進み具合だけに記録されます。</div>
+    </div>
+    <button class="primary-btn" onclick="backToConfig()">単元選択に戻る</button>
     <div style="height:20px"></div>
   </div>
 </div>
@@ -2978,14 +3006,36 @@ const esc = s => s==null?"":String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;")
 const fmt = ms => { const t=Math.floor(ms/1000); return `${Math.floor(t/60)}:${String(t%60).padStart(2,"0")}`; };
 const shuffle = a => { const x=[...a]; for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]];} return x; };
 
+/* ---------- storage（HKEYの中身: {history:[...], unitStats:{...}}。従来の配列形式も読み込める） ---------- */
+function loadStore() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(HKEY) || "null");
+    if (Array.isArray(raw)) return { history: raw, unitStats: {} };
+    if (raw && typeof raw === "object") return { history: Array.isArray(raw.history) ? raw.history : [], unitStats: raw.unitStats || {} };
+  } catch {}
+  return { history: [], unitStats: {} };
+}
+function saveStore(store) {
+  try { localStorage.setItem(HKEY, JSON.stringify(store)); } catch {}
+}
+
 /* ---------- config ---------- */
 function setMode(v,el){ cfg.mode=v; segOn(el); renderChips(); updateModeUI(); }
 function updateModeUI(){
   const pace = cfg.mode==="pace";
+  const unit = cfg.mode==="unit";
   const seg = document.getElementById("seg-qset");
-  seg.style.opacity = pace ? ".35" : "";
-  seg.style.pointerEvents = pace ? "none" : "";
+  seg.style.opacity = (pace || unit) ? ".35" : "";
+  seg.style.pointerEvents = (pace || unit) ? "none" : "";
   document.getElementById("pace-note").classList.toggle("hidden", !pace);
+  document.getElementById("unit-note").classList.toggle("hidden", !unit);
+  document.getElementById("unit-card").classList.toggle("hidden", !unit);
+  // 単元復習では、出題数・時間目安・分野絞り込み・開始ボタンは使わない
+  ["seg-count","seg-time","cat-chips","start-btn","lbl-count","lbl-time","lbl-cats"].forEach(id=>{
+    const e = document.getElementById(id);
+    if (e) e.style.display = unit ? "none" : "";
+  });
+  if (unit) renderUnitList();
 }
 function setCount(v,el){ cfg.count=v; segOn(el); }
 function setLimit(v,el){ cfg.limit=v; segOn(el); }
@@ -3009,8 +3059,7 @@ function toggleCat(i) {
 }
 
 function renderHistory() {
-  let hist = [];
-  try { hist = JSON.parse(localStorage.getItem(HKEY)||"[]"); } catch {}
+  const hist = loadStore().history;
   const el = document.getElementById("history-list");
   if (hist.length===0) { el.innerHTML = '<div style="font-size:12px;color:#B0A58F">まだ記録がありません</div>'; return; }
   el.innerHTML = hist.slice(-6).reverse().map(h=>
@@ -3037,7 +3086,7 @@ function startExam() {
   timerId = setInterval(tickTimers, 500);
 }
 function showView(name) {
-  ["config","exam","review","result","pace-result"].forEach(v=>document.getElementById("view-"+v).classList.toggle("hidden", v!==name));
+  ["config","exam","review","result","pace-result","unit-result"].forEach(v=>document.getElementById("view-"+v).classList.toggle("hidden", v!==name));
   window.scrollTo(0,0);
 }
 const EXAM3_LIMIT_MS = 90*60*1000; // 本番形式（模試モード＋第3セット）の制限時間90分
@@ -3062,7 +3111,7 @@ function tickTimers() {
   const el = document.getElementById("q-timer");
   el.textContent = fmt(elapsed);
   el.className = "qtimer" + (elapsed > cfg.limit*1000 ? " over" : elapsed > cfg.limit*800 ? " warn" : "");
-  if (cfg.mode==="pace") {
+  if (cfg.mode==="pace" || cfg.mode==="unit") {
     const pt = document.getElementById("pace-time");
     pt.textContent = fmt(elapsed);
     pt.className = "pace-time" + (elapsed > PACE_TARGET*1000 ? " over" : elapsed > PACE_TARGET*800 ? " warn" : "");
@@ -3096,8 +3145,8 @@ function renderQuestion() {
       <span class="mark">${LETTERS[pos]}</span><span>${esc(q.choices[origIdx])}</span></button>`
   ).join("");
   document.getElementById("flag-btn").className = "flag-btn"+(it.flagged?" on":"");
-  document.getElementById("pace-panel").classList.toggle("hidden", cfg.mode!=="pace");
-  document.getElementById("exam-timers").classList.toggle("hidden", cfg.mode==="pace");
+  document.getElementById("pace-panel").classList.toggle("hidden", !(cfg.mode==="pace" || cfg.mode==="unit"));
+  document.getElementById("exam-timers").classList.toggle("hidden", cfg.mode==="pace" || cfg.mode==="unit");
   document.getElementById("pace-line").classList.add("hidden");
   document.getElementById("drill-feedback").classList.add("hidden");
   ex.drillAnswered = false;
@@ -3130,8 +3179,8 @@ function stopQClock() {
 
 function nextAction() {
   const it = ex.items[ex.idx];
-  if ((cfg.mode==="drill" || cfg.mode==="pace") && !ex.drillAnswered) {
-    // ドリル/ペース: まず答え合わせを表示
+  if ((cfg.mode==="drill" || cfg.mode==="pace" || cfg.mode==="unit") && !ex.drillAnswered) {
+    // ドリル/ペース/単元復習: まず答え合わせを表示
     stopQClock();
     ex.drillAnswered = true;
     const ok = isCorrect(it);
@@ -3143,9 +3192,10 @@ function nextAction() {
     const ex2 = document.getElementById("drill-expl");
     ex2.className = "expl"+(ok?"":" ng");
     ex2.textContent = it.q.expl;
-    if (cfg.mode==="pace") {
-      // ペース: かかった秒数と90秒以内かどうかを即フィードバック
+    if (cfg.mode==="pace" || cfg.mode==="unit") {
+      // ペース/単元復習: かかった秒数と90秒以内かどうかを即フィードバック
       it.paceDone = true;
+      if (cfg.mode==="unit") it.unitDone = true;
       const sec = Math.round(it.timeMs/1000);
       const within = it.timeMs <= PACE_TARGET*1000;
       const pl = document.getElementById("pace-line");
@@ -3178,6 +3228,7 @@ function advance() {
   if (ex.idx < ex.items.length-1) { ex.idx++; renderQuestion(); }
   else if (cfg.mode==="exam") { renderReview(); showView("review"); }
   else if (cfg.mode==="pace") { finishPace(); }
+  else if (cfg.mode==="unit") { finishUnit(); }
   else grade();
 }
 function toggleFlag() {
@@ -3265,15 +3316,16 @@ function grade() {
 
   // 保存
   try {
-    const hist = JSON.parse(localStorage.getItem(HKEY)||"[]");
-    hist.push({date:new Date().toISOString().slice(0,10), mode:cfg.mode, qset:cfg.qset, total, pct,
+    const store = loadStore();
+    store.history.push({date:new Date().toISOString().slice(0,10), mode:cfg.mode, qset:cfg.qset, total, pct,
       cats:Object.fromEntries(Object.entries(cats).map(([c,v])=>[c,{ok:v.ok,n:v.n}]))});
-    localStorage.setItem(HKEY, JSON.stringify(hist.slice(-50)));
+    store.history = store.history.slice(-50);
+    saveStore(store);
   } catch {}
 
   showView("result");
 }
-function backToConfig() { ex=null; showView("config"); renderHistory(); }
+function backToConfig() { ex=null; showView("config"); renderHistory(); if (cfg.mode==="unit") renderUnitList(); }
 
 /* ---------- pace summary（履歴には保存しない） ---------- */
 function finishPace() {
@@ -3288,6 +3340,105 @@ function finishPace() {
     `<div class="pace-stat"><div class="v">${avgSec.toFixed(1)}秒</div><div class="l">平均 / 問</div></div>` +
     `<div class="pace-stat"><div class="v">${pctWithin}%</div><div class="l">90秒以内（${within}問）</div></div>`;
   showView("pace-result");
+}
+
+/* ---------- 単元復習モード ---------- */
+// 公式範囲の単元一覧は、第3セット/ペース専用の cat（例「2-1 変数の宣言・初期化とスコープ」）から導出する
+const UNIT_CHAPTERS = {
+  1: "Javaの概要と簡単なJavaプログラムの作成",
+  2: "Javaの基本データ型と文字列の操作",
+  3: "演算子と制御構造",
+  4: "クラスの定義とインスタンスの使用",
+  5: "継承とインタフェースの使用",
+  6: "例外処理"
+};
+const UNITS = (() => {
+  const m = new Map();
+  [...QUESTIONS3, ...QUESTIONS_PACE].forEach(q => {
+    const id = q.cat.split(" ")[0];
+    if (/^\d+-\d+$/.test(id) && !m.has(id)) m.set(id, q.cat);
+  });
+  return [...m.entries()].map(([id, name]) => ({ id, name })).sort((a, b) => {
+    const [a1, a2] = a.id.split("-").map(Number);
+    const [b1, b2] = b.id.split("-").map(Number);
+    return a1 - b1 || a2 - b2;
+  });
+})();
+// 第1・第2セットは cat がトピック名のため、対応する単元へ寄せる（トピック名が複数の単元にまたがる場合は複数に含める）
+const TOPIC_TO_UNITS = {
+  "main・パッケージ": ["1-1", "1-2", "1-3"],
+  "変数とスコープ": ["2-1"],
+  "文字列操作": ["2-3"],
+  "switch式・switch文": ["3-1", "3-4"],
+  "繰り返し文": ["3-2", "3-3"],
+  "コンストラクタ・抽象クラス": ["4-2", "5-2"],
+  "オーバーライド／オーバーロード": ["4-3", "5-3"],
+  "instanceofパターンマッチング": ["4-6"],
+  "record": ["4-7"],
+  "キャストとポリモーフィズム": ["5-4"],
+  "インタフェース": ["5-6", "5-7"],
+  "sealedクラス": ["5-8"],
+  "例外処理": ["6-1", "6-2", "6-3", "6-4"]
+};
+function questionUnits(q) {
+  if (q.tag && UNITS.some(u => u.id === q.tag)) return [q.tag];
+  return TOPIC_TO_UNITS[q.cat] || [];
+}
+function unitPool(unitId) {
+  // 基礎からの順序: 第1セット→第2セット→第3セット→ペース専用（セット内は収録順）
+  const pick = pool => pool.filter(q => questionUnits(q).includes(unitId));
+  return [...pick(QUESTIONS), ...pick(QUESTIONS2), ...pick(QUESTIONS3), ...pick(QUESTIONS_PACE)];
+}
+function renderUnitList() {
+  const stats = loadStore().unitStats;
+  let html = "";
+  for (const ch of Object.keys(UNIT_CHAPTERS)) {
+    const units = UNITS.filter(u => u.id.split("-")[0] === ch);
+    if (!units.length) continue;
+    html += `<div class="unit-ch">第${ch}章 ${esc(UNIT_CHAPTERS[ch])}</div>`;
+    html += units.map(u => {
+      const n = unitPool(u.id).length;
+      const st = stats[u.id];
+      const meta = st && st.done > 0
+        ? `<span class="u-pct" style="color:${Math.round(st.ok / st.done * 100) >= 65 ? '#0A8A68' : '#D81B4C'}">${Math.round(st.ok / st.done * 100)}%</span><br>解いた ${st.done}問`
+        : `未実施`;
+      return `<button class="unit-row" onclick="startUnit('${u.id}')" ${n === 0 ? 'disabled style="opacity:.4"' : ''}><span class="u-name">${esc(u.name)}<br><span style="font-size:11px;color:#9a8f7d">全${n}問</span></span><span class="u-meta">${meta}</span></button>`;
+    }).join("");
+  }
+  document.getElementById("unit-list").innerHTML = html;
+}
+function startUnit(unitId) {
+  const pool = unitPool(unitId);
+  if (!pool.length) return;
+  ex = {
+    items: pool.map(q => ({ q, order: shuffle(q.choices.map((_, i) => i)), selected: new Set(), flagged: false, timeMs: 0 })),
+    idx: 0, startedAt: Date.now(), qStartedAt: Date.now(), drillAnswered: false, unitId
+  };
+  showView("exam");
+  renderQuestion();
+  timerId = setInterval(tickTimers, 500);
+}
+function finishUnit() {
+  clearInterval(timerId);
+  const done = ex.items.filter(it => it.unitDone);
+  const n = done.length;
+  const ok = done.filter(isCorrect).length;
+  const avgSec = n ? done.reduce((s, it) => s + it.timeMs, 0) / n / 1000 : 0;
+  const within = done.filter(it => it.timeMs <= PACE_TARGET * 1000).length;
+  const pct = n ? Math.round(ok / n * 100) : 0;
+  const u = UNITS.find(x => x.id === ex.unitId);
+  document.getElementById("unit-result-name").textContent = u ? u.name : ex.unitId;
+  document.getElementById("unit-stats").innerHTML =
+    `<div class="pace-stat"><div class="v">${n}問</div><div class="l">解いた問題数（全${ex.items.length}問）</div></div>` +
+    `<div class="pace-stat"><div class="v">${ok}問</div><div class="l">正解（${pct}%）</div></div>` +
+    `<div class="pace-stat"><div class="v">${avgSec.toFixed(1)}秒</div><div class="l">平均 / 問（90秒以内 ${within}問）</div></div>`;
+  // 単元の進み具合だけを記録する（通常の履歴には混ぜない）
+  const store = loadStore();
+  const st = store.unitStats[ex.unitId] || { done: 0, ok: 0 };
+  st.done += n; st.ok += ok;
+  store.unitStats[ex.unitId] = st;
+  saveStore(store);
+  showView("unit-result");
 }
 
 renderChips();
