@@ -1,0 +1,2786 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Java Silver 模擬試験 — 初見問題ドリル</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #FFF6E9; color: #2b2b3a; font-family: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif; min-height: 100vh; padding: 16px;
+    background-image: radial-gradient(340px 200px at 8% 0%, #FFD9E4 0%, transparent 70%), radial-gradient(380px 220px at 95% 6%, #FFF0B8 0%, transparent 70%), radial-gradient(420px 300px at 50% 108%, #CFEBFF 0%, transparent 70%); background-attachment: fixed; }
+  .wrap { max-width: 520px; margin: 0 auto; }
+  .header-label { font-size: 11px; letter-spacing: 4px; color: #FF5C7A; text-transform: uppercase; margin-bottom: 4px; font-weight: 900; }
+  .header-title { font-size: 25px; font-weight: 900; color: #2b2b3a; margin-bottom: 4px; }
+  .header-sub { font-size: 12px; color: #9a8f7d; margin-bottom: 20px; font-weight: 700; }
+  .card { background: #ffffff; border: 2px solid #F3E7D3; border-radius: 18px; padding: 16px; margin-bottom: 12px; box-shadow: 0 4px 0 #F3E7D3; }
+  .card-title { font-size: 12px; color: #9a8f7d; margin-bottom: 10px; font-weight: 900; letter-spacing: 1px; }
+  .primary-btn { width: 100%; padding: 14px; border: none; border-radius: 14px; color: #fff; font-size: 15px; font-weight: 900; cursor: pointer; font-family: inherit; background: linear-gradient(135deg, #FF5C7A, #FF9E3D); box-shadow: 0 5px 0 #D63A54; letter-spacing: .5px; transition: all .12s; }
+  .primary-btn:active { transform: translateY(3px); box-shadow: none; }
+  .primary-btn:disabled { opacity: .45; box-shadow: none; }
+  .ghost-btn { width: 100%; padding: 12px; border: 2px solid #F3E7D3; border-radius: 14px; color: #7a6c55; font-size: 13px; font-weight: 900; cursor: pointer; font-family: inherit; background: #ffffff; box-shadow: 0 4px 0 #F3E7D3; transition: all .12s; }
+  .ghost-btn:active { transform: translateY(2px); box-shadow: none; }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { padding: 7px 11px; border-radius: 999px; border: 2px solid #F3E7D3; background: #FFFDF8; color: #8a7f6d; font-size: 12px; font-family: inherit; cursor: pointer; font-weight: 900; transition: all .2s; }
+  .chip.on { background: linear-gradient(135deg, #FF5C7A, #FF9E3D); color: #fff; border-color: transparent; box-shadow: 0 4px 10px #FF5C7A55; }
+  .seg { display: flex; gap: 4px; background: #FFF3E0; border-radius: 10px; padding: 3px; }
+  .seg button { flex: 1; padding: 8px 4px; border: none; border-radius: 8px; background: none; color: #B0A58F; font-size: 12px; font-family: inherit; cursor: pointer; font-weight: 900; transition: all .2s; }
+  .seg button.on { background: #5B8DEF; color: #fff; }
+  .cfg-label { font-size: 11px; color: #9a8f7d; margin: 14px 0 6px; font-weight: 900; letter-spacing: 1px; }
+  /* exam */
+  .exam-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; color: #9a8f7d; font-weight: 900; }
+  .qtimer { font-weight: 900; font-variant-numeric: tabular-nums; color: #2b2b3a; }
+  .qtimer.warn { color: #D98A06; }
+  .qtimer.over { color: #E8304F; }
+  .exam-bar-wrap { height: 8px; background: #F6EDD9; border-radius: 5px; overflow: hidden; margin-bottom: 16px; }
+  .exam-bar { height: 100%; background: linear-gradient(90deg, #FF5C7A, #FF9E3D); border-radius: 5px; transition: width .3s; }
+  .q-text { font-size: 14.5px; color: #2b2b3a; line-height: 1.8; margin-bottom: 12px; font-weight: 700; }
+  .multi-tag { display: inline-block; font-size: 10px; font-weight: 900; color: #B97A0A; background: #FFF3C4; border: 2px solid #F5C542; border-radius: 20px; padding: 1px 8px; margin-left: 6px; vertical-align: 1px; }
+  pre.code { background: #FFFBF2; border: 2px solid #F3E7D3; border-radius: 12px; padding: 12px; font-size: 12.5px; line-height: 1.65; overflow-x: auto; color: #3a3a4e; font-family: 'Roboto Mono', Consolas, monospace; margin-bottom: 14px; white-space: pre; }
+  .choices { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .choice { display: flex; gap: 10px; align-items: flex-start; padding: 13px; border: 2px solid #EFE6D4; border-radius: 14px; background: #FFFDF8; color: #4a4a5a; font-size: 13.5px; line-height: 1.6; font-family: inherit; font-weight: 700; text-align: left; cursor: pointer; width: 100%; transition: all .15s; }
+  .choice:active { transform: scale(.98); }
+  .choice .mark { font-weight: 900; color: #C9BC9F; flex-shrink: 0; }
+  .choice.sel { border-color: #5B8DEF; background: #E1EBFF; color: #2F5AA8; }
+  .choice.sel .mark { color: #2F5AA8; }
+  .choice.ok { border-color: #2BD9A9; background: #E9FBF4; color: #0A8A68; }
+  .choice.ok .mark { color: #0A8A68; }
+  .choice.ng { border-color: #FF7A93; background: #FFF0F3; color: #D81B4C; }
+  .choice.ng .mark { color: #D81B4C; }
+  .choice code, .q-text code { font-family: 'Roboto Mono', Consolas, monospace; font-size: 12px; background: #FFF3E0; padding: 1px 4px; border-radius: 4px; }
+  .exam-btns { display: flex; gap: 8px; }
+  .exam-btns .primary-btn { flex: 1; }
+  .flag-btn { border: 2px solid #F3E7D3; background: #ffffff; color: #8a7f6d; border-radius: 12px; padding: 0 14px; font-size: 13px; font-weight: 900; cursor: pointer; font-family: inherit; box-shadow: 0 3px 0 #F3E7D3; transition: all .12s; }
+  .flag-btn.on { border-color: #F5C542; color: #B97A0A; background: #FFF8DC; }
+  .flag-btn:disabled { opacity: .3; }
+  .expl { background: #E9FBF4; border: 2px solid #2BD9A9; border-radius: 14px; padding: 12px 14px; font-size: 13px; line-height: 1.8; color: #4a4a5a; margin-bottom: 14px; white-space: pre-wrap; }
+  .expl.ng { background: #FFF0F3; border-color: #FF7A93; }
+  .verdict { font-size: 18px; font-weight: 900; margin-bottom: 10px; }
+  /* pace mode */
+  .pace-panel { background: #ffffff; border: 2px solid #F3E7D3; border-radius: 18px; box-shadow: 0 4px 0 #F3E7D3; padding: 14px 16px; margin-bottom: 14px; text-align: center; }
+  .pace-time { font-size: 44px; font-weight: 900; font-variant-numeric: tabular-nums; color: #2b2b3a; line-height: 1.1; }
+  .pace-time.warn { color: #D98A06; }
+  .pace-time.over { color: #E8304F; }
+  .pace-bar-wrap { height: 10px; background: #F6EDD9; border-radius: 6px; overflow: hidden; margin: 10px 0 6px; }
+  .pace-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #5B8DEF, #2BD9A9); border-radius: 6px; transition: width .3s linear; }
+  .pace-bar.warn { background: #D98A06; }
+  .pace-bar.over { background: #E8304F; }
+  .pace-note { font-size: 11px; color: #9a8f7d; font-weight: 900; letter-spacing: 1px; }
+  .pace-line { font-size: 20px; font-weight: 900; margin-bottom: 8px; font-variant-numeric: tabular-nums; }
+  .pace-stats { display: flex; gap: 8px; }
+  .pace-stat { flex: 1; background: #FFFDF8; border: 2px solid #F3E7D3; border-radius: 14px; padding: 14px 6px; text-align: center; }
+  .pace-stat .v { font-size: 25px; font-weight: 900; color: #2b2b3a; font-variant-numeric: tabular-nums; }
+  .pace-stat .l { font-size: 11px; color: #9a8f7d; font-weight: 900; margin-top: 4px; }
+  /* review */
+  .rev-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 14px; }
+  .rev-btn { aspect-ratio: 1; border-radius: 12px; border: 2px solid #F0E7D2; background: #FFFDF8; color: #C9BC9F; font-size: 12px; font-weight: 900; font-family: inherit; cursor: pointer; position: relative; transition: all .15s; }
+  .rev-btn:active { transform: scale(.93); }
+  .rev-btn.done { border-color: #7AA2E8; color: #2F5AA8; background: #E1EBFF; }
+  .rev-btn.flagged::after { content: "🚩"; position: absolute; top: -5px; right: -3px; font-size: 9px; }
+  /* results */
+  .score-big { text-align: center; margin: 10px 0 16px; }
+  .score-val { font-size: 52px; font-weight: 900; }
+  .score-sub { font-size: 12px; color: #9a8f7d; margin-top: 2px; font-weight: 700; }
+  .bar-wrap { height: 12px; background: #F6EDD9; border-radius: 6px; overflow: hidden; position: relative; margin: 8px 0 4px; }
+  .bar { height: 100%; border-radius: 6px; transition: width .6s cubic-bezier(.2,.8,.2,1); }
+  .passline { position: absolute; left: 65%; top: -2px; bottom: -2px; width: 2px; background: #f0a500; }
+  table.cat { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  table.cat td { padding: 7px 4px; border-bottom: 2px solid #F7EFDD; color: #4a4a5a; font-weight: 700; }
+  table.cat td:last-child { text-align: right; font-weight: 900; }
+  .res-item { border: 2px solid #F3E7D3; border-radius: 14px; margin-bottom: 8px; overflow: hidden; background: #ffffff; }
+  .res-head { display: flex; justify-content: space-between; align-items: center; padding: 11px 13px; cursor: pointer; background: #FFFDF8; width: 100%; border: none; color: inherit; font-family: inherit; font-size: 13px; font-weight: 700; text-align: left; }
+  .res-body { padding: 13px; border-top: 2px solid #F3E7D3; display: none; }
+  .res-item.open .res-body { display: block; }
+  .hist-row { display: flex; justify-content: space-between; font-size: 12px; color: #8a7f6d; font-weight: 700; padding: 6px 0; border-bottom: 2px solid #F7EFDD; }
+  .hidden { display: none; }
+
+  /* ---------- PC向けレスポンシブ（768px以上） ---------- */
+  @media (min-width: 768px) {
+    body { padding: 28px 24px 40px; }
+    .wrap { max-width: 980px; }
+    .header-title { font-size: 27px; }
+    .header-sub { font-size: 13px; margin-bottom: 24px; }
+    .card { padding: 22px 24px; margin-bottom: 16px; }
+    .card-title { font-size: 13px; }
+    .primary-btn { font-size: 16px; padding: 16px; }
+    .ghost-btn { font-size: 14px; padding: 13px; }
+    .chip { font-size: 13px; padding: 8px 14px; }
+    .seg button { font-size: 13px; padding: 10px 4px; }
+    .cfg-label { font-size: 12px; }
+    .exam-top { font-size: 15px; }
+    .pace-time { font-size: 56px; }
+    .q-text { font-size: 16.5px; line-height: 1.9; margin-bottom: 16px; }
+    pre.code { font-size: 14.5px; line-height: 1.7; padding: 18px 20px; margin-bottom: 18px; }
+    .choices { gap: 10px; margin-bottom: 18px; }
+    .choice { font-size: 15px; line-height: 1.7; padding: 15px 18px; }
+    .choice code, .q-text code { font-size: 13.5px; }
+    .expl { font-size: 14.5px; padding: 16px 18px; }
+    .verdict { font-size: 20px; }
+    .rev-grid { grid-template-columns: repeat(10, 1fr); gap: 8px; }
+    .rev-btn { font-size: 13px; }
+    .score-val { font-size: 64px; }
+    table.cat { font-size: 14px; }
+    table.cat td { padding: 9px 6px; }
+    .res-head { font-size: 14.5px; padding: 13px 16px; }
+    .res-body { padding: 16px; }
+    .hist-row { font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===== CONFIG ===== -->
+  <div id="view-config">
+    <div class="header-label">Java SE 17 Silver</div>
+    <div class="header-title">初見問題 模擬試験</div>
+    <div class="header-sub">オリジナル116問・本番想定の時間訓練用</div>
+
+    <div class="card">
+      <div class="cfg-label" style="margin-top:0">モード</div>
+      <div class="seg" id="seg-mode">
+        <button class="on" data-v="exam" onclick="setMode('exam',this)">模試（採点は最後）</button>
+        <button data-v="drill" onclick="setMode('drill',this)">ドリル（1問ごと解説）</button>
+        <button data-v="pace" onclick="setMode('pace',this)">ペース（1問の時間を意識）</button>
+      </div>
+      <div class="cfg-label">問題セット</div>
+      <div class="seg" id="seg-qset">
+        <button data-v="1" onclick="setQSet('1',this)">第1</button>
+        <button class="on" data-v="2" onclick="setQSet('2',this)">第2（本番寄り）</button>
+        <button data-v="3" onclick="setQSet('3',this)">第3（本番形式60問）</button>
+        <button data-v="all" onclick="setQSet('all',this)">全部</button>
+      </div>
+      <div class="cfg-label">出題数</div>
+      <div class="seg" id="seg-count">
+        <button data-v="10" onclick="setCount(10,this)">10問</button>
+        <button data-v="20" onclick="setCount(20,this)">20問</button>
+        <button class="on" data-v="0" onclick="setCount(0,this)">全問</button>
+      </div>
+      <div class="cfg-label">1問の時間目安（超過すると赤く表示）</div>
+      <div class="seg" id="seg-time">
+        <button data-v="90" onclick="setLimit(90,this)">1:30</button>
+        <button class="on" data-v="120" onclick="setLimit(120,this)">2:00</button>
+        <button data-v="150" onclick="setLimit(150,this)">2:30</button>
+      </div>
+      <div class="cfg-label">出題分野（タップで絞り込み）</div>
+      <div class="chip-row" id="cat-chips"></div>
+      <button class="primary-btn" style="margin-top:18px" onclick="startExam()" id="start-btn">▶ 開始する</button>
+    </div>
+
+    <div class="card" id="history-card">
+      <div class="card-title">これまでの結果</div>
+      <div id="history-list"></div>
+    </div>
+  </div>
+
+  <!-- ===== EXAM ===== -->
+  <div id="view-exam" class="hidden">
+    <div class="exam-top">
+      <span id="exam-pos"></span>
+      <span><span id="exam-timers"><span id="total-label">合計</span> <span id="total-timer">0:00</span>　問 <span class="qtimer" id="q-timer">0:00</span></span></span>
+    </div>
+    <div class="exam-bar-wrap"><div class="exam-bar" id="exam-bar"></div></div>
+    <div id="pace-panel" class="pace-panel hidden">
+      <div class="pace-time" id="pace-time">0:00</div>
+      <div class="pace-bar-wrap"><div class="pace-bar" id="pace-bar"></div></div>
+      <div class="pace-note">目標 1:30 / 問（本番ペース）</div>
+    </div>
+    <div class="q-text" id="q-text"></div>
+    <pre class="code" id="q-code"></pre>
+    <div class="choices" id="q-choices"></div>
+    <div id="drill-feedback" class="hidden">
+      <div class="pace-line hidden" id="pace-line"></div>
+      <div class="verdict" id="drill-verdict"></div>
+      <div class="expl" id="drill-expl"></div>
+    </div>
+    <div class="exam-btns">
+      <button class="flag-btn" id="prev-btn" onclick="prevQuestion()">←</button>
+      <button class="flag-btn" id="flag-btn" onclick="toggleFlag()">🚩</button>
+      <button class="primary-btn" id="next-btn" onclick="nextAction()">回答して次へ</button>
+    </div>
+    <button class="ghost-btn" style="margin-top:10px" id="skip-btn" onclick="skipQuestion()">スキップ（未回答のまま次へ）</button>
+    <button class="ghost-btn" style="margin-top:10px;border:none;box-shadow:none;background:none;color:#B0A58F" onclick="quitExam()">中断して最初に戻る</button>
+  </div>
+
+  <!-- ===== REVIEW ===== -->
+  <div id="view-review" class="hidden">
+    <div class="header-title" style="font-size:18px">見直し</div>
+    <div class="header-sub">タップで戻れます。🚩=見直しフラグ、青=回答済み</div>
+    <div class="card">
+      <div class="rev-grid" id="rev-grid"></div>
+      <button class="primary-btn" onclick="grade()">採点する</button>
+    </div>
+  </div>
+
+  <!-- ===== RESULT ===== -->
+  <div id="view-result" class="hidden">
+    <div class="header-label">Result</div>
+    <div class="header-title" style="font-size:18px">採点結果</div>
+    <div class="card">
+      <div class="score-big">
+        <div class="score-val" id="score-val"></div>
+        <div class="score-sub" id="score-sub"></div>
+      </div>
+      <div style="font-size:11px;color:#B0A58F">合格ライン 65%</div>
+      <div class="bar-wrap"><div class="bar" id="score-bar"></div><div class="passline"></div></div>
+      <div style="font-size:12px;color:#9a8f7d;margin-top:10px" id="time-summary"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">分野別正答率</div>
+      <table class="cat" id="cat-table"></table>
+    </div>
+    <div class="card">
+      <div class="card-title">全問題の解説 <span style="font-size:10px;color:#B0A58F">タップで展開</span></div>
+      <div id="res-list"></div>
+    </div>
+    <button class="primary-btn" onclick="backToConfig()">最初に戻る</button>
+    <div style="height:20px"></div>
+  </div>
+
+  <!-- ===== PACE RESULT ===== -->
+  <div id="view-pace-result" class="hidden">
+    <div class="header-label">Pace</div>
+    <div class="header-title" style="font-size:18px">ペース練習のまとめ</div>
+    <div class="card">
+      <div class="pace-stats" id="pace-stats"></div>
+      <div style="font-size:12px;color:#9a8f7d;margin-top:12px">目標は本番ペースの1問90秒。この結果は履歴に保存されません。</div>
+    </div>
+    <button class="primary-btn" onclick="backToConfig()">最初に戻る</button>
+    <div style="height:20px"></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   問題データ
+   answers: 正解の選択肢インデックス（0始まり）。複数=複数選択問題
+   ============================================================ */
+const QUESTIONS = [
+// ---------- switch ----------
+{cat:"switch式・switch文", text:"次のコードの実行結果はどれか。", code:
+`int i = 3;
+String s = switch (i) {
+    case 1 -> "one";
+    case 2 -> "two";
+    default -> {
+        yield "other";
+    }
+};
+System.out.println(s);`,
+choices:["one","two","other","コンパイルエラーになる"], answers:[2],
+expl:`正解: other
+
+switch式でブロック { } を使う場合は yield で値を返す。default があるため網羅性も満たしており、正常にコンパイル・実行される。i=3 はどのcaseにも一致しないので default に入り "other" が返る。
+
+・A/B: i=3 なので一致しない
+・D: yield の使い方は正しい。「ブロック内で return を使う」と誤解しやすいが、switch式のブロックでは yield が正しい`},
+
+{cat:"switch式・switch文", text:"次のコードをコンパイル・実行するとどうなるか。", code:
+`int x = 2;
+String s = switch (x) {
+    case 1 -> "A";
+    case 2 -> "B";
+};
+System.out.println(s);`,
+choices:["B と出力される","A と出力される","実行時に例外が発生する","コンパイルエラーになる"], answers:[3],
+expl:`正解: コンパイルエラーになる
+
+switch「式」は値を必ず生成しなければならないため、すべての入力を網羅する必要がある。int型はcase 1とcase 2だけでは網羅できないので、defaultが必須。これがないためコンパイルエラー。
+
+・A: x=2 なので default があれば "B" になるが、そもそもコンパイルが通らない
+・switch「文」であれば default なしでも合法。式と文の違いを問う定番論点`},
+
+{cat:"switch式・switch文", text:"次のコードの実行結果はどれか。", code:
+`int i = 1;
+switch (i) {
+    case 1: System.out.print("A");
+    case 2: System.out.print("B"); break;
+    case 3: System.out.print("C");
+}`,
+choices:["A","AB","ABC","コンパイルエラーになる"], answers:[1],
+expl:`正解: AB
+
+従来型のswitch文（コロン形式）は break がないと次のcaseに落ちる（フォールスルー）。case 1 で "A" を出力後、breakがないので case 2 に落ちて "B" を出力し、break で抜ける。
+
+・アロー形式（case 1 ->）ならフォールスルーは起きない。コロン形式かアロー形式かを最初に確認する癖をつけると速く解ける`},
+
+// ---------- instanceof ----------
+{cat:"instanceofパターンマッチング", text:"次のコードの実行結果はどれか。", code:
+`Object obj = "hello";
+if (obj instanceof String s && s.length() > 3) {
+    System.out.println(s.toUpperCase());
+} else {
+    System.out.println("no");
+}`,
+choices:["hello","HELLO","no","コンパイルエラーになる"], answers:[1],
+expl:`正解: HELLO
+
+instanceofのパターンマッチングでは、型判定が成立した場合にパターン変数 s が使える。&& の右側では s のスコープが有効（左側がtrueの場合しか評価されないため）。"hello" は長さ5 > 3 なので大文字化して出力。
+
+・D: 「&&の右でsは使えない」と考えるとひっかかる。|| の場合は右側で使えない点との対比で覚える`},
+
+{cat:"instanceofパターンマッチング", text:"次のコードをコンパイル・実行するとどうなるか。", code:
+`Object o = Integer.valueOf(10);
+if (!(o instanceof String s)) {
+    System.out.println("not string");
+} else {
+    System.out.println(s.length());
+}`,
+choices:["not string と出力される","10 と出力される","コンパイルエラーになる（elseブロックでsは未定義）","実行時に例外が発生する"], answers:[0],
+expl:`正解: not string と出力される
+
+フロースコープの応用問題。条件が !(o instanceof String s) の場合、条件がfalse＝「oはString」であるelseブロック側でパターン変数 s が有効になる。コンパイルは正常に通る。実行時は o がIntegerなので条件はtrueとなり "not string" が出力される。
+
+・C: 否定形のときはスコープが反転する、が正しい理解。ここを問う問題は本番でも頻出`},
+
+// ---------- record ----------
+{cat:"record", text:"次のコードの実行結果はどれか。", code:
+`record Point(int x, int y) {
+    Point {
+        if (x < 0) throw new IllegalArgumentException();
+    }
+}
+public class Main {
+    public static void main(String[] args) {
+        Point p = new Point(3, 4);
+        System.out.println(p.x() + p.y());
+    }
+}`,
+choices:["7","34","コンパイルエラーになる（getX()が存在しない）","実行時に例外が発生する"], answers:[0],
+expl:`正解: 7
+
+recordのアクセサは getX() ではなく x() という名前で自動生成される。Point { ... } はコンパクトコンストラクタで、引数リストを書かずに検証処理だけを記述できる。x=3 は負でないので例外は発生せず、int同士の加算 3+4=7 が出力される。
+
+・B: どちらもintなので文字列連結にはならない
+・C: get形式でないことがrecordの特徴`},
+
+{cat:"record", text:"recordに関する説明として正しいものはどれか。", code:null,
+choices:["各コンポーネントに対応するフィールドは暗黙的にprivate finalである","recordは他のクラスをextendsできる","recordはabstract宣言できる","アクセサメソッドはgetX()の形式で生成される"], answers:[0],
+expl:`正解: フィールドは暗黙的にprivate final
+
+recordは不変（イミュータブル）なデータキャリアで、コンポーネントのフィールドはprivate finalになる。
+
+・B: recordは暗黙的にjava.lang.Recordを継承するため、他クラスをextendsできない（インタフェースの実装は可能）
+・C: recordは暗黙的にfinalクラスなのでabstractにできない
+・D: アクセサは x() 形式`},
+
+// ---------- sealed ----------
+{cat:"sealedクラス", text:"次のコードをコンパイルするとどうなるか。", code:
+`sealed interface Shape permits Circle, Square {}
+final class Circle implements Shape {}
+class Square implements Shape {}`,
+choices:["正常にコンパイルできる","Squareでコンパイルエラーになる","Circleでコンパイルエラーになる","permits句が不要なためエラーになる"], answers:[1],
+expl:`正解: Squareでコンパイルエラーになる
+
+sealed型を実装（継承）するクラスは、final・sealed・non-sealed のいずれかで修飾しなければならない。Squareは無修飾なのでエラー。
+
+・C: Circleはfinalなので合法
+・D: permitsで許可する型を列挙するのはsealedの基本構文。同一ファイル内なら省略も可能だが、あってもエラーにはならない`},
+
+// ---------- インタフェース ----------
+{cat:"インタフェース", text:"次のコードの実行結果はどれか。", code:
+`interface Greet {
+    private String name() { return "Java"; }
+    default void hello() {
+        System.out.println("Hello " + name());
+    }
+}
+public class Main implements Greet {
+    public static void main(String[] args) {
+        new Main().hello();
+    }
+}`,
+choices:["Hello Java","コンパイルエラーになる（インタフェースにprivateメソッドは定義できない）","コンパイルエラーになる（Mainがname()を実装していない）","実行時に例外が発生する"], answers:[0],
+expl:`正解: Hello Java
+
+Java 9以降、インタフェースにはprivateメソッドを定義できる（実装を持つ）。defaultメソッドの共通処理をまとめる用途で使う。privateメソッドは実装クラスに継承されないので、Mainが実装する必要もない。
+
+・B: 「インタフェース=実装なし」はJava 7までの知識。default/static/privateメソッドは実装を持てる`},
+
+{cat:"インタフェース", text:"次のコードをコンパイルするとどうなるか。", code:
+`interface A { default String m() { return "A"; } }
+interface B { default String m() { return "B"; } }
+class C implements A, B { }`,
+choices:["正常にコンパイルでき、C の m() は \"A\" を返す","正常にコンパイルでき、C の m() は \"B\" を返す","クラスCでコンパイルエラーになる","インタフェースBでコンパイルエラーになる"], answers:[2],
+expl:`正解: クラスCでコンパイルエラーになる
+
+同じシグネチャのdefaultメソッドを持つ2つのインタフェースを実装すると衝突が起き、実装クラスでm()をオーバーライドして解決しなければならない。オーバーライド内で A.super.m() のように特定の親を呼ぶこともできる。
+
+・A/B: どちらかが自動的に優先されることはない（クラスの継承と違い、インタフェース間に優先順位はない）`},
+
+// ---------- オーバーライド／オーバーロード ----------
+{cat:"オーバーライド／オーバーロード", text:"次のコードをコンパイルするとどうなるか。", code:
+`import java.io.IOException;
+class Parent {
+    void run() throws IOException { }
+}
+class Child extends Parent {
+    @Override
+    void run() throws Exception { }
+}`,
+choices:["正常にコンパイルできる","Childでコンパイルエラーになる","Parentでコンパイルエラーになる","@Overrideを外せばコンパイルできる"], answers:[1],
+expl:`正解: Childでコンパイルエラーになる
+
+オーバーライドでは、親メソッドより「広い」チェック例外をthrowsに宣言できない。ExceptionはIOExceptionのスーパークラスなので違反。逆に狭くする・無くす・非チェック例外を足すのは合法。
+
+・D: @Overrideを外しても、シグネチャが同じ以上オーバーライドの規則は適用されるためエラーのまま`},
+
+{cat:"オーバーライド／オーバーロード", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    static void m(long x)    { System.out.println("long"); }
+    static void m(Integer x) { System.out.println("Integer"); }
+    public static void main(String[] args) {
+        m(5);
+    }
+}`,
+choices:["long","Integer","コンパイルエラーになる（呼び出しが曖昧）","実行時に例外が発生する"], answers:[0],
+expl:`正解: long
+
+オーバーロード解決の優先順位は ①完全一致 → ②暗黙の型変換（拡大: int→long） → ③オートボクシング（int→Integer） → ④可変長引数。int→longの拡大変換がボクシングより優先されるため m(long) が選ばれる。
+
+・この優先順位は頻出。「拡大 > ボクシング > 可変長」と覚える`},
+
+{cat:"オーバーライド／オーバーロード", text:"次のコードの実行結果はどれか。", code:
+`class A { static String who() { return "A"; } }
+class B extends A { static String who() { return "B"; } }
+public class Main {
+    public static void main(String[] args) {
+        A a = new B();
+        System.out.println(a.who());
+    }
+}`,
+choices:["A","B","コンパイルエラーになる","実行時に例外が発生する"], answers:[0],
+expl:`正解: A
+
+staticメソッドはオーバーライドではなく「隠蔽（hiding）」になる。呼び出しは参照の型（コンパイル時の型）で解決されるため、A型変数経由なら A.who() が呼ばれる。インスタンスメソッドなら実際のオブジェクトの型で "B" になるところ。
+
+・staticメソッドをインスタンス参照経由で呼ぶこと自体は合法（警告は出るがエラーではない）`},
+
+// ---------- キャストとポリモーフィズム ----------
+{cat:"キャストとポリモーフィズム", text:"次のコードをコンパイル・実行するとどうなるか。", code:
+`class Animal {
+    void sound() { System.out.print("A"); }
+}
+class Dog extends Animal {
+    void sound() { System.out.print("D"); }
+    void fetch() { System.out.print("F"); }
+}
+public class Main {
+    public static void main(String[] args) {
+        Animal a = new Dog();
+        a.sound();
+        a.fetch();
+    }
+}`,
+choices:["DF と出力される","AF と出力される","D と出力された後、実行時例外が発生する","コンパイルエラーになる"], answers:[3],
+expl:`正解: コンパイルエラーになる
+
+呼び出せるメソッドは「参照の型」で決まる。Animal型にはfetch()が存在しないため、a.fetch() はコンパイルエラー。((Dog) a).fetch() とキャストすれば呼べる。
+
+・C: コンパイルエラーなので実行自体されない。「途中まで出力されてからエラー」という選択肢は、コンパイルエラーと実行時例外の混同を誘うひっかけ`},
+
+{cat:"キャストとポリモーフィズム", text:"次のコードをコンパイル・実行するとどうなるか。", code:
+`class Animal { }
+class Dog extends Animal {
+    void bark() { System.out.println("bow"); }
+}
+public class Main {
+    public static void main(String[] args) {
+        Animal a = new Animal();
+        Dog d = (Dog) a;
+        d.bark();
+    }
+}`,
+choices:["bow と出力される","コンパイルエラーになる","実行時にClassCastExceptionが発生する","実行時にNullPointerExceptionが発生する"], answers:[2],
+expl:`正解: 実行時にClassCastExceptionが発生する
+
+親→子へのダウンキャストは、継承関係がある以上コンパイルは通る。しかし実行時、aの実体はAnimalであってDogではないため、キャストの瞬間にClassCastExceptionが発生する。
+
+・実体が new Dog() であればこのキャストは成功する。「コンパイル可否は宣言型、実行時可否は実体」で判断する`},
+
+{cat:"キャストとポリモーフィズム", text:"次のコードの実行結果はどれか。", code:
+`class A {
+    String name = "A";
+    String get() { return "a"; }
+}
+class B extends A {
+    String name = "B";
+    String get() { return "b"; }
+}
+public class Main {
+    public static void main(String[] args) {
+        A obj = new B();
+        System.out.println(obj.name + obj.get());
+    }
+}`,
+choices:["Ab","Bb","Aa","Ba"], answers:[0],
+expl:`正解: Ab
+
+フィールドはポリモーフィズムの対象外で、参照の型（A）で解決される → "A"。メソッドは実体の型（B）で動的に解決される → "b"。
+
+・「フィールドは静的、メソッドは動的」は超頻出。フィールドとメソッドが同名系で並んでいたらこの論点を疑う`},
+
+// ---------- 例外処理 ----------
+{cat:"例外処理", text:"非チェック例外（unchecked exception）はどれか。2つ選べ。", code:null, multi:true,
+choices:["IOException","NullPointerException","FileNotFoundException","ArithmeticException"], answers:[1,3],
+expl:`正解: NullPointerException と ArithmeticException
+
+RuntimeExceptionとそのサブクラス、およびErrorが非チェック例外。NullPointerException・ArithmeticExceptionはどちらもRuntimeExceptionのサブクラスで、throws宣言もtry-catchも強制されない。
+
+・IOException / FileNotFoundException（IOExceptionのサブクラス）はチェック例外で、コンパイラが処理を強制する
+・代表例の分類は暗記必須: 非チェック → NPE, ArrayIndexOutOfBounds, ClassCast, NumberFormat, Arithmetic, IllegalArgument`},
+
+{cat:"例外処理", text:"次のコードをコンパイルするとどうなるか。", code:
+`import java.io.*;
+public class Main {
+    public static void main(String[] args) {
+        try {
+            throw new FileNotFoundException();
+        } catch (FileNotFoundException | IOException e) {
+            System.out.println("caught");
+        }
+    }
+}`,
+choices:["caught と出力される","コンパイルエラーになる","実行時に例外がそのままスローされる","何も出力されない"], answers:[1],
+expl:`正解: コンパイルエラーになる
+
+multi-catchに並べる例外同士は、継承関係にあってはならない。FileNotFoundExceptionはIOExceptionのサブクラスなのでエラー。catch (IOException e) だけにすれば両方捕捉できる。
+
+・関連知識: multi-catchの変数 e は暗黙的にfinalで、再代入できない`},
+
+{cat:"例外処理", text:"次のコードの実行結果はどれか。", code:
+`class Res implements AutoCloseable {
+    private final String id;
+    Res(String id) { this.id = id; }
+    public void close() { System.out.print(id); }
+}
+public class Main {
+    public static void main(String[] args) {
+        try (Res r1 = new Res("1"); Res r2 = new Res("2")) {
+            System.out.print("T");
+        }
+    }
+}`,
+choices:["T12","T21","12T","コンパイルエラーになる"], answers:[1],
+expl:`正解: T21
+
+try-with-resourcesでは、リソースは「宣言と逆順」でクローズされる。tryブロックで "T" を出力後、r2 → r1 の順にclose()が呼ばれる。
+
+・逆順になる理由は、後に作ったリソースが先のリソースに依存している可能性があるため
+・close()のthrows Exceptionを宣言しないオーバーライドは「例外を狭める」方向なので合法`},
+
+{cat:"例外処理", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    static int m() {
+        try {
+            return 1;
+        } finally {
+            System.out.print("F");
+        }
+    }
+    public static void main(String[] args) {
+        System.out.print(m());
+    }
+}`,
+choices:["1F","F1","1","コンパイルエラーになる"], answers:[1],
+expl:`正解: F1
+
+finallyブロックはreturnの「後」ではなく、メソッドが呼び出し元に戻る「前」に実行される。return 1 の値が確定 → finallyで "F" を出力 → 呼び出し元に1が返り "1" が出力される。
+
+・出力順は F → 1。「returnしたらfinallyは実行されない」という誤解を突く定番問題`},
+
+{cat:"例外処理", text:"次のコードをコンパイルするとどうなるか。", code:
+`class MyException extends Exception { }
+public class Main {
+    static void doIt() {
+        throw new MyException();
+    }
+    public static void main(String[] args) {
+        doIt();
+    }
+}`,
+choices:["正常にコンパイルでき、実行時にMyExceptionがスローされる","doIt()でコンパイルエラーになる","main()でコンパイルエラーになる","MyExceptionの定義でコンパイルエラーになる"], answers:[1],
+expl:`正解: doIt()でコンパイルエラーになる
+
+Exceptionを継承したMyExceptionはチェック例外。チェック例外をスローするメソッドは、throws宣言するかtry-catchで処理しなければならない。doIt()はどちらもしていないためエラー。
+
+・MyExceptionが extends RuntimeException なら非チェック例外となり、そのままコンパイルできる。カスタム例外は「何を継承しているか」を最初に見る`},
+
+// ---------- 変数とスコープ ----------
+{cat:"変数とスコープ", text:"次のコードをコンパイルするとどうなるか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        int x;
+        if (args.length > 0) {
+            x = 1;
+        }
+        System.out.println(x);
+    }
+}`,
+choices:["引数があれば1、なければ0と出力される","引数がなければ実行時例外が発生する","コンパイルエラーになる","常に0と出力される"], answers:[2],
+expl:`正解: コンパイルエラーになる
+
+ローカル変数はデフォルト値で初期化されない。if文を通らない経路ではxが未初期化のままなので、「初期化されていない可能性がある」としてコンパイルエラー。
+
+・A/D: デフォルト値0が入るのはフィールド（メンバ変数）だけ。ローカル変数との違いは頻出
+・else節でも代入するか、宣言時に初期化すればコンパイルできる`},
+
+{cat:"変数とスコープ", text:"varの使い方として正しいものはどれか。", code:null,
+choices:["var s = null;","var x; x = 10;","var list = new java.util.ArrayList<String>();","クラスのフィールドを var count = 0; と宣言する"], answers:[2],
+expl:`正解: var list = new ArrayList<String>();
+
+varはローカル変数の型推論。初期化子から型が推論できる場合のみ使える。
+
+・A: nullからは型を推論できないためエラー
+・B: 宣言と同時に初期化しなければならない
+・D: varが使えるのはローカル変数（と拡張for・従来for）のみ。フィールド、メソッド引数、戻り値には使えない`},
+
+// ---------- 文字列操作 ----------
+{cat:"文字列操作", text:"次のコードの実行結果はどれか。", code:
+`String s = "java";
+s.concat(" silver");
+s.toUpperCase();
+System.out.println(s);`,
+choices:["java","java silver","JAVA SILVER","JAVA"], answers:[0],
+expl:`正解: java
+
+Stringは不変（イミュータブル）。concat()もtoUpperCase()も「新しい文字列を返す」だけで、元のsは一切変わらない。戻り値をsに再代入していないため、sは "java" のまま。
+
+・s = s.concat(...) のように受け取れば変化する。「戻り値を捨てていないか」をチェックするのが定石`},
+
+{cat:"文字列操作", text:"次のコードをコンパイルするとどうなるか。", code:
+`String s = """Hello""";
+System.out.println(s);`,
+choices:["Hello と出力される","空文字が出力される","コンパイルエラーになる","実行時に例外が発生する"], answers:[2],
+expl:`正解: コンパイルエラーになる
+
+テキストブロックの開始デリミタ \"\"\" の直後には改行が必須。1行で完結する書き方はできない。
+
+正しい書き方:
+String s = \"\"\"
+    Hello\"\"\";
+
+・終了デリミタの位置が各行の共通インデント（除去される空白）を決める点もあわせて頻出`},
+
+{cat:"文字列操作", text:"次のコードの実行結果はどれか。", code:
+`StringBuilder sb = new StringBuilder("abcde");
+sb.delete(1, 3).insert(1, "X");
+System.out.println(sb);`,
+choices:["aXde","aXcde","Xade","abXde"], answers:[0],
+expl:`正解: aXde
+
+delete(1, 3) は開始インデックス1から「終了インデックス3の直前まで」（=インデックス1と2、"bc"）を削除 → "ade"。続けて insert(1, "X") でインデックス1に挿入 → "aXde"。
+
+・StringBuilderは可変なのでメソッドチェーンで自身が書き換わる
+・「endは含まない」はsubstringと共通のルール`},
+
+{cat:"文字列操作", text:"次のコードの実行結果はどれか。", code:
+`String s = "programming";
+System.out.println(s.substring(3, 7));`,
+choices:["gram","gramm","ogra","ramm"], answers:[0],
+expl:`正解: gram
+
+substring(begin, end) はbeginを含み、endを含まない。インデックスは0始まりなので、p(0) r(1) o(2) g(3) r(4) a(5) m(6) → インデックス3〜6の "gram"。
+
+・迷ったら「文字数 = end - begin」（7-3=4文字）で検算すると速い`},
+
+// ---------- 繰り返し文 ----------
+{cat:"繰り返し文", text:"次のコードの実行結果はどれか。", code:
+`int i = 5;
+do {
+    System.out.print(i + " ");
+    i--;
+} while (i > 5);`,
+choices:["何も出力されない","5 と出力される","5 4 3 2 1 と出力される","無限ループになる"], answers:[1],
+expl:`正解: 5 と出力される
+
+do-whileは条件判定の「前」に必ず1回ボディを実行する。"5 " を出力してi=4になった後、条件 i > 5 はfalseなのでループ終了。
+
+・whileループなら最初の判定でfalseとなり何も出力されない。do-whileとの違いはここだけ`},
+
+{cat:"繰り返し文", text:"次のコードの実行結果はどれか。", code:
+`int[][] arr = { {1, 2}, {3, 4, 5} };
+int sum = 0;
+for (int[] row : arr) {
+    for (int v : row) {
+        sum += v;
+    }
+}
+System.out.println(sum);`,
+choices:["15","10","6","コンパイルエラーになる"], answers:[0],
+expl:`正解: 15
+
+2次元配列は「配列の配列」。各行の長さが異なってもよい（ジャグ配列）。拡張forの外側はint[]型、内側はint型で受ける。1+2+3+4+5 = 15。
+
+・D: 拡張forの変数型が要素型と一致していれば合法。外側を int で受けていたらコンパイルエラー`},
+
+{cat:"繰り返し文", text:"次のコードの実行結果はどれか。", code:
+`outer:
+for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+        if (j == 1) continue outer;
+        System.out.print(i + "" + j + " ");
+    }
+}`,
+choices:["00 10 20","00 01 02","00","00 01 02 10 11 12 20 21 22"], answers:[0],
+expl:`正解: 00 10 20
+
+continue outer はラベル付きcontinueで、外側ループの「次の周回」に進む。各iについてj=0で出力した後、j=1でcontinue outerにより外側のi++へ飛ぶ。よって00, 10, 20のみ出力。
+
+・break outer なら外側ループごと終了して "00" だけになる。breakとcontinueの違いに注意`},
+
+// ---------- main・パッケージ ----------
+{cat:"main・パッケージ", text:"次のプログラムを java Main one two three と実行した場合の出力はどれか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        System.out.println(args[1]);
+    }
+}`,
+choices:["one","two","Main","three"], answers:[1],
+expl:`正解: two
+
+コマンドライン引数にクラス名（Main）は含まれない。args[0]="one", args[1]="two", args[2]="three"。
+
+・C言語のargv[0]（プログラム名が入る）と混同させるひっかけが定番。Javaでは引数のみが渡る`},
+
+{cat:"main・パッケージ", text:"エントリーポイント（プログラムの起動メソッド）として有効なmainメソッドはどれか。2つ選べ。", code:null, multi:true,
+choices:["public static void main(String[] args)","public void main(String[] args)","static public void main(String... args)","public static int main(String[] args)"], answers:[0,2],
+expl:`正解: AとC
+
+mainはpublic・static・戻り値void・引数はString配列（可変長引数String...も可）が条件。修飾子の順序（static public）は自由。
+
+・B: staticがないため起動できない
+・D: 戻り値はvoidでなければならない（intを返すのはC言語の慣習）
+・argsという引数名は自由に変えてよい`},
+
+{cat:"main・パッケージ", text:"import文に関する説明として正しいものはどれか。", code:null,
+choices:["java.langパッケージのクラスは明示的なimportが必要である","import java.util.*; と書いてもjava.util.regexパッケージのクラスはインポートされない","import文はクラス宣言の後に書くことができる","package宣言はimport文の後に書く"], answers:[1],
+expl:`正解: ワイルドカードにサブパッケージは含まれない
+
+import java.util.*; がインポートするのはjava.util直下のクラスのみ。java.util.regexやjava.util.functionは別パッケージ扱いで、必要なら個別にimportする。
+
+・A: java.lang（String, System, Mathなど）は暗黙的にインポート済み
+・C/D: ソースファイルの順序は package → import → クラス宣言 で固定`},
+
+// ---------- コンストラクタ・抽象クラス ----------
+{cat:"コンストラクタ・抽象クラス", text:"次のコードの実行結果はどれか。", code:
+`class A {
+    A() { System.out.print("A"); }
+}
+class B extends A {
+    B() { System.out.print("B"); }
+}
+public class Main {
+    public static void main(String[] args) {
+        new B();
+    }
+}`,
+choices:["B","AB","BA","コンパイルエラーになる"], answers:[1],
+expl:`正解: AB
+
+サブクラスのコンストラクタの先頭では、明示していなくても暗黙的に super() が呼ばれる。よってAのコンストラクタが先に実行され "A" → 続いてBの本体で "B"。
+
+・親に引数なしコンストラクタが存在しない（引数ありのみ定義されている）場合は、明示的にsuper(引数)を書かないとコンパイルエラーになる点もセットで頻出`},
+
+{cat:"コンストラクタ・抽象クラス", text:"次のコードをコンパイルするとどうなるか。", code:
+`public class Main {
+    Main(int x) { System.out.print("X"); }
+    Main() {
+        System.out.print("C");
+        this(1);
+    }
+    public static void main(String[] args) {
+        new Main();
+    }
+}`,
+choices:["CX と出力される","XC と出力される","コンパイルエラーになる","実行時に例外が発生する"], answers:[2],
+expl:`正解: コンパイルエラーになる
+
+this()（別コンストラクタの呼び出し）はコンストラクタの「先頭文」でなければならない。System.out.printの後に書いているためエラー。super()も同じルール。
+
+・A: this(1)を先頭に移動すれば "XC" と出力される
+・this()とsuper()を同じコンストラクタ内に両方書くこともできない（どちらも先頭でなければならないため）`},
+
+{cat:"コンストラクタ・抽象クラス", text:"次のコードの実行結果はどれか。", code:
+`abstract class Shape {
+    abstract double area();
+    void print() { System.out.println("area=" + area()); }
+}
+class Circle extends Shape {
+    double area() { return 3.0; }
+}
+public class Main {
+    public static void main(String[] args) {
+        Shape s = new Circle();
+        s.print();
+    }
+}`,
+choices:["area=3.0","コンパイルエラーになる（抽象クラスに具象メソッドは定義できない）","コンパイルエラーになる（抽象クラス型の変数は宣言できない）","実行時に例外が発生する"], answers:[0],
+expl:`正解: area=3.0
+
+抽象クラスは、抽象メソッドと具象メソッド（実装あり）を混在できる。インスタンス化（new Shape()）はできないが、参照型としての利用は自由。print()内のarea()呼び出しは実体Circleのarea()に動的に解決される（テンプレートメソッドの形）。
+
+・B: 混在可能。「全メソッドが抽象」なのはインタフェースの古いイメージ
+・C: 抽象クラス型・インタフェース型の変数宣言は多態性の基本`},
+];
+
+/* ============================================================
+   第2セット：本番寄り（長文コード・複合論点・弱点重点配合）
+   ============================================================ */
+const QUESTIONS2 = [
+{cat:"オーバーライド／オーバーロード", text:"次のコードの実行結果はどれか。", code:
+`class Base {
+    static String id() { return "B-static"; }
+    String name = "Base";
+    String get() { return "B"; }
+}
+class Sub extends Base {
+    static String id() { return "S-static"; }
+    String name = "Sub";
+    String get() { return "S"; }
+}
+public class Main {
+    public static void main(String[] args) {
+        Base b = new Sub();
+        Sub s = new Sub();
+        System.out.println(b.get() + b.name + Base.id() + s.get());
+    }
+}`,
+choices:["SBaseB-staticS","SSubS-staticS","BBaseB-staticS","SBaseS-staticS"], answers:[0],
+expl:`正解: SBaseB-staticS
+
+3つの解決ルールが混在する複合問題。
+① b.get() → インスタンスメソッドは実体の型（Sub）で動的に解決 → "S"
+② b.name → フィールドは参照の型（Base）で静的に解決 → "Base"
+③ Base.id() → staticメソッドはクラス名どおり → "B-static"
+④ s.get() → 実体Sub → "S"
+
+・「メソッドは動的、フィールドとstaticは静的」を1つのコードで確認する問題。本番はこの形式で複数論点を同時に問うてくる`},
+
+{cat:"オーバーライド／オーバーロード", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    static void m(Object o) { System.out.println("Object"); }
+    static void m(String s) { System.out.println("String"); }
+    public static void main(String[] args) {
+        m(null);
+    }
+}`,
+choices:["Object","String","コンパイルエラーになる（呼び出しが曖昧）","実行時にNullPointerExceptionが発生する"], answers:[1],
+expl:`正解: String
+
+nullはどの参照型にも渡せるが、オーバーロード解決では「最も具体的な型」が選ばれる。StringはObjectのサブクラスなので、より具体的なm(String)が選ばれる。
+
+・C: 曖昧エラーになるのは、StringとStringBuilderのように継承関係にない候補が複数あるとき。その場合は (String) null のようにキャストで指定する
+・D: nullを渡すこと自体は例外にならない（sを使わない限り）`},
+
+{cat:"オーバーライド／オーバーロード", text:"次のコードをコンパイル・実行するとどうなるか。", code:
+`import java.io.IOException;
+class A {
+    protected Object get(int n) throws IOException { return "A"; }
+}
+class B extends A {
+    public String get(int n) { return "B"; }
+}
+public class Main {
+    public static void main(String[] args) {
+        A a = new B();
+        try {
+            System.out.println(a.get(1));
+        } catch (IOException e) {
+            System.out.println("E");
+        }
+    }
+}`,
+choices:["B と出力される","A と出力される","コンパイルエラーになる（戻り値の型が親と異なる）","コンパイルエラーになる（throwsを省略できない）"], answers:[0],
+expl:`正解: B と出力される
+
+オーバーライドの「緩められる方向」を3つ同時に確認する問題。
+① 戻り値: Object→String は共変戻り値（サブクラスへの変更）で合法
+② アクセス修飾子: protected→public は広げる方向で合法
+③ throws: チェック例外を減らす・無くすのは合法
+
+実行時はB.get()が動的に呼ばれ "B"。なお呼び出し側は参照型Aのシグネチャに従うため、try-catch（またはthrows）は必要なまま。
+
+・狭める方向（public→private、例外を増やす）だけがエラーになる、と整理して覚える`},
+
+{cat:"オーバーライド／オーバーロード", text:"次のコードをコンパイル・実行するとどうなるか。", code:
+`public class Main {
+    static void m(int a, long b)  { System.out.println("1"); }
+    static void m(long a, int b)  { System.out.println("2"); }
+    public static void main(String[] args) {
+        m(1, 2);
+    }
+}`,
+choices:["1","2","コンパイルエラーになる","実行時に例外が発生する"], answers:[2],
+expl:`正解: コンパイルエラーになる
+
+m(1, 2) の引数は (int, int)。候補①は第2引数をint→longに拡大すれば適合、候補②は第1引数を拡大すれば適合する。どちらも「一方が他方より具体的」とは言えないため、曖昧（ambiguous）としてコンパイルエラー。
+
+・m(1, 2L) なら①に完全一致寄りで確定、m(1L, 2) なら②に確定する
+・「どちらも変換すれば呼べる」ときに順位が付けられなければエラー、という原則`},
+
+{cat:"コンストラクタ・抽象クラス", text:"次のコードの実行結果はどれか。", code:
+`class Parent {
+    Parent() {
+        System.out.print("P");
+        init();
+    }
+    void init() { System.out.print("pi"); }
+}
+class Child extends Parent {
+    int x = 5;
+    Child() { System.out.print("C" + x); }
+    @Override
+    void init() { System.out.print("ci" + x); }
+}
+public class Main {
+    public static void main(String[] args) {
+        new Child();
+    }
+}`,
+choices:["Pci0C5","Pci5C5","PpiC5","コンパイルエラーになる"], answers:[0],
+expl:`正解: Pci0C5
+
+インスタンス生成の順序: ①親コンストラクタ → ②自クラスのフィールド初期化 → ③自コンストラクタ本体。
+
+Parent()内のinit()呼び出しはオーバーライドによりChild.init()が動く（ここは動的束縛）。しかしこの時点ではまだ②が実行されていないため、xはデフォルト値0 → "ci0"。その後x=5になり、Child本体で"C5"。
+
+・「コンストラクタから呼んだオーバーライドメソッドでは、サブクラスのフィールドがまだ初期化されていない」は本番レベルの頻出トラップ`},
+
+{cat:"変数とスコープ", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        int a = 1;
+        int b = a++ + ++a;
+        System.out.println(a + "," + b);
+    }
+}`,
+choices:["3,4","3,5","2,4","3,3"], answers:[0],
+expl:`正解: 3,4
+
+左から評価する。
+① a++ → 値1を返してからa=2（後置は「使ってから増える」）
+② ++a → a=3にしてから値3を返す（前置は「増えてから使う」）
+③ b = 1 + 3 = 4、aは3
+
+・後置/前置は落ち着いて「返す値」と「変数の値」を分けてメモすれば確実。速答して落としやすい典型`},
+
+{cat:"変数とスコープ", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        int[] data = {1, 2, 3};
+        int total = 0;
+        for (final int v : data) {
+            total += v;
+        }
+        System.out.println(total);
+    }
+}`,
+choices:["6","0","コンパイルエラーになる（拡張forの変数にfinalは付けられない）","コンパイルエラーになる（finalな変数に毎回代入している）"], answers:[0],
+expl:`正解: 6
+
+拡張forのループ変数にfinalを付けるのは合法。「毎回新しい変数が宣言されて1回だけ代入される」扱いなので、finalと矛盾しない。1+2+3=6。
+
+・通常のfor文でも for (final int i = 0; ...) は宣言自体は合法だが、i++ができなくなる点が異なる
+・「finalが付いてたらエラーでは?」と反射的に選ばせるひっかけ`},
+
+{cat:"instanceofパターンマッチング", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    static String check(Object o) {
+        if (o instanceof Number n && n.intValue() > 10) return "big:" + n;
+        if (o instanceof Integer i) return "int:" + i;
+        if (o instanceof String s) return "str:" + s.length();
+        return "other";
+    }
+    public static void main(String[] args) {
+        System.out.println(check(5) + " " + check(42) + " " + check("hello"));
+    }
+}`,
+choices:["int:5 big:42 str:5","big:5 big:42 str:5","int:5 int:42 str:hello","コンパイルエラーになる"], answers:[0],
+expl:`正解: int:5 big:42 str:5
+
+check(5): Integerは Number にも一致するが、5 > 10 がfalseなので1つ目のifは不成立 → 2つ目で "int:5"
+check(42): 42 > 10 がtrue → "big:42"
+check("hello"): Stringのみ一致 → 長さ5 → "str:5"
+
+・パターンマッチングは「型が一致しても条件全体が成立しなければ次へ流れる」。上から順に丁寧に追う訓練用の問題`},
+
+{cat:"instanceofパターンマッチング", text:"次のコードをコンパイルするとどうなるか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        Object o = "test";
+        if (o instanceof String s || s.length() > 2) {
+            System.out.println("yes");
+        }
+    }
+}`,
+choices:["yes と出力される","何も出力されない","コンパイルエラーになる","実行時に例外が発生する"], answers:[2],
+expl:`正解: コンパイルエラーになる
+
+|| の右側は「左側がfalseだった場合」に評価される。左がfalse＝oはStringではない、なのでパターン変数sは右側のスコープに入らず、s.length()はコンパイルエラー。
+
+・&& なら右側で使える（左がtrueの場合しか評価されないから）。「&&は使える、||は使えない」とセットで暗記してよいが、理屈（フロースコープ）で覚えると否定形にも対応できる`},
+
+{cat:"例外処理", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    static String m() {
+        try {
+            int[] a = new int[2];
+            a[2] = 1;
+            return "A";
+        } catch (ArrayIndexOutOfBoundsException e) {
+            return "B";
+        } finally {
+            System.out.print("F");
+        }
+    }
+    public static void main(String[] args) {
+        System.out.print(m());
+    }
+}`,
+choices:["FB","BF","FA","AF"], answers:[0],
+expl:`正解: FB
+
+new int[2] の有効な添字は0と1なので、a[2]への代入でArrayIndexOutOfBoundsException。return "A" には到達しない。catchが"B"を返すが、その前にfinallyの "F" が出力される。よってコンソールはF→B。
+
+・「例外の発生行がreturnより前か」と「finallyはreturnより先に実行される」の2段構え`},
+
+{cat:"例外処理", text:"次のコードをコンパイルするとどうなるか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        try {
+            throw new IllegalArgumentException();
+        } catch (RuntimeException e) {
+            System.out.print("R");
+        } catch (IllegalArgumentException e) {
+            System.out.print("I");
+        }
+    }
+}`,
+choices:["R と出力される","I と出力される","RI と出力される","コンパイルエラーになる"], answers:[3],
+expl:`正解: コンパイルエラーになる
+
+catchは上から順に評価されるため、スーパークラス（RuntimeException）を先に書くと、サブクラス（IllegalArgumentException）のcatchには絶対に到達しない。到達不能なcatch節はコンパイルエラー。
+
+・順番を逆（サブクラス→スーパークラス）にすれば合法で、出力は "I" になる
+・catchの並び順は「具体的なものから先に」`},
+
+{cat:"例外処理", text:"次のコードの実行結果はどれか。", code:
+`class R implements AutoCloseable {
+    private final String n;
+    R(String n) { this.n = n; System.out.print("o" + n); }
+    public void close() { System.out.print("c" + n); }
+}
+public class Main {
+    public static void main(String[] args) {
+        try (R a = new R("1"); R b = new R("2")) {
+            System.out.print("T");
+        } finally {
+            System.out.print("F");
+        }
+    }
+}`,
+choices:["o1o2Tc2c1F","o1o2Tc1c2F","o1o2TFc2c1","To1o2c2c1F"], answers:[0],
+expl:`正解: o1o2Tc2c1F
+
+順序: ①リソース生成は宣言順（o1→o2）→ ②tryブロック（T）→ ③closeは宣言と逆順（c2→c1）→ ④finallyは最後（F）。
+
+・「close→finally」の順が盲点になりやすい。try-with-resourcesのcloseは、catchやfinallyよりも先に実行される`},
+
+{cat:"例外処理", text:"次のコードの実行結果はどれか。", code:
+`class AppException extends RuntimeException {
+    AppException(String m) { super(m); }
+}
+class Service {
+    void run() { throw new AppException("fail"); }
+}
+public class Main {
+    public static void main(String[] args) {
+        try {
+            new Service().run();
+            System.out.print("A");
+        } catch (AppException e) {
+            System.out.print("B" + e.getMessage());
+        } finally {
+            System.out.print("C");
+        }
+    }
+}`,
+choices:["BfailC","AC","BfailC の後に例外がスローされる","コンパイルエラーになる（runにthrows宣言がない）"], answers:[0],
+expl:`正解: BfailC
+
+AppExceptionはRuntimeExceptionを継承しているので非チェック例外。throws宣言なしでスローできる（Dは誤り）。run()で例外発生 → "A"はスキップ → catchで"B"+メッセージ"fail" → finallyで"C"。
+
+・カスタム例外は「extends Exception ならチェック、extends RuntimeException なら非チェック」を最初に確認。この1行で問題の半分が解ける`},
+
+{cat:"文字列操作", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        String a = "java";
+        String b = "ja" + "va";
+        String c = new String("java");
+        System.out.print((a == b) + " " + (a == c) + " " + a.equals(c));
+    }
+}`,
+choices:["true false true","true true true","false false true","false true false"], answers:[0],
+expl:`正解: true false true
+
+"ja" + "va" はコンパイル時に定数畳み込みされて "java" になり、文字列プールのaと同じ参照 → a == b はtrue。new String() は必ずヒープに新しいオブジェクトを作る → a == c はfalse。equals()は内容比較なのでtrue。
+
+・変数を挟んだ連結（String x = "ja"; x + "va"）だと実行時連結になり == はfalseになる点も派生で問われる`},
+
+{cat:"文字列操作", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        StringBuilder sb = new StringBuilder("Silver");
+        sb.append(17).reverse().deleteCharAt(0);
+        System.out.println(sb);
+    }
+}`,
+choices:["1revliS","71revliS","revliS17","7revliS"], answers:[0],
+expl:`正解: 1revliS
+
+メソッドチェーンを1段ずつ追う。
+① append(17) → "Silver17"（intも文字列化されて連結）
+② reverse() → "71revliS"
+③ deleteCharAt(0) → 先頭の'7'を削除 → "1revliS"
+
+StringBuilderは可変なので、チェーンの各操作が同じオブジェクトを書き換えていく。
+
+・長いチェーンは頭の中でやらず、1操作ごとに途中結果をメモ帳に書くのが確実で結局速い`},
+
+{cat:"文字列操作", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        String s = """
+            Java
+            Silver""";
+        System.out.println(s.length());
+    }
+}`,
+choices:["11","19","12","コンパイルエラーになる"], answers:[0],
+expl:`正解: 11
+
+テキストブロックでは、各行に共通するインデント（付随的空白）が自動で除去される。ここでは全行が同じ深さなので、結果は "Java\\nSilver"。長さは 4 + 1（改行）+ 6 = 11。
+
+・B(19): インデントが除去されないと思った場合の値
+・終了デリミタが内容と同じ行にあるため、末尾に改行は付かない。終了デリミタを次の行に置くと末尾改行が入り、その位置がインデント除去の基準にもなる`},
+
+{cat:"main・パッケージ", text:"次のクラスをコンパイルした後、正しく実行できるコマンドはどれか。カレントディレクトリはクラスパスのルート（comフォルダの親）とする。", code:
+`package com.app;
+public class Main {
+    public static void main(String[] args) {
+        System.out.println("run");
+    }
+}`,
+choices:["java com.app.Main","java Main","java com.app.Main.class","cd com/app してから java Main"], answers:[0],
+expl:`正解: java com.app.Main
+
+パッケージに属するクラスは、完全修飾名（FQCN）で実行する。クラスファイルは com/app/Main.class に配置され、JVMはクラスパスのルートからパッケージ構造をたどって探す。
+
+・B: パッケージ宣言がある以上、単純名では見つからない（NoClassDefFoundError）
+・C: .class拡張子は付けない
+・D: com/appに移動するとクラスパスのルートがずれるため、やはり見つからない`},
+
+{cat:"インタフェース", text:"次のコードの実行結果はどれか。", code:
+`interface Engine {
+    default String start() { return "E"; }
+}
+class Car implements Engine {
+    public String start() { return "C" + Engine.super.start(); }
+}
+class Sports extends Car {
+    public String start() { return "S" + super.start(); }
+}
+public class Main {
+    public static void main(String[] args) {
+        Engine e = new Sports();
+        System.out.println(e.start());
+    }
+}`,
+choices:["SCE","SC","CE","コンパイルエラーになる（Engine.superという記法は存在しない）"], answers:[0],
+expl:`正解: SCE
+
+e.start()は実体Sportsのstart() → "S" + super.start()。superはCarのstart() → "C" + Engine.super.start()。Engine.super.start()は「直接実装しているインタフェースのdefaultメソッド」を呼ぶ正式な記法で、"E"を返す。結果 "S"+"C"+"E" = "SCE"。
+
+・Engine.super.〜が使えるのは、そのインタフェースを直接implementsしているクラスの中だけ。defaultメソッドの衝突解決でも使う重要構文`},
+
+{cat:"record", text:"次のコードの実行結果はどれか。", code:
+`record Item(String name, int price) { }
+public class Main {
+    public static void main(String[] args) {
+        Item a = new Item("pen", 100);
+        Item b = new Item("pen", 100);
+        System.out.print(a == b);
+        System.out.print(" " + a.equals(b));
+        System.out.print(" " + a);
+    }
+}`,
+choices:["false true Item[name=pen, price=100]","true true Item[name=pen, price=100]","false false Item@1a2b3c...のようなハッシュ表記","false true Item(pen, 100)"], answers:[0],
+expl:`正解: false true Item[name=pen, price=100]
+
+recordはequals()・hashCode()・toString()を自動生成する。
+① == は参照比較。aとbは別インスタンスなのでfalse
+② equals()は全コンポーネントの値比較に自動実装されるのでtrue
+③ toString()は Item[name=pen, price=100] という「クラス名[名前=値, ...]」形式
+
+・通常のクラスなら②はfalse（Objectのequalsは参照比較）。「recordだから内容比較」がポイント`},
+
+{cat:"繰り返し文", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        int i = 0;
+        String r = "";
+        while (true) {
+            i++;
+            if (i % 2 == 0) continue;
+            if (i > 7) break;
+            r += i;
+        }
+        System.out.println(r + ":" + i);
+    }
+}`,
+choices:["1357:9","1357:8","13579:9","135:7"], answers:[0],
+expl:`正解: 1357:9
+
+奇数だけがcontinueをすり抜けてrに追加される（1,3,5,7）。i=8はcontinueで戻り、i=9で初めて i > 7 の判定に到達してbreak。よってr="1357"、iは9。
+
+・「i=8でbreakするのでは」と思うと8を選ぶが、8は偶数なのでbreak判定の前にcontinueで飛ばされる。判定の順序を守って追うこと`},
+];
+
+/* ============================================================ */
+/* ============================================================
+ Java SE 17 Programmer I（1Z0-825-JPN）本番形式 模試 第3セット（60問）
+ 形式は java-silver-mock-exam.html の問題データと同一:
+ {cat, text, code, choices, answers, expl} + tag（公式細目番号）
+ answers: 正解の選択肢インデックス（0始まり）。複数 = 複数選択問題
+
+ アプリへの組み込み方:
+ 1. このファイルの内容をアプリの <script> 内、QUESTIONS2 の後ろに貼る
+ 2. ALL_QUESTIONS の定義に...QUESTIONS3 を追加する
+ 3. セット選択（qset）に "3" を追加し、pool() で QUESTIONS3 を返すよう分岐を足す
+ （現行アプリは qset が "1" / "2" / "all" の3択前提のため、そのままでは第3セット単独選択はできない）
+ tag は追加フィールドで、アプリは未使用フィールドを無視するのでそのままで動作する
+ ============================================================ */
+const QUESTIONS3 = [
+// Q1 [1-1]
+{cat:"1-1 mainメソッドとプログラムの作成", tag:"1-1", text:"次のコードをコンパイル・実行するとどうなるか。", code:
+`public class App {
+    static public void main(String... args) {
+        System.out.println("start");
+    }
+}`,
+choices:["start と出力される","コンパイルエラーになる","実行時にエラーになる（mainメソッドとして認識されない）","何も出力されない"], answers:[0],
+expl:`正解: start と出力される
+
+mainメソッドの宣言は、アクセス修飾子と static の順序が入れ替わっても問題ない。また引数は String[] でも String...（可変長引数）でもよい。
+
+・B: public と static の順序は自由。両方そろっていることが大事
+・C: String... args は String[] args と同じ意味で、mainとして正しく認識される`},
+
+// Q2 [1-1]
+{cat:"1-1 mainメソッドとプログラムの作成", tag:"1-1", text:"次のコードを Main.java というファイル名で保存し、javac Main.java でコンパイルするとどうなるか。", code:
+`public class App {
+    public static void main(String[] args) {
+        System.out.println("run");
+    }
+}`,
+choices:["コンパイルエラーになる","run と出力される","コンパイルはできるが、実行時にエラーになる","警告は出るがコンパイルできる"], answers:[0],
+expl:`正解: コンパイルエラーになる
+
+publicクラスは1ファイルに1つだけで、ファイル名はそのクラス名と一致させなければならない。クラス名が App なのにファイル名が Main.java なのでコンパイルエラーになる。
+
+・なお、java Main.java のソースファイルモードで実行する場合はこの制限を受けず、そのまま実行できる。コンパイル方法によって結果が変わる点が引っかけ`},
+
+// Q3 [1-2]
+{cat:"1-2 コンパイルと実行・コマンドライン引数", tag:"1-2", text:"次のコードをコンパイルし、java Main 3 4 と実行した結果はどれか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        System.out.println(args[0] + args[1]);
+    }
+}`,
+choices:["34","7","コンパイルエラーになる","実行時に例外が発生する"], answers:[0],
+expl:`正解: 34
+
+コマンドライン引数は文字列として args[0] から順に入る。args[0] は "3"、args[1] は "4" で、どちらも String なので + は文字列連結になり "34" になる。
+
+・B: 数値として足し算されるわけではない。引数は常に String として渡される`},
+
+// Q4 [1-2]
+{cat:"1-2 コンパイルと実行・コマンドライン引数", tag:"1-2", text:"次のコードを Main.java として保存し、java Main.java と実行した結果はどれか。", code:
+`class First {
+    public static void main(String[] args) {
+        System.out.println("first");
+    }
+}
+
+class Second {
+    public static void main(String[] args) {
+        System.out.println("second");
+    }
+}`,
+choices:["first","second","コンパイルエラーになる","実行時にエラーになる"], answers:[0],
+expl:`正解: first
+
+java にソースファイル名（拡張子付き）を渡すと、その場でコンパイルして実行するソースファイルモードになる（Java 11から）。この場合に実行されるのは、ファイル内で最初に宣言されたクラスの main メソッド。
+
+・ファイル名とクラス名が一致しなくても実行できる点も、通常のコンパイルとの違い`},
+
+// Q5 [1-3]
+{cat:"1-3 パッケージとimport", tag:"1-3", text:"次のコードをコンパイルするとどうなるか。", code:
+`import java.util.*;
+import java.sql.*;
+
+public class Main {
+    public static void main(String[] args) {
+        Date d = null;
+        System.out.println(d);
+    }
+}`,
+choices:["コンパイルエラーになる","null と出力される","実行時に例外が発生する","現在の日時が出力される"], answers:[0],
+expl:`正解: コンパイルエラーになる
+
+java.util.Date と java.sql.Date の両方がワイルドカードで import されているため、Date という名前がどちらのクラスを指すか曖昧になり、コンパイルエラーになる。
+
+・ワイルドカード import は「使うときに解決される」ため、import の行自体ではなく Date を使った行でエラーになる
+・どちらか一方を完全修飾名で書くか、単一型 import を併用すると解決できる`},
+
+// Q6 [1-3]
+{cat:"1-3 パッケージとimport", tag:"1-3", text:"次のコードをコンパイルするとどうなるか。", code:
+`import java.util.ArrayList;
+
+package mypack;
+
+public class Main {
+    public static void main(String[] args) {
+        System.out.println("ok");
+    }
+}`,
+choices:["コンパイルエラーになる","ok と出力される","実行時に例外が発生する","警告は出るがコンパイルできる"], answers:[0],
+expl:`正解: コンパイルエラーになる
+
+package 宣言は、コメントを除いてファイルの先頭に1つだけ書かなければならない。import 文の後ろに置くとコンパイルエラーになる。
+
+・正しい並びは package 宣言 → import 文 → クラス宣言の順`},
+
+// Q7 [2-1]
+{cat:"2-1 変数の宣言・初期化とスコープ", tag:"2-1", text:"次のコードをコンパイルするとどうなるか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        int x;
+        int y = 5;
+        if (y > 3) {
+            x = 10;
+        }
+        System.out.println(x);
+    }
+}`,
+choices:["コンパイルエラーになる","10 と出力される","0 と出力される","実行時に例外が発生する"], answers:[0],
+expl:`正解: コンパイルエラーになる
+
+ローカル変数は自動で初期化されない。x は if の中でのみ代入されており、条件が成立しない場合に値が決まらないため、コンパイラは「初期化されていない可能性がある」と判断してエラーにする。実際に y > 3 が真になると分かっていても、コンパイラはそこまで推論しない。
+
+・フィールドとの違いが引っかけ。フィールドなら int は 0 で初期化される`},
+
+// Q8 [2-1]
+{cat:"2-1 変数の宣言・初期化とスコープ", tag:"2-1", text:"次のコードをコンパイルするとどうなるか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        for (int i = 0; i < 3; i++) {
+            System.out.print(i);
+        }
+        System.out.println(i);
+    }
+}`,
+choices:["コンパイルエラーになる","012 と出力される","0123 と出力される","実行時に例外が発生する"], answers:[0],
+expl:`正解: コンパイルエラーになる
+
+for 文の初期化部で宣言した変数 i のスコープは、その for 文の中だけ。ループを抜けた後の println(i) では i は存在しないため、コンパイルエラーになる。
+
+・変数のスコープは「宣言したブロックの終わりまで」が原則。ループ変数も例外ではない`},
+
+// Q9 [2-1]
+{cat:"2-1 変数の宣言・初期化とスコープ", tag:"2-1", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        byte b = 10;
+        b += 5;
+        System.out.println(b);
+    }
+}`,
+choices:["15","コンパイルエラーになる","5","実行時に例外が発生する"], answers:[0],
+expl:`正解: 15
+
+b = b + 5 と書くと、byte と int の演算結果は int になるため、byte への代入でコンパイルエラーになる。ところが複合代入演算子 b += 5 には暗黙のキャストが含まれているので、エラーにならず 15 になる。
+
+・「byte同士の演算はintになる」という原則と、複合代入だけは例外という対比が引っかけ`},
+
+// Q10 [2-1]
+{cat:"2-1 変数の宣言・初期化とスコープ", tag:"2-1", text:"正しくコンパイルできる宣言をすべて選べ。", multi:true, code:
+null,
+choices:["int a = 0b1111;","long b = 1234_5678L;","int c = _777;","float d = 3.14;","int e = 010;"], answers:[0,1,4],
+expl:`正解: int a = 0b1111; ／ long b = 1234_5678L; ／ int e = 010;
+
+・0b は2進数リテラル（Java 7から）。アンダースコアは数字と数字の間に置くのは正しい
+・int c = _777; は、_777 がリテラルではなく識別子として扱われるため、未定義の変数を参照することになりエラー
+・float d = 3.14; は、小数リテラルがデフォルトで double なので、float へは明示的なキャストか f サフィックスが必要でエラー
+・010 は先行ゼロで8進数として正しく解釈される`},
+
+// Q11 [2-1]
+{cat:"2-1 変数の宣言・初期化とスコープ", tag:"2-1", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        int i = 200;
+        byte b = (byte) i;
+        System.out.println(b);
+    }
+}`,
+choices:["-56","200","127","コンパイルエラーになる"], answers:[0],
+expl:`正解: -56
+
+200 を byte（-128〜127）にキャストすると、上位ビットが切り捨てられて範囲内に収まる値へ変換され、-56 になる。エラーにはならず、黙って値が変わる。
+
+・127（byteの最大値）に丸められるわけではない点が引っかけ。縮小変換は「切り捨て」であって「範囲内への丸め」ではない`},
+
+// Q12 [2-1]
+{cat:"2-1 変数の宣言・初期化とスコープ", tag:"2-1", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    static int count;
+    boolean flag;
+
+    public static void main(String[] args) {
+        Main m = new Main();
+        System.out.println(count + " " + m.flag);
+    }
+}`,
+choices:["0 false","null false","コンパイルエラーになる","0 true"], answers:[0],
+expl:`正解: 0 false
+
+フィールド（static変数もインスタンス変数も）は、初期化しなくてもデフォルト値が入る。数値型は 0、boolean は false、参照型は null。
+
+・コンパイルエラーになるのは「ローカル変数を初期化せずに使う」場合だけ。フィールドとの違いを押さえる`},
+
+// Q13 [2-2]
+{cat:"2-2 ローカル変数型推論（var）", tag:"2-2", text:"次のコードをコンパイルするとどうなるか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        var n = 10;
+        n = "ten";
+        System.out.println(n);
+    }
+}`,
+choices:["コンパイルエラーになる","ten と出力される","10 と出力される","実行時に例外が発生する"], answers:[0],
+expl:`正解: コンパイルエラーになる
+
+var は「型がない」のではなく、右辺からコンパイラが型を決める仕組み。この場合 n の型は int に決まるため、後から String を代入するとコンパイルエラーになる。
+
+・決まった型は後から変えられない、が var の本質`},
+
+// Q14 [2-2]
+{cat:"2-2 ローカル変数型推論（var）", tag:"2-2", text:"var を使った宣言のうち、コンパイルエラーになるものはどれか。", code:
+null,
+choices:["var price = 500;","var name = null;","var data = new int[] {1, 2, 3};","for (var i = 0; i < 3; i++) { }"], answers:[1],
+expl:`正解: var name = null;
+
+var は右辺から型を推論するので、型を決められない null を右辺に置くとコンパイルエラーになる。
+
+・配列は new int[] {...} のように型を明示すれば使える（初期化子だけの省略形は不可）
+・for 文の初期化部でも var は使える`},
+
+// Q15 [2-3]
+{cat:"2-3 文字列の作成と操作", tag:"2-3", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        String s = "java";
+        s.toUpperCase();
+        s.concat("17");
+        System.out.println(s);
+    }
+}`,
+choices:["java","JAVA","java17","JAVA17"], answers:[0],
+expl:`正解: java
+
+String は不変（immutable）。toUpperCase() や concat() は新しい文字列を作って返すだけで、元の s は変わらない。戻り値を受け取っていないので、何も変化しない。
+
+・結果を使いたい場合は s = s.toUpperCase(); のように代入し直す必要がある`},
+
+// Q16 [2-3]
+{cat:"2-3 文字列の作成と操作", tag:"2-3", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        String a = "hello";
+        String b = new String("hello");
+        String c = "hello";
+        System.out.println((a == b) + " " + (a == c) + " " + a.equals(b));
+    }
+}`,
+choices:["false true true","true true true","false false true","true false true"], answers:[0],
+expl:`正解: false true true
+
+== は参照（同じオブジェクトかどうか）の比較。リテラル同士は文字列プールで共有されるため a == c は true になるが、new String(...) で作った b は別のオブジェクトなので a == b は false。中身の比較は equals を使う（a.equals(b) は true）。
+
+・「リテラルなら == でも一致する」ことだけ覚えていると、new した場合に引っかかる`},
+
+// Q17 [2-3]
+{cat:"2-3 文字列の作成と操作", tag:"2-3", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        String s = """
+                ab
+                cd
+                """;
+        System.out.println(s.length());
+    }
+}`,
+choices:["6","5","7","コンパイルエラーになる"], answers:[0],
+expl:`正解: 6
+
+テキストブロックでは、各行と閉じ括弧に共通するインデントが取り除かれる。この場合 s の中身は ab、改行、cd、改行となり、長さは 2+1+2+1 の 6 になる。
+
+・最後の行の後にも改行が入る（閉じ括弧が次の行にあるため）点が引っかけ`},
+
+// Q18 [2-3]
+{cat:"2-3 文字列の作成と操作", tag:"2-3", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        StringBuilder sb = new StringBuilder("abc");
+        sb.delete(0, 1).append("X");
+        System.out.println(sb);
+    }
+}`,
+choices:["bcX","abcX","Xbc","コンパイルエラーになる"], answers:[0],
+expl:`正解: bcX
+
+StringBuilder は可変で、delete や append は自分自身を書き換えて自分自身を返す。delete(0, 1) は開始位置0から終了位置1の手前まで（つまり先頭の a）を取り除き、bc になったところへ X を追加する。
+
+・delete の範囲は「開始を含む・終了を含まない」。substring などと同じ約束`},
+
+// Q19 [2-4]
+{cat:"2-4 配列の使用", tag:"2-4", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        int[][] arr = new int[2][];
+        arr[0] = new int[] {1, 2, 3};
+        arr[1] = new int[] {4};
+        System.out.println(arr[0].length + arr[1].length);
+    }
+}`,
+choices:["4","3","6","実行時に例外が発生する"], answers:[0],
+expl:`正解: 4
+
+二次元配列は「配列の配列」。new int[2][] のように後ろの要素数を空にしておくと、行ごとに異なる長さの配列を後から代入できる。arr[0] の長さ3と arr[1] の長さ1で合計4。
+
+・行を代入する前に arr[0].length を読むと NullPointerException になるが、このコードでは代入済み`},
+
+// Q20 [2-4]
+{cat:"2-4 配列の使用", tag:"2-4", text:"次のコードをコンパイル・実行するとどうなるか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        int[] nums = {10, 20, 30};
+        for (int i = 0; i <= nums.length; i++) {
+            System.out.print(nums[i] + " ");
+        }
+    }
+}`,
+choices:["10 20 30 と出力された後、ArrayIndexOutOfBoundsException が発生する","10 20 30 と出力されて正常に終了する","コンパイルエラーになる","何も出力されずに例外が発生する"], answers:[0],
+expl:`正解: 10 20 30 と出力された後、ArrayIndexOutOfBoundsException が発生する
+
+length は 3 だが、条件が i <= nums.length のため i が 3 のときにもループに入り、存在しない nums[3] を読んで実行時例外になる。配列の範囲外アクセスはコンパイルでは検出できず、実行時に例外になる。
+
+・条件は i < nums.length が正しい形。<= と書くのが定番の引っかけ`},
+
+// Q21 [2-5]
+{cat:"2-5 ArrayListの使用", tag:"2-5", text:"次のコードの実行結果はどれか。", code:
+`import java.util.ArrayList;
+import java.util.List;
+
+public class Main {
+    public static void main(String[] args) {
+        List<Integer> list = new ArrayList<>();
+        list.add(10);
+        list.add(20);
+        list.add(30);
+        list.remove(1);
+        System.out.println(list);
+    }
+}`,
+choices:["[10, 30]","[20, 30]","[10, 20]","コンパイルエラーになる"], answers:[0],
+expl:`正解: [10, 30]
+
+remove(1) は「値が1の要素」ではなく「インデックス1の要素」を取り除く。インデックス1は 20 なので、残りは [10, 30]。
+
+・ArrayList 最大の引っかけ。値で消したい場合は remove(Integer.valueOf(1)) のように Object として渡す`},
+
+// Q22 [2-5]
+{cat:"2-5 ArrayListの使用", tag:"2-5", text:"次のコードの実行結果はどれか。", code:
+`import java.util.ArrayList;
+import java.util.List;
+
+public class Main {
+    public static void main(String[] args) {
+        List<String> list = new ArrayList<>();
+        list.add("A");
+        list.add("B");
+        list.set(0, "C");
+        System.out.println(list.size() + list.get(1));
+    }
+}`,
+choices:["2B","2C","CB","コンパイルエラーになる"], answers:[0],
+expl:`正解: 2B
+
+set は要素の置き換えで、要素数は増えない。リストは [C, B] になり、size() は 2、get(1) は B。int と String の + は文字列連結になるので 2B と出力される。
+
+・add と set の違い（追加か置き換えか）と、size がメソッドである点がポイント`},
+
+// Q23 [2-5]
+{cat:"2-5 ArrayListの使用", tag:"2-5", text:"次のコードをコンパイル・実行するとどうなるか。", code:
+`import java.util.ArrayList;
+import java.util.List;
+
+public class Main {
+    public static void main(String[] args) {
+        List<String> list = new ArrayList<>(List.of("a", "b", "c"));
+        for (String s : list) {
+            if (s.equals("b")) {
+                list.remove(s);
+            }
+        }
+        System.out.println(list);
+    }
+}`,
+choices:["[a, c] と出力され、例外は発生しない","ConcurrentModificationException が発生する","[a, b] と出力される","コンパイルエラーになる"], answers:[0],
+expl:`正解: [a, c] と出力され、例外は発生しない
+
+拡張for の途中で remove すると通常は ConcurrentModificationException になるが、これは「次の要素を取り出すとき」に変更が検出されるため。ここでは b を取り除いた時点で残りの要素がなくなり、次を取り出す処理自体が起きないので、例外にならずにループが終わる。
+
+・「拡張for中のremoveは必ず例外」と覚えていると引っかかる。末尾に近い要素を消した場合だけ起きる現象`},
+
+// Q24 [3-1]
+{cat:"3-1 分岐文（if・switch文）", tag:"3-1", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        boolean b = false;
+        if (b = true) {
+            System.out.println("yes");
+        } else {
+            System.out.println("no");
+        }
+    }
+}`,
+choices:["yes","no","コンパイルエラーになる","実行時に例外が発生する"], answers:[0],
+expl:`正解: yes
+
+if の条件は boolean でなければならないが、b = true は比較ではなく代入で、代入式全体の値は代入した値（true）になる。そのため条件が真として扱われ、yes が出力される。
+
+・数値型で同じことを書くとコンパイルエラーになるが、boolean 変数への代入だけは通ってしまう点が引っかけ`},
+
+// Q25 [3-1]
+{cat:"3-1 分岐文（if・switch文）", tag:"3-1", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        int n = 2;
+        switch (n) {
+            default: System.out.print("D");
+            case 1: System.out.print("1"); break;
+            case 2: System.out.print("2");
+            case 3: System.out.print("3"); break;
+        }
+    }
+}`,
+choices:["23","D23","2","3"], answers:[0],
+expl:`正解: 23
+
+n は 2 なので case 2 から実行が始まる。case 2 には break がないため case 3 へ落ちて（フォールスルー）、3 も出力してから break で抜ける。
+
+・default は先頭に書かれていても、一致する case があればそちらが優先される。default は「どれにも一致しないときの入口」にすぎない`},
+
+// Q26 [3-2]
+{cat:"3-2 繰り返し文", tag:"3-2", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        int i = 10;
+        do {
+            System.out.print(i);
+            i++;
+        } while (i < 5);
+    }
+}`,
+choices:["10","何も出力されない","10から14まで出力される","無限ループになる"], answers:[0],
+expl:`正解: 10
+
+do-while は条件判定が後ろにあるため、条件が最初から false でも最低1回は実行される。10 を出力して i が 11 になり、条件 i < 5 が false なのでループを抜ける。
+
+・while 文なら何も出力されない。do-while との違いは「最低1回実行されるか」`},
+
+// Q27 [3-2]
+{cat:"3-2 繰り返し文", tag:"3-2", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        int[] arr = {1, 2, 3};
+        for (int n : arr) {
+            n = n * 10;
+        }
+        System.out.println(arr[0] + " " + arr[2]);
+    }
+}`,
+choices:["1 3","10 30","10 3","コンパイルエラーになる"], answers:[0],
+expl:`正解: 1 3
+
+拡張for のループ変数 n には、配列の要素の値のコピーが入る。n を書き換えても、元の配列 arr の中身は変わらない。
+
+・参照型の要素なら「参照のコピー」を通して中身を変えられるが、プリミティブ型の要素は値のコピーなので影響しない`},
+
+// Q28 [3-3]
+{cat:"3-3 break・continueとラベル", tag:"3-3", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        outer:
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (j == 1) {
+                    break outer;
+                }
+                System.out.print(i + ":" + j + " ");
+            }
+        }
+    }
+}`,
+choices:["0:0 ","0:0 1:0 2:0 ","0:0 0:1 0:2 ","コンパイルエラーになる"], answers:[0],
+expl:`正解: 0:0 （末尾にスペース）
+
+ラベル付き break は、指定したラベルのループ全体を抜ける。i=0, j=0 で 0:0 を出力し、j=1 で break outer により外側のループごと終了する。
+
+・ラベルなしの break なら内側のループだけを抜けて 0:0 1:0 2:0 になる。その違いを問う問題`},
+
+// Q29 [3-3]
+{cat:"3-3 break・continueとラベル", tag:"3-3", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        for (int i = 0; i < 5; i++) {
+            if (i % 2 == 0) {
+                continue;
+            }
+            System.out.print(i);
+        }
+    }
+}`,
+choices:["13","024","01234","135"], answers:[0],
+expl:`正解: 13
+
+continue はその周回の残りを飛ばして次の周回へ進む。i が偶数（0, 2, 4）のときは出力が飛ばされ、奇数の 1 と 3 だけが出力される。
+
+・break と違い、ループ自体は終わらない点がポイント`},
+
+// Q30 [3-4]
+{cat:"3-4 switch式", tag:"3-4", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        int day = 6;
+        String type = switch (day) {
+            case 1, 2, 3, 4, 5 -> "weekday";
+            case 6, 7 -> "weekend";
+            default -> "unknown";
+        };
+        System.out.println(type);
+    }
+}`,
+choices:["weekend","weekday","unknown","コンパイルエラーになる"], answers:[0],
+expl:`正解: weekend
+
+switch式では、case に複数のラベルをカンマで並べられる。day は 6 なので case 6, 7 に一致し、weekend が返る。アロー形式ではフォールスルーは起きない。
+
+・default があるため網羅性も満たしている`},
+
+// Q31 [3-4]
+{cat:"3-4 switch式", tag:"3-4", text:"次のコードをコンパイル・実行するとどうなるか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        int x = 9;
+        switch (x) {
+            case 1 -> System.out.println("one");
+            case 2 -> System.out.println("two");
+        }
+        System.out.println("done");
+    }
+}`,
+choices:["done とだけ出力される","コンパイルエラーになる（すべてのケースを網羅していない）","実行時に例外が発生する","何も出力されない"], answers:[0],
+expl:`正解: done とだけ出力される
+
+この switch は値を返す「式」ではなく、文として使われている。文として使う場合は全ケースの網羅は不要で、default がなくてもコンパイルできる。x は 9 でどの case にも一致しないため、done だけが出力される。
+
+・網羅が必須なのは switch「式」。式か文かを見分けることが引っかけ`},
+
+// Q32 [3-5]
+{cat:"3-5 演算子", tag:"3-5", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        int i = 5;
+        int j = i++ + ++i;
+        System.out.println(i + " " + j);
+    }
+}`,
+choices:["7 12","6 11","7 11","6 12"], answers:[0],
+expl:`正解: 7 12
+
+式は左から評価される。i++ は「使ってから増える」ので、この時点では 5 が使われ、i は 6 になる。続く ++i は「増やしてから使う」ので i が 7 になり、7 が使われる。j は 5 + 7 で 12、最終的な i は 7。
+
+・前置と後置で「値が変わるタイミング」が違うことがポイント`},
+
+// Q33 [3-5]
+{cat:"3-5 演算子", tag:"3-5", text:"次のコードをコンパイル・実行するとどうなるか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        int a = 0;
+        boolean r = (a != 0) && (10 / a > 1);
+        System.out.println(r);
+    }
+}`,
+choices:["false と出力される","true と出力される","ArithmeticException が発生する","コンパイルエラーになる"], answers:[0],
+expl:`正解: false と出力される
+
+&& は短絡評価で、左辺が false なら右辺は評価されない。a != 0 は false なので、ゼロ除算を含む右辺 10 / a は実行されず、例外は発生しない。
+
+・& を使うと両辺が評価されて ArithmeticException になる。&& と & の違いが引っかけ`},
+
+// Q34 [3-5]
+{cat:"3-5 演算子", tag:"3-5", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        Object o = true ? Integer.valueOf(10) : Double.valueOf(2.5);
+        System.out.println(o);
+    }
+}`,
+choices:["10.0","10","2.5","コンパイルエラーになる"], answers:[0],
+expl:`正解: 10.0
+
+三項演算子の両辺が数値型（のラッパー）の場合、結果の型は型昇格で決まる。Integer と Double なら double に統一されるため、選ばれた 10 も double の 10.0 として扱われ、出力も 10.0 になる。
+
+・「true なのだから Integer の 10 がそのまま返る」と考えると引っかかる。三項演算子は値だけでなく型も決まる`},
+
+// Q35 [4-1]
+{cat:"4-1 クラスの定義と初期化の順序", tag:"4-1", text:"次のコードの実行結果はどれか。", code:
+`class Parent {
+    static {
+        System.out.print("P-static ");
+    }
+    {
+        System.out.print("P-init ");
+    }
+    Parent() {
+        System.out.print("P-ctor ");
+    }
+}
+
+class Child extends Parent {
+    static {
+        System.out.print("C-static ");
+    }
+    {
+        System.out.print("C-init ");
+    }
+    Child() {
+        System.out.print("C-ctor ");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        new Child();
+    }
+}`,
+choices:["P-static C-static P-init P-ctor C-init C-ctor","C-static P-static P-init P-ctor C-init C-ctor","P-static C-static C-init C-ctor P-init P-ctor","コンパイルエラーになる"], answers:[0],
+expl:`正解: P-static C-static P-init P-ctor C-init C-ctor
+
+初期化の順序は決まっている。まずクラス読み込み時に static 初期化が親から子へ1回ずつ。次にインスタンス生成のたびに、親のフィールド初期化・初期化ブロック→親のコンストラクタ→子のフィールド初期化・初期化ブロック→子のコンストラクタ、の順に進む。
+
+・「親が常に先」「static はクラスの読み込み時に1回だけ」の2点で並び替えられる`},
+
+// Q36 [4-1]
+{cat:"4-1 クラスの定義と初期化の順序", tag:"4-1", text:"次のコードで、\"a\" の文字列オブジェクトがガベージコレクションの対象になるのは、どの行が実行された時点か。", code:
+`public class Main {
+    public static void main(String[] args) {
+        String s1 = new String("a");   // A
+        String s2 = new String("b");   // B
+        s1 = s2;                       // C
+        s2 = null;                     // D
+    }
+}`,
+choices:["A の行の後","B の行の後","C の行の後","D の行の後"], answers:[2],
+expl:`正解: C の行の後
+
+オブジェクトは、どこからも参照されなくなった時点で GC の対象になる。"a" のオブジェクトを指しているのは s1 だけなので、s1 が "b" のオブジェクトを指すようになる C の行の時点で、"a" は参照を失う。
+
+・D の行は "b" のオブジェクトに対する操作で、"a" には関係しない。なお「対象になる」ことと「実際に回収される」ことは別で、回収のタイミングは保証されない`},
+
+// Q37 [4-2]
+{cat:"4-2 メソッドとコンストラクタ", tag:"4-2", text:"次のコードをコンパイルするとどうなるか。", code:
+`class Book {
+    Book(String title) {
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Book b = new Book();
+        System.out.println("created");
+    }
+}`,
+choices:["コンパイルエラーになる","created と出力される","実行時に例外が発生する","何も出力されない"], answers:[0],
+expl:`正解: コンパイルエラーになる
+
+デフォルトコンストラクタ（引数なし）が自動で用意されるのは、コンストラクタを1つも書いていない場合だけ。Book(String) を書いた時点で、引数なしのコンストラクタは存在しなくなるため、new Book() はエラーになる。
+
+・「デフォルトコンストラクタは常にある」という誤解が引っかけ`},
+
+// Q38 [4-2]
+{cat:"4-2 メソッドとコンストラクタ", tag:"4-2", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+    static void change(int x, StringBuilder sb) {
+        x = 99;
+        sb.append("!");
+    }
+
+    public static void main(String[] args) {
+        int n = 1;
+        StringBuilder sb = new StringBuilder("go");
+        change(n, sb);
+        System.out.println(n + " " + sb);
+    }
+}`,
+choices:["1 go!","99 go!","1 go","99 go"], answers:[0],
+expl:`正解: 1 go!
+
+Java の引数は値渡しのみ。int の n はコピーが渡るので、メソッド内で x を書き換えても呼び出し側は変わらない。一方 StringBuilder は「参照の値（コピー）」が渡るため、参照先のオブジェクト自体を書き換える append は呼び出し側にも反映される。
+
+・参照そのものを別のオブジェクトに付け替えることはできないが、参照先の中身は変えられる、という区別がポイント`},
+
+// Q39 [4-3]
+{cat:"4-3 メソッドのオーバーロード", tag:"4-3", text:"次のコードの実行結果はどれか。", code:
+`class Calc {
+    void show(long n) {
+        System.out.println("long");
+    }
+    void show(Integer n) {
+        System.out.println("Integer");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        new Calc().show(10);
+    }
+}`,
+choices:["long","Integer","コンパイルエラーになる（呼び出しが曖昧）","実行時に例外が発生する"], answers:[0],
+expl:`正解: long
+
+オーバーロードの解決は、完全一致→型の拡大変換→ボクシング→可変長引数、の順に優先される。int の 10 は long への拡大変換がボクシング（Integer化）より先に検討されるため、show(long) が選ばれる。
+
+・「Integer のほうが int に近い」という感覚が引っかけ。優先順位は変換の種類で決まっている`},
+
+// Q40 [4-3]
+{cat:"4-3 メソッドのオーバーロード", tag:"4-3", text:"次のコードの実行結果はどれか。", code:
+`class Printer {
+    void print(String s) {
+        System.out.println("single");
+    }
+    void print(String... vals) {
+        System.out.println("varargs:" + vals.length);
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Printer p = new Printer();
+        p.print("a");
+        p.print("a", "b");
+    }
+}`,
+choices:["single と varargs:2 が出力される","varargs:1 と varargs:2 が出力される","コンパイルエラーになる","single が2回出力される"], answers:[0],
+expl:`正解: single と varargs:2 が出力される
+
+可変長引数は優先順位が最も低く、通常のメソッドで解決できる呼び出しはそちらが選ばれる。print("a") は print(String) に完全一致するので single、print("a", "b") は引数が2つなので可変長引数版が選ばれ varargs:2 になる。
+
+・可変長引数は「他に合うものがないときの受け皿」と覚える`},
+
+// Q41 [4-4]
+{cat:"4-4 static変数とstaticメソッド", tag:"4-4", text:"次のコードをコンパイルするとどうなるか。", code:
+`public class Main {
+    int value = 10;
+
+    static void show() {
+        System.out.println(value);
+    }
+
+    public static void main(String[] args) {
+        show();
+    }
+}`,
+choices:["コンパイルエラーになる","10 と出力される","0 と出力される","実行時に例外が発生する"], answers:[0],
+expl:`正解: コンパイルエラーになる
+
+static メソッドは特定のインスタンスに属さないため、その中からインスタンス変数 value を直接参照できない（どのオブジェクトの value か決まらない）。this も使えない。
+
+・逆に、インスタンスメソッドから static メンバーを使うことは可能。方向の非対称性が引っかけ`},
+
+// Q42 [4-5]
+{cat:"4-5 アクセス修飾子", tag:"4-5", text:"次の2つのファイルをコンパイルするとどうなるか。", code:
+`// ファイル: packa/Base.java
+package packa;
+
+public class Base {
+    protected int num = 42;
+}
+
+// ファイル: packb/Sub.java
+package packb;
+
+import packa.Base;
+
+public class Sub extends Base {
+    public static void main(String[] args) {
+        Base b = new Base();
+        System.out.println(b.num);
+    }
+}`,
+choices:["コンパイルエラーになる","42 と出力される","0 と出力される","実行時に例外が発生する"], answers:[0],
+expl:`正解: コンパイルエラーになる
+
+protected メンバーは、同一パッケージ内か、継承先からアクセスできる。ただし別パッケージの継承先では、「自分の型（またはそのサブクラス）の参照」を通してでなければアクセスできない。このコードは Base 型の参照 b を通してアクセスしているため、エラーになる。
+
+・Sub 型の参照を通せばアクセスできる、という細かい条件が protected 最大の引っかけ`},
+
+// Q43 [4-6]
+{cat:"4-6 instanceofのパターンマッチング", tag:"4-6", text:"次のコードをコンパイルするとどうなるか。", code:
+`public class Main {
+    public static void main(String[] args) {
+        Object o = "text";
+        if (o instanceof String s || s.length() > 2) {
+            System.out.println("yes");
+        }
+    }
+}`,
+choices:["コンパイルエラーになる","yes と出力される","何も出力されない","実行時に例外が発生する"], answers:[0],
+expl:`正解: コンパイルエラーになる
+
+パターン変数 s が使えるのは、instanceof が true であることが保証される範囲だけ。|| の右辺は「左辺が false のとき」に評価されるため、そこでは s が存在せず、コンパイルエラーになる。
+
+・&& の右辺では使える（左辺が true のときだけ評価される）。&& と || で逆になる点が引っかけ`},
+
+// Q44 [4-7]
+{cat:"4-7 レコードクラス", tag:"4-7", text:"次のコードの実行結果はどれか。", code:
+`record Item(String name, int price) {
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Item a = new Item("pen", 100);
+        Item b = new Item("pen", 100);
+        System.out.println(a.equals(b) + " " + (a == b));
+    }
+}`,
+choices:["true false","true true","false false","コンパイルエラーになる"], answers:[0],
+expl:`正解: true false
+
+record では equals が自動生成され、すべてのコンポーネント（name と price）が一致すれば true になる。一方 == は参照の比較なので、別々に生成した a と b では false。
+
+・通常のクラスでは equals も参照比較がデフォルト。record は中身で比較される点が特徴`},
+
+// Q45 [5-1]
+{cat:"5-1 スーパークラスとサブクラス", tag:"5-1", text:"クラスの継承に関する説明として、正しいものはどれか。", code:
+null,
+choices:["クラスは複数のクラスを直接 extends できる","private メソッドはサブクラスに継承される","すべてのクラスは、直接または間接的に java.lang.Object を継承している","コンストラクタはサブクラスに継承される"], answers:[2],
+expl:`正解: すべてのクラスは、直接または間接的に java.lang.Object を継承している
+
+・クラスが直接継承できるのは1つだけ。多重継承ができるのはインタフェースの実装のみ
+・private メンバーはサブクラスから見えないため、継承の対象にならない
+・コンストラクタも継承されない。サブクラスのコンストラクタからは super() で親のコンストラクタを呼び出す`},
+
+// Q46 [5-2]
+{cat:"5-2 抽象クラス", tag:"5-2", text:"次のコードの実行結果はどれか。", code:
+`abstract class Animal {
+abstract void cry();
+
+void sleep() {
+System.out.println("zzz");
+}
+}
+
+class Cat extends Animal {
+void cry() {
+System.out.println("meow");
+}
+}
+
+public class Main {
+public static void main(String[] args) {
+Animal a = new Cat();
+a.cry();
+a.sleep();
+}
+}`,
+choices:["meow と zzz が出力される","コンパイルエラーになる","zzz だけ出力される","実行時に例外が発生する"], answers:[0],
+expl:`正解: meow と zzz が出力される
+
+抽象クラスはインスタンス化できないが、参照型として使うことはできる。cry() は実体である Cat の実装が呼ばれ、sleep() は Animal の通常メソッドがそのまま呼ばれる。
+
+・抽象クラスにも通常のメソッドやコンストラクタは持てる。「抽象クラスは全部抽象」という誤解が引っかけ`},
+
+// Q47 [5-3]
+{cat:"5-3 メソッドのオーバーライド", tag:"5-3", text:"次のコードをコンパイルするとどうなるか。", code:
+`class Parent {
+public void greet() {
+System.out.println("hi");
+}
+}
+
+class Child extends Parent {
+protected void greet() {
+System.out.println("hey");
+}
+}
+
+public class Main {
+public static void main(String[] args) {
+new Child().greet();
+}
+}`,
+choices:["コンパイルエラーになる","hey と出力される","hi と出力される","実行時に例外が発生する"], answers:[0],
+expl:`正解: コンパイルエラーになる
+
+オーバーライドでは、アクセス修飾子を親より狭くすることはできない。親が public なのに子で protected に弱めているため、コンパイルエラーになる。
+
+・広くする（protected → public）ことは可能。方向を取り違えると引っかかる`},
+
+// Q48 [5-4]
+{cat:"5-4 キャストとポリモーフィズム", tag:"5-4", text:"次のコードの実行結果はどれか。", code:
+`class Parent {
+String name = "parent";
+
+String who() {
+return "parent";
+}
+}
+
+class Child extends Parent {
+String name = "child";
+
+String who() {
+return "child";
+}
+}
+
+public class Main {
+public static void main(String[] args) {
+Parent p = new Child();
+System.out.println(p.name + " " + p.who());
+}
+}`,
+choices:["parent child","child child","parent parent","child parent"], answers:[0],
+expl:`正解: parent child
+
+メソッド呼び出しは実体のクラス（Child）で決まるが、フィールド参照は参照変数の型（Parent）で決まる。この非対称性が最頻出の引っかけ。
+
+・p.name は Parent のフィールド、p.who() は Child のオーバーライドが呼ばれる`},
+
+// Q49 [5-4]
+{cat:"5-4 キャストとポリモーフィズム", tag:"5-4", text:"次のコードをコンパイル・実行するとどうなるか。", code:
+`class Parent {
+}
+
+class Child extends Parent {
+}
+
+public class Main {
+public static void main(String[] args) {
+Parent p = new Parent();
+Child c = (Child) p;
+System.out.println("ok");
+}
+}`,
+choices:["実行時に ClassCastException が発生する","ok と出力される","コンパイルエラーになる","実行時に NullPointerException が発生する"], answers:[0],
+expl:`正解: 実行時に ClassCastException が発生する
+
+Parent から Child へのダウンキャストは、継承関係があるためコンパイルは通る。しかし実体は Parent のオブジェクトなので、実行時にキャストできず ClassCastException になる。
+
+・「コンパイルが通る＝キャストできる」ではない。実体が何かで実行時に判定される`},
+
+// Q50 [5-5]
+{cat:"5-5 finalクラスとfinal変数", tag:"5-5", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+public static void main(String[] args) {
+final StringBuilder sb = new StringBuilder("a");
+sb.append("b");
+System.out.println(sb);
+}
+}`,
+choices:["ab","コンパイルエラーになる","a","実行時に例外が発生する"], answers:[0],
+expl:`正解: ab
+
+final 変数で禁止されるのは「再代入」だけ。参照型の場合、参照先のオブジェクトの中身を変更することはできる。sb に別の StringBuilder を代入し直すとエラーになるが、append で中身を変えるのは問題ない。
+
+・final は「変数が不変」ではなく「代入が1回だけ」という意味`},
+
+// Q51 [5-6]
+{cat:"5-6 インタフェースの作成と実装", tag:"5-6", text:"次のコードをコンパイルするとどうなるか。", code:
+`interface Flyable {
+void fly();
+}
+
+class Bird implements Flyable {
+void fly() {
+System.out.println("fly");
+}
+}
+
+public class Main {
+public static void main(String[] args) {
+new Bird().fly();
+}
+}`,
+choices:["コンパイルエラーになる","fly と出力される","実行時に例外が発生する","何も出力されない"], answers:[0],
+expl:`正解: コンパイルエラーになる
+
+インタフェースのメソッドは暗黙に public abstract。実装する側は public を付けて実装しなければならず、アクセス修飾子を省略して弱めるとコンパイルエラーになる。
+
+・インタフェース側に public と書かれていなくても public 扱い、という暗黙の修飾子が引っかけ`},
+
+// Q52 [5-7]
+{cat:"5-7 デフォルトメソッドとprivateメソッド", tag:"5-7", text:"次のコードをコンパイルするとどうなるか。", code:
+`interface A {
+default String hello() {
+return "A";
+}
+}
+
+interface B {
+default String hello() {
+return "B";
+}
+}
+
+class C implements A, B {
+}
+
+public class Main {
+public static void main(String[] args) {
+System.out.println(new C().hello());
+}
+}`,
+choices:["コンパイルエラーになる","A と出力される","B と出力される","実行時に例外が発生する"], answers:[0],
+expl:`正解: コンパイルエラーになる
+
+2つのインタフェースから同じシグネチャの default メソッドを継承すると衝突し、クラス側でオーバーライドして解決しない限りコンパイルエラーになる。
+
+・解決する場合は、C の中で hello() を実装し直す（A.super.hello() のように片方を呼ぶこともできる）`},
+
+// Q53 [5-8]
+{cat:"5-8 シールクラス", tag:"5-8", text:"次のコードをコンパイルするとどうなるか。", code:
+`sealed class Vehicle permits Car, Truck {
+}
+
+final class Car extends Vehicle {
+}
+
+final class Truck extends Vehicle {
+}
+
+final class Bus extends Vehicle {
+}
+
+public class Main {
+public static void main(String[] args) {
+System.out.println("ok");
+}
+}`,
+choices:["コンパイルエラーになる","ok と出力される","Bus の宣言に警告が出るがコンパイルできる","実行時に例外が発生する"], answers:[0],
+expl:`正解: コンパイルエラーになる
+
+sealed クラスを継承できるのは、permits に列挙されたクラスだけ。Bus は列挙されていないため、Vehicle を継承できずコンパイルエラーになる。
+
+・列挙された側（Car、Truck）は final / sealed / non-sealed のいずれかを宣言する義務があり、ここでは final が付いているので問題ない`},
+
+// Q54 [6-1]
+{cat:"6-1 例外の仕組みと例外クラス階層", tag:"6-1", text:"非チェック例外（RuntimeException またはそのサブクラス）であるものをすべて選べ。", multi:true, code:
+null,
+choices:["IOException","NullPointerException","ClassNotFoundException","ArithmeticException","StackOverflowError"], answers:[1,3],
+expl:`正解: NullPointerException ／ ArithmeticException
+
+どちらも RuntimeException のサブクラスで、catch も throws も必須ではない。
+
+・IOException と ClassNotFoundException は Exception 直下のチェック例外
+・StackOverflowError は例外ではなく Error のサブクラス。例外と Error は別物という点が引っかけ`},
+
+// Q55 [6-2]
+{cat:"6-2 try-catch文による例外処理", tag:"6-2", text:"次のコードの実行結果はどれか。", code:
+`public class Main {
+static int test() {
+try {
+return 1;
+} finally {
+System.out.print("F");
+}
+}
+
+public static void main(String[] args) {
+System.out.print(test());
+}
+}`,
+choices:["F1","1F","1","コンパイルエラーになる"], answers:[0],
+expl:`正解: F1
+
+finally は、try から return で抜ける場合でも必ず実行される。test() の戻り値 1 が確定した後、呼び出し側で出力される前に finally の F が出力されるため、F1 の順になる。
+
+・finally が実行されない代表例は System.exit() が呼ばれた場合`},
+
+// Q56 [6-2]
+{cat:"6-2 try-catch文による例外処理", tag:"6-2", text:"次のコードをコンパイルするとどうなるか。", code:
+`public class Main {
+public static void main(String[] args) {
+try {
+int[] a = new int[2];
+System.out.println(a[5]);
+} catch (RuntimeException e) {
+System.out.println("runtime");
+} catch (ArrayIndexOutOfBoundsException e) {
+System.out.println("index");
+}
+}
+}`,
+choices:["コンパイルエラーになる","runtime と出力される","index と出力される","実行時に例外がそのまま伝播する"], answers:[0],
+expl:`正解: コンパイルエラーになる
+
+catch は上から順に判定される。親クラス RuntimeException の catch が先にあると、その子である ArrayIndexOutOfBoundsException の catch には絶対に到達しないため、到達不能コードとしてコンパイルエラーになる。
+
+・catch は「子から親へ」の順に書くのが規則`},
+
+// Q57 [6-3]
+{cat:"6-3 try-with-resources文", tag:"6-3", text:"次のコードの実行結果はどれか。", code:
+`class Res implements AutoCloseable {
+private String name;
+
+Res(String name) {
+this.name = name;
+}
+
+public void close() {
+System.out.print("close:" + name + " ");
+}
+}
+
+public class Main {
+public static void main(String[] args) {
+try (Res r1 = new Res("1"); Res r2 = new Res("2")) {
+System.out.print("body ");
+}
+}
+}`,
+choices:["body close:2 close:1","body close:1 close:2","close:2 close:1 body","コンパイルエラーになる"], answers:[0],
+expl:`正解: body close:2 close:1
+
+try-with-resources では、本体の処理が終わった後、リソースが「開いた順の逆」に自動で close される。先に開いた r1 は後に閉じられ、後に開いた r2 が先に閉じられる。
+
+・close の順序が宣言順と逆になる点が引っかけ`},
+
+// Q58 [6-4]
+{cat:"6-4 カスタム例外の作成", tag:"6-4", text:"次のコードをコンパイルするとどうなるか。", code:
+`class MyError extends Exception {
+MyError(String msg) {
+super(msg);
+}
+}
+
+public class Main {
+static void check(int n) {
+if (n < 0) {
+throw new MyError("neg");
+}
+System.out.println("ok");
+}
+
+public static void main(String[] args) {
+check(1);
+}
+}`,
+choices:["コンパイルエラーになる","ok と出力される","実行時に MyError がスローされる","何も出力されない"], answers:[0],
+expl:`正解: コンパイルエラーになる
+
+Exception を継承したカスタム例外はチェック例外になる。チェック例外を throw するメソッドには、catch で処理するか、throws で宣言することが必須。check() にはどちらもないため、実際に例外が発生するかどうかに関係なくコンパイルエラーになる。
+
+・RuntimeException を継承すれば非チェック例外になり、この制約は受けない`},
+
+// Q59 [6-5]
+{cat:"6-5 multi-catch句", tag:"6-5", text:"次のコードをコンパイルするとどうなるか。", code:
+`public class Main {
+public static void main(String[] args) {
+try {
+String s = null;
+System.out.println(s.length());
+} catch (RuntimeException | NullPointerException e) {
+System.out.println("caught");
+}
+}
+}`,
+choices:["コンパイルエラーになる","caught と出力される","実行時に NullPointerException がそのまま伝播する","何も出力されない"], answers:[0],
+expl:`正解: コンパイルエラーになる
+
+multi-catch では、継承関係にある型同士を並べることはできない。NullPointerException は RuntimeException のサブクラスなので、この組み合わせはコンパイルエラーになる。
+
+・親クラス側だけで受けるか、無関係な型同士（例: IOException | SQLException）を並べるのが正しい使い方`},
+
+// Q60 [6-6]
+{cat:"6-6 例外とオーバーライドの規則", tag:"6-6", text:"次のコードをコンパイルするとどうなるか。", code:
+`import java.io.IOException;
+
+class Parent {
+void read() throws IOException {
+}
+}
+
+class Child extends Parent {
+void read() throws Exception {
+}
+}
+
+public class Main {
+public static void main(String[] args) {
+System.out.println("ok");
+}
+}`,
+choices:["コンパイルエラーになる","ok と出力される","Parent でコンパイルエラーになる","実行時に例外が発生する"], answers:[0],
+expl:`正解: コンパイルエラーになる
+
+オーバーライドするメソッドは、親のメソッドが宣言したチェック例外より広い例外を追加できない。IOException の親である Exception への拡大は「広げる」方向なのでエラーになる。
+
+・狭める（例: FileNotFoundException にする）・消すことは可能。非チェック例外はこの規則の対象外`},
+
+];
+
+const ALL_QUESTIONS = [...QUESTIONS, ...QUESTIONS2, ...QUESTIONS3];
+const CATS = [...new Set(ALL_QUESTIONS.map(q=>q.cat))];
+const HKEY = "java-silver-mock-v1";
+const LETTERS = ["A","B","C","D","E"];
+
+let cfg = { mode:"exam", qset:"2", count:0, limit:120, cats:new Set(CATS) };
+let ex = null; // {items:[{q, order, selected:Set, flagged, timeMs}], idx, startedAt, qStartedAt, drillAnswered}
+let timerId = null;
+
+function activeQuestions() {
+  return cfg.qset==="1" ? QUESTIONS : cfg.qset==="2" ? QUESTIONS2 : cfg.qset==="3" ? QUESTIONS3 : ALL_QUESTIONS;
+}
+function setQSet(v,el){ cfg.qset=v; segOn(el); renderChips(); }
+
+const esc = s => s==null?"":String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const fmt = ms => { const t=Math.floor(ms/1000); return `${Math.floor(t/60)}:${String(t%60).padStart(2,"0")}`; };
+const shuffle = a => { const x=[...a]; for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]];} return x; };
+
+/* ---------- config ---------- */
+function setMode(v,el){ cfg.mode=v; segOn(el); }
+function setCount(v,el){ cfg.count=v; segOn(el); }
+function setLimit(v,el){ cfg.limit=v; segOn(el); }
+function segOn(el){ [...el.parentElement.children].forEach(b=>b.classList.toggle("on",b===el)); }
+
+function renderChips() {
+  const pool = activeQuestions();
+  document.getElementById("cat-chips").innerHTML = CATS.map((c,i)=>{
+    const n = pool.filter(q=>q.cat===c).length;
+    return `<button class="chip${cfg.cats.has(c)?' on':''}" onclick="toggleCat(${i})" ${n===0?'style="opacity:.3"':''}>${esc(c)} <span style="opacity:.6">${n}</span></button>`;
+  }).join("");
+  const n = pool.filter(q=>cfg.cats.has(q.cat)).length;
+  const btn = document.getElementById("start-btn");
+  btn.disabled = n===0;
+  btn.textContent = n===0 ? "分野を選んでください" : `▶ 開始する（対象 ${n}問）`;
+}
+function toggleCat(i) {
+  const c = CATS[i];
+  if (cfg.cats.has(c)) { if (cfg.cats.size>1 || true) cfg.cats.delete(c); } else cfg.cats.add(c);
+  renderChips();
+}
+
+function renderHistory() {
+  let hist = [];
+  try { hist = JSON.parse(localStorage.getItem(HKEY)||"[]"); } catch {}
+  const el = document.getElementById("history-list");
+  if (hist.length===0) { el.innerHTML = '<div style="font-size:12px;color:#B0A58F">まだ記録がありません</div>'; return; }
+  el.innerHTML = hist.slice(-6).reverse().map(h=>
+    `<div class="hist-row"><span>${esc(h.date)}　${h.mode==='drill'?'ドリル':'模試'} ${h.total}問${h.qset?`（${h.qset==='all'?'全セット':'第'+h.qset+'セット'}）`:''}</span><span style="color:${h.pct>=65?'#0A8A68':'#D81B4C'};font-weight:700">${h.pct}%</span></div>`
+  ).join("");
+  // 弱点分野（合格ライン未満のみ表示）
+  const catAgg = {};
+  hist.forEach(h=>Object.entries(h.cats||{}).forEach(([c,v])=>{ catAgg[c]=catAgg[c]||{ok:0,n:0}; catAgg[c].ok+=v.ok; catAgg[c].n+=v.n; }));
+  const weak = Object.entries(catAgg).filter(([,v])=>v.n>=2).map(([c,v])=>({c,pct:Math.round(v.ok/v.n*100)})).filter(w=>w.pct<65).sort((a,b)=>a.pct-b.pct).slice(0,3);
+  if (weak.length) el.innerHTML += `<div style="font-size:11px;color:#f0a500;margin-top:10px">要注意分野: ${weak.map(w=>`${esc(w.c)} ${w.pct}%`).join(" ／ ")}</div>`;
+}
+
+/* ---------- exam flow ---------- */
+function startExam() {
+  let pool = activeQuestions().filter(q=>cfg.cats.has(q.cat));
+  pool = shuffle(pool);
+  if (cfg.count>0) pool = pool.slice(0, cfg.count);
+  ex = {
+    items: pool.map(q=>({ q, order: shuffle(q.choices.map((_,i)=>i)), selected:new Set(), flagged:false, timeMs:0 })),
+    idx: 0, startedAt: Date.now(), qStartedAt: Date.now(), drillAnswered:false
+  };
+  showView("exam");
+  renderQuestion();
+  timerId = setInterval(tickTimers, 500);
+}
+function showView(name) {
+  ["config","exam","review","result","pace-result"].forEach(v=>document.getElementById("view-"+v).classList.toggle("hidden", v!==name));
+  window.scrollTo(0,0);
+}
+const EXAM3_LIMIT_MS = 90*60*1000; // 本番形式（模試モード＋第3セット）の制限時間90分
+const PACE_TARGET = 90; // ペースモードの目標秒数/問（本番ペース＝90分÷60問）
+function tickTimers() {
+  if (!ex) return;
+  const totalEl = document.getElementById("total-timer");
+  const labelEl = document.getElementById("total-label");
+  if (cfg.mode==="exam" && cfg.qset==="3") {
+    const remain = EXAM3_LIMIT_MS - (Date.now()-ex.startedAt);
+    labelEl.textContent = "残り";
+    totalEl.textContent = fmt(Math.max(0, remain));
+    totalEl.className = remain <= 0 ? "qtimer over" : remain <= 10*60*1000 ? "qtimer warn" : "";
+  } else {
+    labelEl.textContent = "合計";
+    totalEl.textContent = fmt(Date.now()-ex.startedAt);
+    totalEl.className = "";
+  }
+  const cur = ex.items[ex.idx];
+  if (!cur) return;
+  const elapsed = cur.timeMs + (Date.now()-ex.qStartedAt);
+  const el = document.getElementById("q-timer");
+  el.textContent = fmt(elapsed);
+  el.className = "qtimer" + (elapsed > cfg.limit*1000 ? " over" : elapsed > cfg.limit*800 ? " warn" : "");
+  if (cfg.mode==="pace") {
+    const pt = document.getElementById("pace-time");
+    pt.textContent = fmt(elapsed);
+    pt.className = "pace-time" + (elapsed > PACE_TARGET*1000 ? " over" : elapsed > PACE_TARGET*800 ? " warn" : "");
+    const pb = document.getElementById("pace-bar");
+    pb.style.width = Math.min(100, elapsed/(PACE_TARGET*1000)*100) + "%";
+    pb.className = "pace-bar" + (elapsed > PACE_TARGET*1000 ? " over" : elapsed > PACE_TARGET*800 ? " warn" : "");
+  }
+}
+
+function prevQuestion() {
+  if (!ex || ex.idx === 0 || cfg.mode !== "exam") return;
+  stopQClock();
+  ex.idx--;
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const it = ex.items[ex.idx];
+  const q = it.q;
+  const prevBtn = document.getElementById("prev-btn");
+  prevBtn.style.display = cfg.mode === "exam" ? "" : "none";
+  prevBtn.disabled = ex.idx === 0;
+  document.getElementById("exam-pos").textContent = `問 ${ex.idx+1} / ${ex.items.length}`;
+  document.getElementById("exam-bar").style.width = `${(ex.idx/ex.items.length)*100}%`;
+  document.getElementById("q-text").innerHTML = esc(q.text) + (q.multi?'<span class="multi-tag">2つ選択</span>':"");
+  const codeEl = document.getElementById("q-code");
+  if (q.code) { codeEl.textContent = q.code; codeEl.classList.remove("hidden"); }
+  else codeEl.classList.add("hidden");
+  document.getElementById("q-choices").innerHTML = it.order.map((origIdx,pos)=>
+    `<button class="choice${it.selected.has(origIdx)?' sel':''}" onclick="pick(${origIdx})">
+      <span class="mark">${LETTERS[pos]}</span><span>${esc(q.choices[origIdx])}</span></button>`
+  ).join("");
+  document.getElementById("flag-btn").className = "flag-btn"+(it.flagged?" on":"");
+  document.getElementById("pace-panel").classList.toggle("hidden", cfg.mode!=="pace");
+  document.getElementById("exam-timers").classList.toggle("hidden", cfg.mode==="pace");
+  document.getElementById("pace-line").classList.add("hidden");
+  document.getElementById("drill-feedback").classList.add("hidden");
+  ex.drillAnswered = false;
+  document.getElementById("next-btn").textContent = "回答して次へ";
+  document.getElementById("next-btn").disabled = it.selected.size===0;
+  document.getElementById("skip-btn").classList.remove("hidden");
+  ex.qStartedAt = Date.now();
+  tickTimers();
+}
+
+function pick(origIdx) {
+  if (ex.drillAnswered) return;
+  const it = ex.items[ex.idx];
+  if (it.q.multi) {
+    it.selected.has(origIdx) ? it.selected.delete(origIdx) : it.selected.add(origIdx);
+  } else {
+    it.selected.clear(); it.selected.add(origIdx);
+  }
+  [...document.getElementById("q-choices").children].forEach((btn,pos)=>{
+    btn.classList.toggle("sel", it.selected.has(it.order[pos]));
+  });
+  document.getElementById("next-btn").disabled = it.selected.size===0;
+}
+
+function stopQClock() {
+  const it = ex.items[ex.idx];
+  it.timeMs += Date.now() - ex.qStartedAt;
+  ex.qStartedAt = Date.now();
+}
+
+function nextAction() {
+  const it = ex.items[ex.idx];
+  if ((cfg.mode==="drill" || cfg.mode==="pace") && !ex.drillAnswered) {
+    // ドリル/ペース: まず答え合わせを表示
+    stopQClock();
+    ex.drillAnswered = true;
+    const ok = isCorrect(it);
+    const fb = document.getElementById("drill-feedback");
+    fb.classList.remove("hidden");
+    document.getElementById("drill-verdict").innerHTML = ok
+      ? '<span style="color:#0A8A68">○ 正解！</span>'
+      : '<span style="color:#D81B4C">× 不正解</span>';
+    const ex2 = document.getElementById("drill-expl");
+    ex2.className = "expl"+(ok?"":" ng");
+    ex2.textContent = it.q.expl;
+    if (cfg.mode==="pace") {
+      // ペース: かかった秒数と90秒以内かどうかを即フィードバック
+      it.paceDone = true;
+      const sec = Math.round(it.timeMs/1000);
+      const within = it.timeMs <= PACE_TARGET*1000;
+      const pl = document.getElementById("pace-line");
+      pl.textContent = `⏱ ${sec}秒 — ${within ? "目標90秒以内！" : "90秒オーバー"}`;
+      pl.style.color = within ? "#0A8A68" : "#E8304F";
+      pl.classList.remove("hidden");
+    }
+    // 選択肢に正誤の色付け
+    [...document.getElementById("q-choices").children].forEach((btn,pos)=>{
+      const oi = it.order[pos];
+      btn.classList.remove("sel");
+      if (it.q.answers.includes(oi)) btn.classList.add("ok");
+      else if (it.selected.has(oi)) btn.classList.add("ng");
+    });
+    document.getElementById("next-btn").textContent = ex.idx < ex.items.length-1 ? "次の問題へ" : "結果を見る";
+    document.getElementById("next-btn").disabled = false;
+    document.getElementById("skip-btn").classList.add("hidden");
+    return;
+  }
+  if (cfg.mode==="exam") stopQClock();
+  advance();
+}
+function skipQuestion() {
+  stopQClock();
+  const it = ex.items[ex.idx];
+  it.selected.clear();
+  advance();
+}
+function advance() {
+  if (ex.idx < ex.items.length-1) { ex.idx++; renderQuestion(); }
+  else if (cfg.mode==="exam") { renderReview(); showView("review"); }
+  else if (cfg.mode==="pace") { finishPace(); }
+  else grade();
+}
+function toggleFlag() {
+  const it = ex.items[ex.idx];
+  it.flagged = !it.flagged;
+  document.getElementById("flag-btn").className = "flag-btn"+(it.flagged?" on":"");
+}
+function quitExam() {
+  if (!confirm("中断しますか？この回の記録は保存されません。")) return;
+  clearInterval(timerId); ex=null;
+  showView("config"); renderHistory();
+}
+
+/* ---------- review ---------- */
+function renderReview() {
+  document.getElementById("rev-grid").innerHTML = ex.items.map((it,i)=>
+    `<button class="rev-btn${it.selected.size?' done':''}${it.flagged?' flagged':''}" onclick="jumpTo(${i})">${i+1}</button>`
+  ).join("");
+}
+function jumpTo(i) {
+  ex.idx = i;
+  showView("exam");
+  renderQuestion();
+  // 見直しから来た場合、次へで見直しに戻す
+  document.getElementById("next-btn").textContent = "回答して見直しへ戻る";
+  const orig = advance;
+  window.advance = function(){ window.advance = orig; renderReview(); showView("review"); };
+}
+
+/* ---------- grading ---------- */
+function isCorrect(it) {
+  const a = it.q.answers;
+  return it.selected.size===a.length && a.every(x=>it.selected.has(x));
+}
+function grade() {
+  clearInterval(timerId);
+  const total = ex.items.length;
+  const okItems = ex.items.filter(isCorrect);
+  const pct = Math.round(okItems.length/total*100);
+  const pass = pct>=65;
+
+  document.getElementById("score-val").innerHTML = `<span style="color:${pass?'#0A8A68':'#D81B4C'}">${pct}%</span>`;
+  document.getElementById("score-sub").textContent = `${okItems.length} / ${total} 問正解 ${pass?"— 合格ライン突破！":"— あと"+(Math.ceil(total*0.65)-okItems.length)+"問で合格ライン"}`;
+  const bar = document.getElementById("score-bar");
+  bar.style.width = pct+"%"; bar.style.background = pass?"#0A8A68":"#D81B4C";
+
+  const totalMs = ex.items.reduce((s,it)=>s+it.timeMs,0);
+  const avg = totalMs/total;
+  const overCnt = ex.items.filter(it=>it.timeMs>cfg.limit*1000).length;
+  document.getElementById("time-summary").textContent =
+    `所要 ${fmt(totalMs)}　平均 ${fmt(avg)}/問　目安(${fmt(cfg.limit*1000)})超過 ${overCnt}問`;
+
+  // 分野別
+  const cats = {};
+  ex.items.forEach(it=>{
+    cats[it.q.cat] = cats[it.q.cat]||{ok:0,n:0};
+    cats[it.q.cat].n++;
+    if(isCorrect(it)) cats[it.q.cat].ok++;
+  });
+  document.getElementById("cat-table").innerHTML = Object.entries(cats)
+    .map(([c,v])=>({c,...v,pct:Math.round(v.ok/v.n*100)}))
+    .sort((a,b)=>a.pct-b.pct)
+    .map(r=>`<tr><td>${esc(r.c)}</td><td style="color:#B0A58F">${r.ok}/${r.n}</td><td style="color:${r.pct>=65?'#0A8A68':'#D81B4C'}">${r.pct}%</td></tr>`).join("");
+
+  // 全問リスト
+  document.getElementById("res-list").innerHTML = ex.items.map((it,i)=>{
+    const ok = isCorrect(it);
+    const over = it.timeMs>cfg.limit*1000;
+    const selTxt = it.selected.size ? [...it.selected].map(x=>esc(it.q.choices[x])).join("、") : "（未回答）";
+    const ansTxt = it.q.answers.map(x=>esc(it.q.choices[x])).join("、");
+    return `<div class="res-item" id="res-${i}">
+      <button class="res-head" onclick="document.getElementById('res-${i}').classList.toggle('open')">
+        <span><b style="color:${ok?'#0A8A68':'#D81B4C'}">${ok?'○':'×'}</b> 問${i+1}　<span style="color:#9a8f7d;font-size:11px">${esc(it.q.cat)}</span></span>
+        <span style="font-size:11px;color:${over?'#D81B4C':'#B0A58F'}">${fmt(it.timeMs)}${over?' ⏱':''}</span>
+      </button>
+      <div class="res-body">
+        <div style="font-size:13px;color:#2b2b3a;margin-bottom:8px">${esc(it.q.text)}</div>
+        ${it.q.code?`<pre class="code">${esc(it.q.code)}</pre>`:""}
+        <div style="font-size:12px;color:#9a8f7d;margin-bottom:4px">あなたの回答: <span style="color:${ok?'#0A8A68':'#D81B4C'}">${selTxt}</span></div>
+        <div style="font-size:12px;color:#9a8f7d;margin-bottom:10px">正解: <span style="color:#0A8A68">${ansTxt}</span></div>
+        <div class="expl${ok?'':' ng'}">${esc(it.q.expl)}</div>
+      </div>
+    </div>`;
+  }).join("");
+
+  // 保存
+  try {
+    const hist = JSON.parse(localStorage.getItem(HKEY)||"[]");
+    hist.push({date:new Date().toISOString().slice(0,10), mode:cfg.mode, qset:cfg.qset, total, pct,
+      cats:Object.fromEntries(Object.entries(cats).map(([c,v])=>[c,{ok:v.ok,n:v.n}]))});
+    localStorage.setItem(HKEY, JSON.stringify(hist.slice(-50)));
+  } catch {}
+
+  showView("result");
+}
+function backToConfig() { ex=null; showView("config"); renderHistory(); }
+
+/* ---------- pace summary（履歴には保存しない） ---------- */
+function finishPace() {
+  clearInterval(timerId);
+  const done = ex.items.filter(it=>it.paceDone);
+  const n = done.length;
+  const avgSec = n ? done.reduce((s,it)=>s+it.timeMs,0)/n/1000 : 0;
+  const within = done.filter(it=>it.timeMs<=PACE_TARGET*1000).length;
+  const pctWithin = n ? Math.round(within/n*100) : 0;
+  document.getElementById("pace-stats").innerHTML =
+    `<div class="pace-stat"><div class="v">${n}問</div><div class="l">解いた問題数（全${ex.items.length}問）</div></div>` +
+    `<div class="pace-stat"><div class="v">${avgSec.toFixed(1)}秒</div><div class="l">平均 / 問</div></div>` +
+    `<div class="pace-stat"><div class="v">${pctWithin}%</div><div class="l">90秒以内（${within}問）</div></div>`;
+  showView("pace-result");
+}
+
+renderChips();
+renderHistory();
+</script>
+</body>
+</html>

@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Java Silver Study Tracker v3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #FFF6E9; color: #2b2b3a; font-family: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif; min-height: 100vh; padding: 16px;
+    background-image: radial-gradient(340px 200px at 8% 0%, #FFD9E4 0%, transparent 70%), radial-gradient(380px 220px at 95% 6%, #FFF0B8 0%, transparent 70%), radial-gradient(420px 300px at 50% 108%, #CFEBFF 0%, transparent 70%); background-attachment: fixed; }
+  .wrap { max-width: 480px; margin: 0 auto; }
+  .header-label { font-size: 11px; letter-spacing: 4px; color: #FF5C7A; text-transform: uppercase; margin-bottom: 4px; font-weight: 900; }
+  .header-title { font-size: 25px; font-weight: 900; color: #2b2b3a; }
+  .header-sub { font-size: 12px; color: #9a8f7d; margin-top: 2px; margin-bottom: 14px; font-weight: 700; }
+  .sprint-badge { display: inline-block; font-size: 10px; font-weight: 900; color: #B97A0A; border: 2px solid #F5C542; background: #FFF3C4; border-radius: 20px; padding: 1px 8px; margin-left: 6px; vertical-align: 2px; animation: pulseGlow 1.6s ease-in-out infinite; }
+  /* season */
+  .season-badge { display: inline-block; font-size: 11px; font-weight: 900; color: #B97A0A; background: #FFF3C4; border: 2px solid #F5C542; border-radius: 999px; padding: 2px 10px; margin-bottom: 10px; }
+  #seg-season button.on { background: linear-gradient(135deg, #FF5C7A, #FF9E3D); color: #fff; }
+  .modal-btn:disabled { opacity: .45; cursor: default; }
+  @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 0 0 #F5C54200; } 50% { box-shadow: 0 0 10px 1px #F5C54288; } }
+
+  /* ---------- hero ---------- */
+  .hero { position: relative; border-radius: 20px; padding: 18px; margin-bottom: 14px; overflow: hidden;
+    background: linear-gradient(135deg, #FFE3EC 0%, #FFF3C4 52%, #D8F3FF 100%); border: 2px solid #ffffff;
+    box-shadow: 0 6px 0 #F0DFC2, 0 14px 28px #E8A33D22; }
+  .hero-row { display: flex; align-items: center; gap: 16px; position: relative; }
+  .ring-wrap { position: relative; width: 92px; height: 92px; flex-shrink: 0; }
+  .ring-wrap svg { transform: rotate(-90deg); }
+  .ring-bg { stroke: #ffffffb8; }
+  .ring-fg { stroke: url(#ringGrad); stroke-linecap: round; transition: stroke-dashoffset .8s cubic-bezier(.2,.8,.2,1); }
+  .ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .ring-pct { font-size: 21px; font-weight: 900; color: #2b2b3a; line-height: 1; }
+  .ring-label { font-size: 9px; color: #8a7f6d; margin-top: 3px; letter-spacing: 1px; font-weight: 700; }
+  .hero-main { flex: 1; min-width: 0; }
+  .countdown-label { font-size: 11px; color: #E84A6F; letter-spacing: 2px; font-weight: 900; }
+  .countdown { font-size: 15px; color: #5a5344; margin-top: 1px; font-weight: 700; }
+  .countdown b { font-size: 34px; font-weight: 900; background: linear-gradient(90deg, #FF5C7A, #FF9E3D); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero-meta { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .chip { font-size: 11px; font-weight: 900; padding: 4px 10px; border-radius: 20px; background: #ffffff; border: 2px solid #FFE1B8; color: #7a6c55; }
+  .chip b { color: #2b2b3a; }
+  .xp-row { margin-top: 12px; position: relative; }
+  .xp-head { display: flex; justify-content: space-between; font-size: 11px; color: #8a7f6d; margin-bottom: 5px; font-weight: 700; }
+  .xp-head b { color: #E8930C; font-weight: 900; }
+  .xp-wrap { height: 12px; background: #ffffff; border: 2px solid #FFE1B8; border-radius: 8px; overflow: hidden; }
+  .xp-bar { height: 100%; border-radius: 6px; background: linear-gradient(90deg, #FFB340, #FF5C7A); transition: width .8s cubic-bezier(.2,.8,.2,1); }
+
+  .tabs { display: flex; gap: 3px; background: #ffffff; border: 2px solid #F3E7D3; border-radius: 14px; padding: 4px; margin-bottom: 16px; position: sticky; top: 8px; z-index: 50; box-shadow: 0 4px 0 #F3E7D3; }
+  .tab { flex: 1; padding: 9px 2px; background: transparent; color: #B0A58F; border: none; border-radius: 10px; cursor: pointer; font-size: 12px; font-family: inherit; font-weight: 900; transition: all .2s; }
+  .tab.active { background: linear-gradient(135deg, #FF5C7A, #FF9E3D); color: #fff; box-shadow: 0 4px 10px #FF5C7A55; }
+  .card { background: #ffffff; border: 2px solid #F3E7D3; border-radius: 18px; padding: 16px; margin-bottom: 12px; box-shadow: 0 4px 0 #F3E7D3; }
+  .card-title { font-size: 12px; color: #9a8f7d; margin-bottom: 10px; font-weight: 900; letter-spacing: 1px; }
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .stats-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-box { background: #ffffff; border: 2px solid #F3E7D3; border-radius: 14px; padding: 12px 8px; text-align: center; box-shadow: 0 3px 0 #F3E7D3; }
+  .stat-val { font-size: 23px; font-weight: 900; color: #FF5C7A; }
+  .stat-label { font-size: 10px; color: #B0A58F; margin-top: 2px; font-weight: 700; }
+  .quick-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .ch-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .ch-btn { padding: 7px 11px; border-radius: 999px; border: 2px solid #F3E7D3; cursor: pointer; font-size: 12px; font-family: inherit; background: #FFFDF8; color: #8a7f6d; transition: all .2s; font-weight: 900; }
+  .ch-btn small { font-weight: 700; color: #C4B797; margin-left: 3px; }
+  .ch-btn.active { background: linear-gradient(135deg, #FF5C7A, #FF9E3D); color: #fff; border-color: transparent; box-shadow: 0 4px 10px #FF5C7A55; }
+  .ch-btn.active small { color: #FFE3EC; }
+  .q-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .q-btn { aspect-ratio: 1; border-radius: 12px; border: 2px solid #F0E7D2; cursor: pointer; font-size: 13px; font-family: inherit; font-weight: 900; background: #FFFDF8; color: #C9BC9F; transition: all .15s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+  .q-btn:active { transform: scale(.93); }
+  .q-btn.s-read { background: #FFF3C4; color: #B97A0A; border-color: #F5C542; }
+  .q-btn.s-correct { background: #D9F7EC; color: #0A8A68; border-color: #2BD9A9; }
+  .q-btn.s-incorrect { background: #FFE0E7; color: #D81B4C; border-color: #FF7A93; }
+  .q-btn.mastered { box-shadow: 0 0 0 2px #2BD9A9, 0 0 10px #2BD9A955; }
+  .q-btn.due { animation: duePulse 1.8s ease-in-out infinite; }
+  @keyframes duePulse { 0%,100% { box-shadow: 0 0 0 2px #FF9E3D; } 50% { box-shadow: 0 0 0 3px #FF9E3D, 0 0 12px #FF9E3D88; } }
+  .q-icon { font-size: 10px; }
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(90,64,20,0.45); z-index: 100; align-items: flex-end; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: #FFFDF8; border-radius: 20px 20px 0 0; padding: 22px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; animation: slideUp .25s cubic-bezier(.2,.8,.2,1); }
+  @keyframes slideUp { from { transform: translateY(30px); opacity: .4; } to { transform: none; opacity: 1; } }
+  .modal-title { font-size: 19px; font-weight: 900; color: #2b2b3a; margin-bottom: 4px; }
+  .modal-sub { font-size: 12px; color: #9a8f7d; margin-bottom: 6px; font-weight: 700; }
+  .modal-hist { font-size: 12px; color: #B0A58F; margin-bottom: 16px; letter-spacing: 2px; }
+  .modal-btns { display: flex; flex-direction: column; gap: 10px; }
+  .modal-btn { width: 100%; padding: 15px; border: 2px solid #EFE6D4; border-radius: 14px; background: #fff; color: #8a7f6d; cursor: pointer; font-size: 15px; font-family: inherit; font-weight: 900; text-align: left; transition: all .15s; }
+  .modal-btn:active { transform: scale(.98); }
+  .mb-read { border-color: #F5C542; background: #FFF8DC; color: #B97A0A; }
+  .mb-correct { border-color: #2BD9A9; background: #E9FBF4; color: #0A8A68; }
+  .mb-incorrect { border-color: #FF7A93; background: #FFF0F3; color: #D81B4C; }
+  .mb-reset { border-color: #EFE6D4; color: #B0A58F; font-size: 13px; padding: 10px; }
+  .modal-close { width: 100%; padding: 12px; background: #FFF3E0; border: none; border-radius: 12px; color: #9a8f7d; cursor: pointer; font-size: 14px; font-family: inherit; font-weight: 900; margin-top: 8px; }
+  .review-item { display: flex; justify-content: space-between; align-items: center; background: #FFFDF8; border: 2px solid #F3E7D3; border-radius: 12px; padding: 11px 14px; margin-bottom: 6px; cursor: pointer; width: 100%; color: inherit; font-family: inherit; text-align: left; transition: all .15s; }
+  .review-item:active { transform: scale(.98); }
+  .review-badge { font-size: 11px; font-weight: 900; padding: 3px 9px; border-radius: 20px; white-space: nowrap; }
+  .prog-row { margin-bottom: 18px; }
+  .bar-wrap { height: 7px; background: #F6EDD9; border-radius: 4px; overflow: hidden; margin-bottom: 2px; }
+  .bar { height: 100%; border-radius: 4px; transition: width .6s cubic-bezier(.2,.8,.2,1); }
+  textarea, input[type=text], input[type=date] { width: 100%; background: #FFFDF8; border: 2px solid #EFE6D4; border-radius: 10px; padding: 10px; color: #2b2b3a; font-size: 13px; font-family: inherit; font-weight: 700; }
+  textarea { font-family: monospace; font-size: 12px; resize: none; font-weight: 400; }
+  .primary-btn { width: 100%; padding: 14px; border: none; border-radius: 14px; color: #fff; font-size: 14px; font-weight: 900; cursor: pointer; font-family: inherit; transition: all .12s; letter-spacing: .5px; }
+  .primary-btn:active { transform: translateY(3px); box-shadow: none !important; }
+  .btn-main { background: linear-gradient(135deg, #FF5C7A, #FF9E3D); box-shadow: 0 5px 0 #D63A54; }
+  .btn-sub { background: #ffffff; border: 2px solid #F3E7D3; box-shadow: 0 4px 0 #F3E7D3; color: #7a6c55; font-size: 13px; padding: 12px; }
+  .btn-blue { background: linear-gradient(135deg, #5B8DEF, #7AA2E8); box-shadow: 0 5px 0 #3D68B8; }
+  .msg-box { border-radius: 12px; padding: 12px; margin-bottom: 12px; font-size: 13px; font-weight: 700; }
+  .hidden { display: none; }
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
+  .toggle-label { font-size: 12px; color: #8a7f6d; font-weight: 700; }
+  .switch { position: relative; width: 42px; height: 24px; flex-shrink: 0; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; inset: 0; background: #EFE6D4; border-radius: 24px; transition: .2s; cursor: pointer; }
+  .slider:before { content: ""; position: absolute; height: 18px; width: 18px; left: 3px; top: 3px; background: #C9BC9F; border-radius: 50%; transition: .2s; }
+  .switch input:checked + .slider { background: #FF5C7A; }
+  .switch input:checked + .slider:before { transform: translateX(18px); background: #fff; }
+  .seg { display: flex; gap: 4px; background: #FFF3E0; border-radius: 10px; padding: 3px; }
+  .seg button { flex: 1; padding: 8px 4px; border: none; border-radius: 8px; background: none; color: #B0A58F; font-size: 12px; font-family: inherit; cursor: pointer; font-weight: 900; }
+  .seg button.on { background: #5B8DEF; color: #fff; }
+  .q-btn.s-pending { background: #E1EBFF; color: #2F5AA8; border-color: #7AA2E8; }
+  .ans-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 18px; }
+  .ans-btn { padding: 13px 0; border-radius: 12px; border: 2px solid #EFE6D4; background: #FFFDF8; color: #B0A58F; font-size: 16px; font-weight: 900; font-family: inherit; cursor: pointer; transition: all .12s; }
+  .ans-btn:active { transform: scale(.93); }
+  .ans-btn.sel { border-color: #5B8DEF; background: #E1EBFF; color: #2F5AA8; }
+  /* --- session overlay --- */
+  .session { display: none; position: fixed; inset: 0; background: #FFF6E9; z-index: 200; padding: 20px 16px; overflow-y: auto;
+    background-image: radial-gradient(340px 200px at 8% 0%, #FFD9E4 0%, transparent 70%), radial-gradient(380px 220px at 95% 6%, #FFF0B8 0%, transparent 70%); }
+  .session.open { display: block; }
+  .session-inner { max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; min-height: calc(100vh - 40px); }
+  .session-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .session-count { font-size: 13px; color: #9a8f7d; font-weight: 900; }
+  .combo { font-size: 14px; font-weight: 900; color: #E8930C; min-height: 19px; text-align: center; margin-bottom: 6px; }
+  .session-quit { background: none; border: none; color: #B0A58F; font-size: 13px; font-family: inherit; font-weight: 900; cursor: pointer; padding: 4px 8px; }
+  .session-bar-wrap { height: 8px; background: #F6EDD9; border-radius: 5px; overflow: hidden; margin-bottom: 24px; }
+  .session-bar { height: 100%; background: linear-gradient(90deg, #FF5C7A, #FF9E3D); border-radius: 5px; transition: width .3s; }
+  /* --- mock exam timer (模擬1・模擬2専用) --- */
+  .mock-timer { position: sticky; top: 0; z-index: 5; background: #ffffff; border: 2px solid #F3E7D3; border-radius: 14px; padding: 10px 14px; margin-bottom: 14px; box-shadow: 0 2px 10px rgba(90,70,30,.08); text-align: center; }
+  .mock-timer-main { display: flex; align-items: baseline; justify-content: center; gap: 10px; flex-wrap: wrap; }
+  .mock-timer-label { font-size: 12px; font-weight: 900; color: #9a8f7d; letter-spacing: 1px; }
+  .mock-timer-time { font-size: 32px; font-weight: 900; color: #2b2b3a; line-height: 1; font-variant-numeric: tabular-nums; }
+  .mock-timer-elapsed { font-size: 12px; font-weight: 700; color: #9a8f7d; font-variant-numeric: tabular-nums; }
+  .mock-timer-btns { display: flex; gap: 8px; justify-content: center; margin-top: 8px; }
+  .mock-timer-btn { background: #FFF6E9; border: 2px solid #F3E7D3; color: #8a8578; border-radius: 999px; padding: 6px 16px; font-size: 12px; font-weight: 900; font-family: inherit; cursor: pointer; transition: transform .12s; }
+  .mock-timer-btn:active { transform: scale(.96); }
+  .mock-timer.warn { border-color: #FFB340; background: #FFFAEC; }
+  .mock-timer.warn .mock-timer-time { color: #D98A06; }
+  .mock-timer.over { border-color: #E8304F; background: #FFF0F2; }
+  .mock-timer.over .mock-timer-time { color: #E8304F; }
+  .mock-timer-done { margin-top: 8px; font-size: 13px; font-weight: 900; color: #E8304F; line-height: 1.6; }
+  .session-q { text-align: center; margin-bottom: 8px; }
+  .session-q-ch { font-size: 13px; color: #E84A6F; font-weight: 900; letter-spacing: 1px; margin-bottom: 6px; }
+  .session-q-num { font-size: 48px; font-weight: 900; color: #2b2b3a; line-height: 1.1; }
+  .session-q-meta { font-size: 13px; color: #9a8f7d; margin-top: 8px; letter-spacing: 1px; font-weight: 700; }
+  .session-memo { background: #ffffff; border: 2px solid #F3E7D3; border-radius: 14px; padding: 12px 14px; margin: 18px 0; font-size: 13px; color: #4a4a5a; line-height: 1.6; }
+  .session-memo-label { font-size: 10px; color: #B0A58F; margin-bottom: 4px; font-weight: 900; }
+  .session-btns { margin-top: auto; display: flex; flex-direction: column; gap: 10px; padding-bottom: 8px; }
+  .session-row { display: flex; gap: 10px; }
+  .session-btn { flex: 1; padding: 19px 8px; border-radius: 16px; border: 2px solid; background: #fff; font-size: 17px; font-weight: 900; font-family: inherit; cursor: pointer; transition: all .12s; }
+  .session-btn:active { transform: scale(.96); }
+  .sb-correct { border-color: #2BD9A9; background: #E9FBF4; color: #0A8A68; box-shadow: 0 4px 0 #2BD9A9; }
+  .sb-incorrect { border-color: #FF7A93; background: #FFF0F3; color: #D81B4C; box-shadow: 0 4px 0 #FF7A93; }
+  .sb-skip { border: 2px solid #EFE6D4; background: #fff; color: #B0A58F; font-size: 13px; font-weight: 700; padding: 10px; border-radius: 12px; box-shadow: none; }
+  .session-done { text-align: center; padding-top: 48px; }
+  .done-emoji { font-size: 54px; margin-bottom: 14px; animation: bounceIn .6s cubic-bezier(.2,1.6,.4,1); display: inline-block; }
+  @keyframes bounceIn { from { transform: scale(.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .levelup { display: inline-block; margin-top: 14px; padding: 8px 18px; border-radius: 24px; font-weight: 900; color: #7A5200; background: linear-gradient(90deg, #FFD166, #FFB340); box-shadow: 0 4px 0 #E8930C, 0 0 24px #FFB34066; animation: pulseGlow 1.2s ease-in-out infinite; }
+  .xp-float { position: fixed; z-index: 300; font-weight: 900; pointer-events: none; animation: floatUp 1s ease-out forwards; text-shadow: 0 1px 0 #fff, 0 2px 8px #ffffff88; }
+  @keyframes floatUp { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-56px); opacity: 0; } }
+  .confetti { position: fixed; top: -16px; z-index: 400; pointer-events: none; border-radius: 2px; }
+  .weak-count { font-size: 11px; font-weight: 900; color: #D81B4C; background: #FFE0E7; border-radius: 20px; padding: 2px 8px; }
+  .sc-bar { height: 12px; background: #F7EFDD; border-radius: 8px; overflow: hidden; margin: 8px 0 4px; }
+  .sc-bar-fill { height: 100%; background: linear-gradient(90deg, #00d4a3, #4a6fa5); border-radius: 8px; transition: width .3s; }
+  .sc-filter { display: flex; gap: 8px; margin-top: 10px; }
+  .sc-filter button { flex: 1; padding: 8px; border-radius: 10px; border: 2px solid #EFE6D4; background: #fff; color: #8a8578; font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer; }
+  .sc-filter button.active { background: #2b2b3a; color: #fff; border-color: #2b2b3a; }
+  .sc-topic-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .sc-book { font-size: 10px; font-weight: 900; color: #2f5aa8; background: #4a6fa51c; border: 1px solid #4a6fa555; border-radius: 20px; padding: 2px 8px; white-space: nowrap; }
+  .sc-item { border-top: 2px solid #F7EFDD; padding: 10px 2px; }
+  .sc-item-head { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  .sc-dot { width: 12px; height: 12px; border-radius: 50%; background: #E5DCC8; flex-shrink: 0; }
+  .sc-dot.ok { background: #00d4a3; }
+  .sc-dot.weak { background: #FF5C7A; }
+  .sc-name { font-size: 14px; font-weight: 700; color: #2b2b3a; flex: 1; line-height: 1.5; }
+  .sc-star { color: #f0a500; font-size: 12px; }
+  .sc-extra { font-size: 9px; font-weight: 900; color: #8a8578; background: #F7EFDD; border-radius: 6px; padding: 1px 5px; }
+  .sc-body { margin-top: 8px; font-size: 13px; line-height: 1.8; color: #4a4a5a; }
+  .sc-body .sc-q { font-size: 10px; font-weight: 900; color: #9a8f7d; letter-spacing: 1px; margin-top: 8px; }
+  .sc-body .sc-trap { color: #B02547; }
+  .sc-rate { display: flex; gap: 8px; margin-top: 12px; }
+  .sc-rate button { flex: 1; padding: 10px; border-radius: 12px; border: 2px solid #EFE6D4; background: #fff; font-size: 13px; font-weight: 900; font-family: inherit; cursor: pointer; color: #8a8578; }
+  .sc-rate button.on-ok { background: #00d4a3; border-color: #00d4a3; color: #fff; }
+  .sc-rate button.on-weak { background: #FF5C7A; border-color: #FF5C7A; color: #fff; }
+
+  /* ---------- PC向けレスポンシブ（768px以上） ---------- */
+  @media (min-width: 768px) {
+    body { padding: 28px 24px 40px; }
+    .wrap { max-width: 1020px; }
+    .header-title { font-size: 30px; }
+    .header-sub { font-size: 13px; margin-bottom: 18px; }
+    .hero { padding: 24px 28px; }
+    .ring-wrap { width: 108px; height: 108px; }
+    .ring-pct { font-size: 25px; }
+    .countdown b { font-size: 40px; }
+    .tabs { top: 12px; }
+    .tab { font-size: 14px; padding: 11px 2px; }
+    .card { padding: 22px 24px; margin-bottom: 16px; }
+    .card-title { font-size: 13px; }
+    .stats-grid { gap: 12px; }
+    .stats-grid-2 { gap: 12px; }
+    .stat-box { padding: 16px 10px; }
+    .stat-val { font-size: 28px; }
+    .stat-label { font-size: 11px; }
+    .quick-row { gap: 12px; }
+    .ch-btn { font-size: 13px; padding: 9px 14px; }
+    .q-grid { grid-template-columns: repeat(10, 1fr); gap: 10px; }
+    .q-btn { font-size: 15px; border-radius: 14px; }
+    .q-icon { font-size: 12px; }
+    .ans-grid { gap: 10px; }
+    .ans-btn { font-size: 18px; padding: 15px 0; }
+    .review-item { padding: 14px 18px; }
+    .modal-overlay { align-items: center; padding: 24px; }
+    .modal { max-width: 720px; border-radius: 20px; max-height: 86vh; animation: none; }
+    .modal-title { font-size: 22px; }
+    .modal-btn { font-size: 16px; padding: 17px; }
+    .session-inner { max-width: 880px; }
+    .session-q-num { font-size: 56px; }
+    .mock-timer-time { font-size: 42px; }
+    .mock-timer-label { font-size: 13px; }
+    .mock-timer-elapsed { font-size: 13px; }
+    .mock-timer-btn { font-size: 13px; padding: 8px 20px; }
+    .session-memo { font-size: 15px; padding: 16px 18px; }
+    .session-btn { font-size: 19px; padding: 22px 8px; }
+    .sc-name { font-size: 15px; }
+    .sc-body { font-size: 14px; }
+    textarea, input[type=text], input[type=date] { font-size: 14px; }
+    .primary-btn { font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <div class="header-label">Java SE 17 Silver</div>
+    <div class="header-title">Study Tracker <span style="font-size:13px;color:#e8304f;vertical-align:3px">v3</span></div>
+    <div class="header-sub" id="days-left"></div>
+  </div>
+
+  <div><span class="season-badge" id="season-badge"></span></div>
+  <div class="seg" id="seg-season" style="margin-bottom:12px"></div>
+
+  <div class="hero" id="hero"></div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('today')">今日</button>
+    <button class="tab" onclick="switchTab('record')">記録</button>
+    <button class="tab" onclick="switchTab('weak')">弱点</button>
+    <button class="tab" onclick="switchTab('progress')">進捗</button>
+    <button class="tab" onclick="switchTab('scope')">範囲</button>
+    <button class="tab" onclick="switchTab('data')">データ</button>
+  </div>
+
+  <!-- TODAY -->
+  <div id="tab-today">
+    <div class="stats-grid" id="today-stats"></div>
+    <div id="today-goal"></div>
+    <div class="card" id="session-card">
+      <div class="card-title">復習セッション</div>
+      <div id="session-summary" style="font-size:13px;color:#4a4a5a;line-height:1.7;margin-bottom:12px"></div>
+      <button class="primary-btn btn-main" id="start-session-btn" onclick="startSession('due')">▶ 復習をはじめる</button>
+      <div class="quick-row">
+        <button class="primary-btn btn-sub" onclick="startSession('random')">🎲 ランダム10問</button>
+        <button class="primary-btn btn-sub" onclick="startSession('weak')">🎯 苦手だけ復習</button>
+      </div>
+    </div>
+    <div class="card hidden" id="pending-card-today">
+      <div class="card-title">答え合わせ待ち <span class="weak-count" id="pending-count-today"></span></div>
+      <div style="font-size:12px;color:#8a8578;line-height:1.7;margin-bottom:10px">入力した解答を、問題集の解答ページと突き合わせて採点します。</div>
+      <button class="primary-btn btn-blue" onclick="startGrading()">▶ まとめて答え合わせ</button>
+    </div>
+    <div class="card">
+      <div class="card-title">今日の復習リスト <span style="font-size:10px;color:#666">タップで個別に記録</span></div>
+      <div id="today-list"></div>
+    </div>
+    <div class="card" id="pace-card"></div>
+  </div>
+
+  <!-- RECORD -->
+  <div id="tab-record" class="hidden">
+    <div class="card hidden" id="pending-card-record">
+      <div class="card-title">答え合わせ待ち <span class="weak-count" id="pending-count-record"></span></div>
+      <div style="font-size:12px;color:#8a8578;line-height:1.7;margin-bottom:10px">入力した解答を、問題集の解答ページと突き合わせて採点します。</div>
+      <button class="primary-btn btn-blue" onclick="startGrading()">▶ まとめて答え合わせ</button>
+    </div>
+    <div class="card">
+      <div class="card-title">章を選択</div>
+      <div class="ch-btns" id="ch-btns"></div>
+      <div style="background:#FFF8EC;border:2px solid #FFE1B8;border-radius:14px;padding:12px;margin-bottom:14px">
+        <div style="font-size:12px;font-weight:900;color:#B97A0A;margin-bottom:4px">▶ 順番に解く</div>
+        <div id="ch-session-info" style="font-size:12px;color:#8a7f6d;line-height:1.7;margin-bottom:10px"></div>
+        <button class="primary-btn btn-main" onclick="startChapterSession(false)">Q1から順番に解く</button>
+        <button class="primary-btn btn-sub" id="ch-continue-btn" onclick="startChapterSession(true)" style="margin-top:8px">⏩ 続きから解く</button>
+        <div style="border-top:1px dashed #FFE1B8;margin-top:12px;padding-top:10px">
+          <div style="font-size:12px;font-weight:900;color:#B97A0A;margin-bottom:4px">🔁 復習ありだけ順番に解く</div>
+          <div id="due-ordered-info" style="font-size:12px;color:#8a7f6d;line-height:1.7;margin-bottom:10px"></div>
+          <button class="primary-btn btn-sub" id="due-ordered-btn" onclick="startDueOrderedSession()">🔁 復習ありだけ順番に解く</button>
+        </div>
+      </div>
+      <div style="font-size:11px;color:#777;margin-bottom:6px">問題をタップしたとき</div>
+      <div class="seg" style="margin-bottom:14px">
+        <button id="tapmode-result" onclick="setTapMode('result')">結果を記録（○×）</button>
+        <button id="tapmode-answer" onclick="setTapMode('answer')">解答を入力（A〜J）</button>
+      </div>
+      <div class="toggle-row">
+        <span class="toggle-label">連続入力モード（記録後、自動で次の問題を開く）</span>
+        <label class="switch"><input type="checkbox" id="auto-next-toggle" onchange="toggleAutoNext()"><span class="slider"></span></label>
+      </div>
+      <div style="display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:#777"><div style="width:12px;height:12px;background:#f0a50026;border:1px solid #f0a50077;border-radius:3px"></div>読んだ</div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:#777"><div style="width:12px;height:12px;background:#00d4a326;border:1px solid #00d4a377;border-radius:3px"></div>正解</div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:#777"><div style="width:12px;height:12px;background:#e9456026;border:1px solid #e9456077;border-radius:3px"></div>不正解</div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:#777"><div style="width:12px;height:12px;border-radius:3px;box-shadow:0 0 0 2px #f0a500"></div>復習あり</div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:#777"><div style="width:12px;height:12px;background:#4a6fa526;border:1px solid #4a6fa577;border-radius:3px"></div>解答入力済み</div>
+      </div>
+      <div class="q-grid" id="q-grid"></div>
+    </div>
+  </div>
+
+  <!-- WEAK -->
+  <div id="tab-weak" class="hidden">
+    <div class="card">
+      <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+        <span>苦手問題ランキング <span style="font-size:10px;color:#666">ミス回数順</span></span>
+        <span class="weak-count" id="weak-count"></span>
+      </div>
+      <div id="weak-list"></div>
+      <button class="primary-btn btn-main" style="margin-top:10px" id="weak-session-btn" onclick="startSession('weak')">▶ 苦手だけ集中復習</button>
+    </div>
+    <div class="card">
+      <div class="card-title">メモ一覧 <span style="font-size:10px;color:#666">自分の間違いノート</span></div>
+      <div id="memo-list"></div>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div id="tab-progress" class="hidden">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:14px">章別進捗と正答率</div>
+      <div id="ch-progress"></div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:4px">
+        <div style="display:flex;align-items:center;gap:4px"><div style="width:12px;height:6px;background:#f0a500;border-radius:2px"></div><span style="font-size:10px;color:#777">1周目完了</span></div>
+        <div style="display:flex;align-items:center;gap:4px"><div style="width:12px;height:5px;background:#4a6fa5;border-radius:2px"></div><span style="font-size:10px;color:#777">2周目以降</span></div>
+        <div style="display:flex;align-items:center;gap:4px"><div style="width:12px;height:4px;background:#00d4a3;border-radius:2px"></div><span style="font-size:10px;color:#777">習得済み(Lv3+)</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="margin-bottom:12px">全体サマリ</div>
+      <div class="stats-grid-2" id="progress-stats"></div>
+      <div id="pass-line" style="margin-top:14px"></div>
+    </div>
+  </div>
+
+  <!-- SCOPE -->
+  <div id="tab-scope" class="hidden">
+    <div class="card">
+      <div class="card-title">試験範囲チェック <span style="font-size:10px;color:#666">公式32細目＋補足1</span></div>
+      <div id="scope-summary"></div>
+      <div class="sc-filter">
+        <button id="sc-filter-all" onclick="setScopeFilter(0)">全部</button>
+        <button id="sc-filter-weak" onclick="setScopeFilter(1)">あやしいだけ</button>
+      </div>
+      <div style="font-size:11px;color:#8a8578;line-height:1.7;margin-top:10px">項目をタップすると「何の機能か／なんで書くのか／試験の引っかけ」が出ます。思い出せたら「言える」、あやしければ「あやしい」を付けておくと、見直しで優先できます。</div>
+    </div>
+    <div id="scope-list"></div>
+  </div>
+
+  <!-- DATA -->
+  <div id="tab-data" class="hidden">
+    <div id="data-msg" class="hidden"></div>
+    <div class="card">
+      <div style="font-size:14px;font-weight:700;color:#2b2b3a;margin-bottom:6px">⚙️ 設定</div>
+      <div style="font-size:12px;color:#777;margin-bottom:6px">試験日（復習間隔はこの日を超えないよう自動調整されます）</div>
+      <input type="date" id="exam-date-input" onchange="saveExamDate()" style="margin-bottom:4px">
+    </div>
+    <div class="card">
+      <div style="font-size:14px;font-weight:700;color:#2b2b3a;margin-bottom:6px">📤 バックアップ</div>
+      <div style="font-size:12px;color:#777;margin-bottom:10px;line-height:1.6">データをファイルとして保存します（推奨。データが大きくてもOK）。</div>
+      <button class="primary-btn btn-main" onclick="downloadExport()">⬇ ファイルとして保存</button>
+      <div style="font-size:11px;color:#666;margin:12px 0 6px">小さいデータならテキストでのコピーも使えます:</div>
+      <textarea id="export-text" rows="2" readonly style="color:#666;font-size:10px;margin-bottom:8px"></textarea>
+      <button style="width:100%;padding:10px;border:2px solid #EFE6D4;border-radius:10px;background:none;color:#8a8578;font-size:13px;font-family:inherit;cursor:pointer" onclick="copyExportText()">📋 テキストをコピー</button>
+    </div>
+    <div class="card">
+      <div style="font-size:14px;font-weight:700;color:#2b2b3a;margin-bottom:6px">📥 復元</div>
+      <div style="font-size:12px;color:#777;margin-bottom:10px;line-height:1.6">バックアップしたファイルを選んで復元します。</div>
+      <input type="file" id="import-file" onchange="importFromFile(this)"
+        style="width:100%;background:#FFFDF8;border:2px solid #EFE6D4;border-radius:8px;padding:10px;color:#8a8578;font-size:12px;font-family:inherit;margin-bottom:14px">
+      <div style="font-size:11px;color:#666;margin-bottom:6px">テキスト貼り付けでの復元:</div>
+      <textarea id="import-text" rows="3" placeholder="ここに保存データを貼り付け..." style="margin-bottom:10px"></textarea>
+      <button class="primary-btn btn-blue" onclick="importData()">貼り付けたテキストから復元</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-sub" id="modal-sub"></div>
+    <div class="modal-hist" id="modal-hist"></div>
+    <div id="modal-ans" class="hidden" style="font-size:15px;font-weight:800;color:#2f5aa8;letter-spacing:3px;background:#4a6fa51c;border:1px solid #4a6fa555;border-radius:8px;padding:10px 14px;margin-bottom:16px"></div>
+    <div style="margin-bottom:16px">
+      <div style="font-size:11px;color:#777;margin-bottom:6px">✏️ 自分の回答メモ・間違いノート</div>
+      <input id="modal-memo" type="text" placeholder="例: streamの終端操作を混同 / AとC"
+        style="padding:10px 14px;font-size:15px"
+        onchange="saveMemo()" oninput="saveMemo()">
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn mb-read" onclick="setResult('read')">📖 解答を読んだ（1周目）</button>
+      <button class="modal-btn mb-correct" onclick="setResult('correct')">○ 正解</button>
+      <button class="modal-btn mb-incorrect" onclick="setResult('incorrect')">× 不正解</button>
+      <button class="modal-btn mb-reset" onclick="setResult('reset')">🗑 この問題の記録を削除</button>
+    </div>
+    <button class="modal-close" onclick="closeModal()">キャンセル</button>
+  </div>
+</div>
+
+<!-- Session overlay -->
+<div class="session" id="session">
+  <div class="session-inner">
+    <div class="session-top">
+      <span class="session-count" id="session-count"></span>
+      <span class="session-count" id="session-goal" style="color:#e8930c"></span>
+      <button class="session-quit" onclick="endSession()">終了 ✕</button>
+    </div>
+    <div class="mock-timer hidden" id="session-timer">
+      <div class="mock-timer-main">
+        <span class="mock-timer-label">⏱ 残り時間</span>
+        <span class="mock-timer-time" id="mock-timer-remain">90:00</span>
+        <span class="mock-timer-elapsed" id="mock-timer-elapsed">経過 0:00</span>
+      </div>
+      <div class="mock-timer-done hidden" id="mock-timer-done">⏰ 時間終了（90分経過）— 記録はそのまま残っています。このまま答え合わせへ進めます</div>
+      <div class="mock-timer-btns">
+        <button class="mock-timer-btn" id="mock-timer-toggle" onclick="mockTimerToggle()">⏸ 一時停止</button>
+        <button class="mock-timer-btn" onclick="mockTimerReset()">↺ リセット（90:00に戻す）</button>
+      </div>
+    </div>
+    <div class="combo" id="session-combo"></div>
+    <div class="session-bar-wrap"><div class="session-bar" id="session-bar" style="width:0%"></div></div>
+    <div id="session-body"></div>
+  </div>
+</div>
+
+<!-- Answer input modal -->
+<div class="modal-overlay" id="ans-modal" onclick="closeAnsModalOutside(event)">
+  <div class="modal">
+    <div class="modal-title" id="ans-title"></div>
+    <div class="modal-sub">自分の解答をタップ（複数選択可）</div>
+    <div class="ans-grid" id="ans-grid"></div>
+    <div class="modal-btns">
+      <button class="modal-btn" style="border-color:#4a6fa5;background:#4a6fa51c;color:#2f5aa8" onclick="saveAns(true)">💾 保存して次の問題へ</button>
+      <button class="modal-btn" style="border-color:#EFE6D4;color:#8a8578" onclick="saveAns(false)">保存して閉じる</button>
+      <button class="modal-btn mb-reset" onclick="clearAns()">🗑 この解答をクリア</button>
+    </div>
+    <button class="modal-close" onclick="closeAnsModal()">キャンセル</button>
+  </div>
+</div>
+
+<!-- Grading overlay -->
+<div class="session" id="grading">
+  <div class="session-inner">
+    <div class="session-top">
+      <span class="session-count" id="grading-count"></span>
+      <button class="session-quit" onclick="endGrading()">終了 ✕</button>
+    </div>
+    <div class="session-bar-wrap"><div class="session-bar" id="grading-bar" style="width:0%;background:#4a6fa5"></div></div>
+    <div id="grading-body"></div>
+  </div>
+</div>
+
+<script>
+const CHAPTERS = [
+  {id:1,name:"1章",label:"Javaの概要とプログラム作成"},
+  {id:2,name:"2章",label:"基本データ型と文字列の操作"},
+  {id:3,name:"3章",label:"演算子と制御構造"},
+  {id:4,name:"4章",label:"クラスの定義とインスタンスの使用"},
+  {id:5,name:"5章",label:"継承とインタフェースの使用"},
+  {id:6,name:"6章",label:"例外処理"},
+  {id:7,name:"模擬1",label:"模擬問題1"},
+  {id:8,name:"模擬2",label:"模擬問題2"},
+];
+const TOTALS = {1:9,2:44,3:43,4:40,5:26,6:25,7:60,8:60};
+const SR = [1,3,7,14,30];        // 通常間隔
+const SR_SPRINT = [1,1,2,2,3];   // 試験7日前からの短縮間隔
+const KEY = "java-silver-html-v1"; // v2と同じキー・同じ保存形式（バックアップ互換）
+
+let problems = {};
+let pendings = {};
+let currentCh = 1;
+let modalKey = null;
+let modalSource = null; // 'record' なら連続入力の対象
+let settings = { examDate: "2026-11-28", autoNext: true, tapMode: "result", dailyGoals: {} };
+let season = 2;          // 現在のシーズン番号（KEY内に保存）
+let pastSeasons = [];    // [{season, problems, pendings, scope}] アーカイブ
+let viewing = null;      // null = 現在のシーズン / 数値 = 閲覧中の過去シーズン（閲覧のみ）
+let session = null; // {queue, idx, results:{correct,incorrect,skip}, combo, bestCombo, xp, startLevel}
+let ansKey = null;
+let ansSel = new Set();
+let grading = null;
+const ANS_LETTERS = ["A","B","C","D","E","F","G","H","I","J"];
+
+const today = () => new Date().toISOString().split("T")[0];
+const daysUntil = d => d ? Math.ceil((new Date(d)-new Date(today()))/86400000) : null;
+const addDays = (d,n) => { const x=new Date(d); x.setDate(x.getDate()+n); return x.toISOString().split("T")[0]; };
+const incCount = p => (p?.history||[]).filter(h=>h.result==='incorrect').length;
+const isSprint = () => { const d=daysUntil(settings.examDate); return d!==null && d>=0 && d<=7; };
+
+function nextReviewDate(level) {
+  const intervals = isSprint() ? SR_SPRINT : SR;
+  let nr = addDays(today(), intervals[Math.min(level, intervals.length-1)]);
+  // 試験日を超えないようにキャップ（試験前のみ）
+  const d = daysUntil(settings.examDate);
+  if (d !== null && d >= 0 && new Date(nr) > new Date(settings.examDate)) nr = settings.examDate;
+  return nr;
+}
+
+function save() { if (viewing !== null) return; localStorage.setItem(KEY, JSON.stringify({problems, pendings, lastCh:currentCh, settings, season, pastSeasons})); }
+
+function migrate() {
+  Object.keys(problems).forEach(k => {
+    if (!problems[k].nextReview) {
+      const lastDate = problems[k].history?.[problems[k].history.length-1]?.date || today();
+      problems[k].nextReview = addDays(lastDate, SR[problems[k].level||0]||1);
+    }
+  });
+  save();
+}
+
+function load() {
+  let raw = null;
+  try {
+    const r = localStorage.getItem(KEY);
+    if (r) raw = JSON.parse(r);
+  } catch {}
+  if (raw) {
+    problems = raw.problems || {};
+    pendings = raw.pendings || {};
+    currentCh = raw.lastCh || 1;
+    if (raw.settings) settings = {...settings, ...raw.settings};
+    if (raw.season !== undefined) {
+      season = raw.season;
+      pastSeasons = Array.isArray(raw.pastSeasons) ? raw.pastSeasons : [];
+    } else {
+      // シーズン移行：season未定義の旧データは、既存の記録（範囲チェック含む）をシーズン1としてアーカイブし、シーズン2を空で開始する
+      let scopeRaw = null;
+      try { const s = localStorage.getItem(SCOPE_KEY); if (s) scopeRaw = JSON.parse(s); } catch {}
+      const hasData = Object.keys(problems).length > 0 || Object.keys(scopeRaw?.r || {}).length > 0;
+      season = 2;
+      pastSeasons = hasData ? [{ season: 1, problems, pendings, scope: scopeRaw || {r:{}, f:0} }] : [];
+      if (hasData) {
+        problems = {}; pendings = {}; currentCh = 1;
+        try { localStorage.setItem(SCOPE_KEY, JSON.stringify({r:{}, f:0})); } catch {}
+      }
+    }
+  }
+  migrate();
+}
+
+/* ---------- シーズン表示切替（過去シーズンは閲覧のみ。記録は常に現在のシーズン） ---------- */
+function setViewSeason(n) {
+  if (n === viewing) { renderSeasonUI(); return; }
+  if (n === null) {
+    viewing = null;
+    load(); loadScope(); // 保存済みの現シーズンデータを読み直す
+  } else {
+    const p = pastSeasons.find(x => x.season === n);
+    if (!p) return;
+    viewing = n;
+    problems = p.problems || {};
+    pendings = p.pendings || {};
+    scopeState = Object.assign({r:{}, f:0}, p.scope || {});
+  }
+  renderSeasonUI();
+  renderHeader();
+  const active = ['today','record','weak','progress','scope','data'].find(t => !document.getElementById('tab-'+t).classList.contains('hidden'));
+  if (active) switchTab(active); else renderToday();
+}
+function renderSeasonUI() {
+  const seg = document.getElementById('seg-season');
+  if (seg) {
+    const past = pastSeasons.slice().sort((a, b) => b.season - a.season);
+    seg.innerHTML = [`<button class="${viewing === null ? 'on' : ''}" onclick="setViewSeason(null)">シーズン${season}（現在）</button>`]
+      .concat(past.map(p => `<button class="${viewing === p.season ? 'on' : ''}" onclick="setViewSeason(${p.season})">シーズン${p.season}</button>`)).join("");
+    seg.style.display = past.length ? '' : 'none';
+  }
+  const badge = document.getElementById('season-badge');
+  if (badge) badge.textContent = viewing === null
+    ? `シーズン${season} ・ まっさらから再スタート中`
+    : `シーズン${viewing}（アーカイブ）を表示中 ・ 閲覧のみ`;
+}
+function exportPayload() {
+  if (viewing !== null) {
+    try { const p = JSON.parse(localStorage.getItem(KEY) || 'null'); if (p) return p; } catch {}
+  }
+  return {problems, pendings, lastCh:currentCh, settings, season, pastSeasons};
+}
+
+/* ---------- XP / レベル / ストリーク ---------- */
+const XP_TABLE = { correct: 10, read: 4, incorrect: 2 };
+const RANKS = ["駆け出しコーダー","見習いエンジニア","一人前コーダー","バグハンター","リファクタ職人","JVMの探究者","ガベージコレクタの友","スレッドマスター","バイトコード読解者","Java Silverホルダー"];
+function totalXp() {
+  let xp = 0;
+  Object.values(problems).forEach(p => (p.history||[]).forEach(h => { xp += XP_TABLE[h.result] || 0; }));
+  return xp;
+}
+const levelThreshold = L => 40*(L-1)*(L-1); // レベルLに必要な累計XP
+function levelFromXp(xp) { let L = 1; while (levelThreshold(L+1) <= xp) L++; return L; }
+function rankName(level) { return RANKS[Math.min(level, RANKS.length) - 1]; }
+function studyStreak() {
+  const days = new Set();
+  Object.values(problems).forEach(p => (p.history||[]).forEach(h => days.add(h.date)));
+  let streak = 0;
+  let cursor = today();
+  if (!days.has(cursor)) cursor = addDays(cursor, -1); // 今日まだなら昨日から数える
+  while (days.has(cursor)) { streak++; cursor = addDays(cursor, -1); }
+  return streak;
+}
+
+/* ---------- 演出 ---------- */
+function confetti(n) {
+  const colors = ['#e94560','#f0a500','#00d4a3','#4a6fa5','#ffd166','#ff7a93'];
+  for (let i = 0; i < (n||40); i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti';
+    const size = 6 + Math.random()*7;
+    el.style.left = (Math.random()*100) + 'vw';
+    el.style.width = size + 'px';
+    el.style.height = (size*0.5 + Math.random()*size) + 'px';
+    el.style.background = colors[Math.floor(Math.random()*colors.length)];
+    document.body.appendChild(el);
+    const drift = (Math.random()*160 - 80);
+    const dur = 1400 + Math.random()*1600;
+    el.animate([
+      { transform: 'translate(0,-20px) rotate(0deg)', opacity: 1 },
+      { transform: `translate(${drift}px, 105vh) rotate(${Math.random()*720-360}deg)`, opacity: .9 }
+    ], { duration: dur, easing: 'cubic-bezier(.2,.7,.4,1)' });
+    setTimeout(() => el.remove(), dur + 100);
+  }
+}
+function floatText(text, color, x, y) {
+  const el = document.createElement('div');
+  el.className = 'xp-float';
+  el.textContent = text;
+  el.style.color = color;
+  el.style.left = (x ?? (window.innerWidth/2 - 30)) + 'px';
+  el.style.top = (y ?? (window.innerHeight - 190)) + 'px';
+  el.style.fontSize = '20px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1000);
+}
+function buzz(ms) { try { navigator.vibrate && navigator.vibrate(ms); } catch {} }
+
+function switchTab(name) {
+  ['today','record','weak','progress','scope','data'].forEach((t,i)=>{
+    document.getElementById('tab-'+t).classList.toggle('hidden',t!==name);
+    document.querySelectorAll('.tab')[i].classList.toggle('active',t===name);
+  });
+  if(name==='today') renderToday();
+  if(name==='record') renderRecord();
+  if(name==='weak') renderWeak();
+  if(name==='progress') renderProgress();
+  if(name==='scope') renderScope();
+  if(name==='data') renderData();
+}
+
+/* ---------- modal ---------- */
+function openModal(k, source) {
+  modalKey = k; modalSource = source || null;
+  const [ch,q] = k.split('-');
+  const chName = CHAPTERS.find(c=>c.id===parseInt(ch))?.name;
+  const p = problems[k];
+  document.getElementById('modal-title').textContent = `${chName} — Q${q}`;
+  const last = p?.history?.[p.history.length-1];
+  const sl = !p ? '未記録' : last?.result==='read'?'📖 読んだ':last?.result==='correct'?'○ 正解':'× 不正解';
+  const nr = p?.nextReview ? `　次回: ${p.nextReview}` : '';
+  const stars = p ? `　${'★'.repeat(p.level||0)}${'☆'.repeat(Math.max(0,4-(p.level||0)))}` : '';
+  document.getElementById('modal-sub').textContent = `現在: ${sl}${stars}${nr}`;
+  const hist = (p?.history||[]).slice(-8).map(h=>h.result==='read'?'📖':h.result==='correct'?'○':'×').join(' ');
+  const ic = incCount(p);
+  document.getElementById('modal-hist').textContent = p ? `履歴: ${hist || 'なし'}${ic>0?`　（×${ic}回）`:''}${p.ans?`　解答: ${p.ans}`:''}` : '';
+  document.getElementById('modal-memo').value = p?.memo || '';
+  const pen = pendings[k];
+  const ansEl = document.getElementById('modal-ans');
+  if (pen) { ansEl.textContent = `あなたの解答: ${pen.ans.join(' ')}`; ansEl.classList.remove('hidden'); }
+  else ansEl.classList.add('hidden');
+  document.getElementById('modal').classList.add('open');
+  const ro = viewing !== null;
+  document.querySelectorAll('#modal .modal-btn').forEach(b => b.disabled = ro);
+  document.getElementById('modal-memo').disabled = ro;
+  if (ro) document.getElementById('modal-sub').textContent += '（シーズン' + viewing + 'の記録 ・ 閲覧のみ）';
+}
+function closeModal() { document.getElementById('modal').classList.remove('open'); modalKey=null; modalSource=null; }
+function closeModalOutside(e) { if(e.target===document.getElementById('modal')) closeModal(); }
+
+function saveMemo() {
+  if (viewing !== null) return;
+  if (!modalKey) return;
+  const memo = document.getElementById('modal-memo').value;
+  if (!problems[modalKey]) {
+    if (!memo) return;
+    const [ch,q] = modalKey.split('-').map(Number);
+    problems[modalKey] = {chapter:ch,question:q,status:'read',level:0,nextReview:null,history:[]};
+  }
+  problems[modalKey].memo = memo;
+  save();
+}
+
+function applyResult(k, result) {
+  if (viewing !== null) return;
+  const ch = parseInt(k.split('-')[0]);
+  const q = parseInt(k.split('-')[1]);
+  if (result === 'reset') { delete problems[k]; return; }
+  const prev = problems[k] || {level:0,history:[]};
+  const memo = prev.memo, ans = prev.ans;
+  if (result === 'read') {
+    problems[k] = {chapter:ch,question:q,status:'read',level:0,nextReview:nextReviewDate(0),history:[...(prev.history||[]),{date:today(),result:'read'}],memo,ans};
+  } else {
+    const isOk = result==='correct';
+    const newLevel = isOk ? Math.min((prev.level||0)+1, SR.length-1) : 0;
+    problems[k] = {chapter:ch,question:q,status:'practiced',level:newLevel,nextReview:nextReviewDate(newLevel),history:[...(prev.history||[]),{date:today(),result}],memo,ans};
+  }
+}
+
+function setResult(result) {
+  if (viewing !== null) return;
+  if(!modalKey) return;
+  const k = modalKey, src = modalSource;
+  const pen = pendings[k];
+  const beforeLevel = levelFromXp(totalXp());
+  applyResult(k, result);
+  if (result !== 'reset' && pen) {
+    if (problems[k]) problems[k].ans = pen.ans.join('・');
+    delete pendings[k];
+  }
+  if (result === 'reset') delete pendings[k];
+  save(); closeModal(); renderQGrid(); renderToday();
+  if (result === 'correct') { buzz(15); if (levelFromXp(totalXp()) > beforeLevel) setTimeout(()=>confetti(50), 200); }
+  // 連続入力モード：記録タブから開いた場合、次の問題を自動で開く
+  if (src==='record' && settings.autoNext && result!=='reset') {
+    const [ch,q] = k.split('-').map(Number);
+    if (q < TOTALS[ch]) setTimeout(()=>openModal(`${ch}-${q+1}`,'record'), 150);
+  }
+}
+
+/* ---------- today ---------- */
+function dueList() {
+  return Object.entries(problems)
+    .filter(([,p])=>p.nextReview&&daysUntil(p.nextReview)<=0)
+    .sort((a,b)=>{
+      const ia=incCount(a[1]), ib=incCount(b[1]);
+      if(ib!==ia) return ib-ia;                      // ミスが多い順
+      if((a[1].level||0)!==(b[1].level||0)) return (a[1].level||0)-(b[1].level||0); // レベル低い順
+      return daysUntil(a[1].nextReview)-daysUntil(b[1].nextReview); // 遅れている順
+    });
+}
+function weakList() {
+  return Object.entries(problems)
+    .filter(([,p])=>incCount(p)>=1 && (p.level||0)<=1)
+    .sort((a,b)=>{
+      const d=incCount(b[1])-incCount(a[1]);
+      return d!==0?d:(a[1].level||0)-(b[1].level||0);
+    });
+}
+function todayRecordedEntries() {
+  let c=0, ok=0;
+  Object.values(problems).forEach(p=>(p.history||[]).forEach(h=>{
+    if(h.date===today()){c++; if(h.result==='correct')ok++;}
+  }));
+  return {count:c, correct:ok};
+}
+
+/* ---------- 今日の目標 ---------- */
+const PLAN_GOALS = {"2026-11-20":45,"2026-11-21":75,"2026-11-22":35,"2026-11-23":15,"2026-11-24":20,"2026-11-25":60,"2026-11-26":18};
+function todayGoalTarget() {
+  const g = settings.dailyGoals ? settings.dailyGoals[today()] : undefined;
+  if (g !== undefined && g !== null) return g;
+  return PLAN_GOALS[today()] ?? null;
+}
+function goalLeft() {
+  const goal = todayGoalTarget();
+  if (goal === null) return null;
+  return Math.max(0, goal - todayRecordedEntries().count);
+}
+function editTodayGoal() {
+  if (viewing !== null) return;
+  const cur = todayGoalTarget();
+  const v = prompt('今日の目標（問題数）を入力してください。空欄にすると予定表のデフォルトに戻ります', cur===null?'':cur);
+  if (v === null) return;
+  if (!settings.dailyGoals) settings.dailyGoals = {};
+  const n = parseInt(v, 10);
+  if (isNaN(n) || n < 0) delete settings.dailyGoals[today()];
+  else settings.dailyGoals[today()] = n;
+  save(); renderToday();
+}
+function renderGoal() {
+  const el = document.getElementById('today-goal');
+  if (!el) return;
+  const goal = todayGoalTarget();
+  const btn = `<button onclick="editTodayGoal()" style="border:2px solid #EFE6D4;background:#fff;border-radius:8px;padding:4px 12px;font-size:12px;font-weight:700;color:#8a7f6d;font-family:inherit;cursor:pointer">${goal===null?'設定する':'変更'}</button>`;
+  if (goal === null) {
+    el.innerHTML = `<div class="card" style="display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:14px;font-weight:800;color:#2b2b3a">🎯 今日の目標は未設定</div>${btn}</div>`;
+    return;
+  }
+  const done = todayRecordedEntries().count;
+  const left = Math.max(0, goal - done);
+  const pct = goal > 0 ? Math.min(100, Math.round(done/goal*100)) : 100;
+  el.innerHTML = `<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div style="font-size:14px;font-weight:800;color:#2b2b3a">🎯 今日の目標 ${goal}問</div>${btn}
+    </div>
+    ${left > 0
+      ? `<div style="font-size:24px;font-weight:900;color:#2b2b3a;font-family:'Zen Maru Gothic',sans-serif">あと <span style="color:#e8930c">${left}</span> 問</div>
+         <div style="font-size:12px;color:#8a7f6d;margin:2px 0 10px">${done}問 記録済み</div>`
+      : `<div style="font-size:20px;font-weight:900;color:#0aa87e;font-family:'Zen Maru Gothic',sans-serif">🎉 目標達成！（${done}問記録）</div>
+         <div style="font-size:12px;color:#8a7f6d;margin:2px 0 10px">ここからは上積みです</div>`}
+    <div class="xp-wrap"><div class="xp-bar" style="width:${pct}%"></div></div>
+  </div>`;
+}
+
+function renderHero() {
+  const totalQ = Object.values(TOTALS).reduce((a,b)=>a+b,0);
+  const mastered = Object.values(problems).filter(p=>(p.level||0)>=3).length;
+  const pct = totalQ>0 ? Math.round(mastered/totalQ*100) : 0;
+  const d = daysUntil(settings.examDate);
+  const xp = totalXp();
+  const level = levelFromXp(xp);
+  const curBase = levelThreshold(level), nextBase = levelThreshold(level+1);
+  const xpPct = Math.min(100, Math.round((xp-curBase)/(nextBase-curBase)*100));
+  const streak = studyStreak();
+  const C = 2*Math.PI*40;
+  document.getElementById('hero').innerHTML = `
+    <div class="hero-row">
+      <div class="ring-wrap">
+        <svg width="92" height="92" viewBox="0 0 92 92">
+          <defs><linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#e94560"/><stop offset="100%" stop-color="#f0a500"/>
+          </linearGradient></defs>
+          <circle class="ring-bg" cx="46" cy="46" r="40" fill="none" stroke-width="8"/>
+          <circle class="ring-fg" cx="46" cy="46" r="40" fill="none" stroke-width="8"
+            stroke-dasharray="${C}" stroke-dashoffset="${C*(1-pct/100)}"/>
+        </svg>
+        <div class="ring-center"><div class="ring-pct">${pct}%</div><div class="ring-label">習得済み</div></div>
+      </div>
+      <div class="hero-main">
+        <div class="countdown-label">🏁 試験まで</div>
+        <div class="countdown">${d===null?'—':d<0?'おつかれさま！':`あと <b>${d}</b> 日`}</div>
+        <div class="hero-meta">
+          <span class="chip">🔥 <b>${streak}</b> 日連続</span>
+          <span class="chip">⭐ 習得 <b>${mastered}</b> / ${totalQ}問</span>
+        </div>
+      </div>
+    </div>
+    <div class="xp-row">
+      <div class="xp-head"><span><b>Lv.${level}</b>　${rankName(level)}</span><span>XP ${xp} ／ 次のレベルまで ${Math.max(0, nextBase-xp)}</span></div>
+      <div class="xp-wrap"><div class="xp-bar" style="width:${xpPct}%"></div></div>
+    </div>`;
+}
+
+function renderToday() {
+  renderHero();
+  renderGoal();
+  const review = dueList();
+  const t = todayRecordedEntries();
+  document.getElementById('today-stats').innerHTML=[
+    {label:'今日の復習',value:review.length},
+    {label:'今日記録した数',value:t.count},
+    {label:'今日の正答率',value:t.count>0?Math.round(t.correct/t.count*100)+'%':'—'},
+  ].map(s=>`<div class="stat-box"><div class="stat-val">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('');
+
+  const btn = document.getElementById('start-session-btn');
+  const sum = document.getElementById('session-summary');
+  if (review.length===0) {
+    sum.textContent = '復習対象はありません。ランダム10問で新しい問題を進めるか、記録タブから進めましょう。';
+    btn.disabled = true; btn.style.opacity=.4;
+    btn.textContent = '▶ 復習をはじめる';
+  } else {
+    const weak = review.filter(([,p])=>incCount(p)>=1).length;
+    sum.textContent = `復習対象 ${review.length}問（うち過去にミスあり ${weak}問）。1問ずつ表示して、○×をタップするだけで進みます。`;
+    btn.disabled = false; btn.style.opacity=1;
+    btn.textContent = `▶ 復習をはじめる（${review.length}問）`;
+  }
+
+  const list = document.getElementById('today-list');
+  if(review.length===0) {
+    list.innerHTML='<div style="color:#666;font-size:14px;text-align:center;padding:20px 0">今日の復習はありません 🎉</div>';
+  } else {
+    list.innerHTML = review.map(([k,p])=>{
+      const c=CHAPTERS.find(x=>x.id===p.chapter);
+      const over=daysUntil(p.nextReview);
+      const col=over<0?'#e8304f':'#ffb340';
+      const bg=over<0?'#2a0a10':'#2a1f00';
+      const label=over<0?`${Math.abs(over)}日遅れ`:'今日';
+      const last=p.history?.[p.history.length-1];
+      const sl=last?.result==='read'?'📖':last?.result==='correct'?'○':'×';
+      const ic=incCount(p);
+      return `<button class="review-item" onclick="openModal('${k}')">
+        <div><span style="font-size:13px;color:#2b2b3a">${c?.name} — Q${p.question}</span>
+        <div style="font-size:11px;color:#666;margin-top:2px">${'★'.repeat(p.level||0)}${'☆'.repeat(Math.max(0,4-(p.level||0)))} ${sl}${ic>0?` <span style="color:#e8304f">×${ic}</span>`:''}</div></div>
+        <span class="review-badge" style="color:${col};background:${bg}">${label}</span>
+      </button>`;
+    }).join('');
+  }
+
+  // ペースカード
+  const totalQ = Object.values(TOTALS).reduce((a,b)=>a+b,0);
+  const started = Object.keys(problems).length;
+  const remain = totalQ - started;
+  const d = daysUntil(settings.examDate);
+  let paceHtml = `<div class="card-title">ペース</div>`;
+  if (d!==null && d>=0) {
+    const perDay = remain>0 ? Math.ceil(remain/Math.max(1,d||1)) : 0;
+    paceHtml += `<div style="font-size:13px;color:#4a4a5a;line-height:1.8">
+      未着手 <b style="color:#d98a06">${remain}問</b> ／ 試験まで <b style="color:#e8304f">${d}日</b><br>
+      全問こなすなら <b style="color:#2b2b3a">1日 ${perDay}問</b> ペース</div>`;
+    if (isSprint()) paceHtml += `<div style="font-size:11px;color:#d98a06;margin-top:8px">🔥 直前モード：復習間隔を短縮し、試験日を超える予定は組みません</div>`;
+  } else {
+    paceHtml += `<div style="font-size:13px;color:#8a8578">試験日が過ぎています。データタブから次の試験日を設定できます。</div>`;
+  }
+  document.getElementById('pace-card').innerHTML = paceHtml;
+  renderPendingCards();
+}
+
+/* ---------- session ---------- */
+function shuffle(arr) { const a=[...arr]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function allKeys() {
+  const ks=[];
+  CHAPTERS.forEach(c=>{ for(let q=1;q<=TOTALS[c.id];q++) ks.push(`${c.id}-${q}`); });
+  return ks;
+}
+function beginSession(queue, type) {
+  if (viewing !== null) return;
+  session = { queue, idx: 0, results:{correct:0,incorrect:0,skip:0,saved:0}, combo:0, bestCombo:0, xp:0, startLevel: levelFromXp(totalXp()), type, sel: new Set() };
+  loadSessionSel();
+  document.getElementById('session').classList.add('open');
+  setupMockTimer(queue);
+  renderSession();
+}
+function startSession(type) {
+  let queue;
+  if (type==='weak') {
+    const src = weakList();
+    if (src.length===0) return;
+    queue = src.map(([k])=>k);
+  } else if (type==='random') {
+    queue = shuffle(allKeys()).slice(0,10);
+  } else {
+    const src = dueList();
+    if (src.length===0) return;
+    queue = src.map(([k])=>k);
+  }
+  beginSession(queue, type);
+}
+/* ---------- 章を順番に解く（記録タブ） ---------- */
+function chapterKeys(ch) {
+  return Array.from({length:TOTALS[ch]},(_,i)=>`${ch}-${i+1}`);
+}
+function doneTodayKey(k) {
+  if (pendings[k]) return true; // 解答を保存済み＝今日手をつけた
+  const h = problems[k]?.history;
+  return !!(h && h.some(x=>x.date===today()));
+}
+function startChapterSession(fromContinue) {
+  let queue = chapterKeys(currentCh);
+  if (fromContinue) {
+    const idx = queue.findIndex(k=>!doneTodayKey(k));
+    if (idx < 0) return;
+    queue = queue.slice(idx).filter(k=>!doneTodayKey(k));
+  }
+  if (queue.length===0) return;
+  beginSession(queue, fromContinue ? 'chapterContinue' : 'chapter');
+}
+/* ---------- 復習ありだけ順番に解く（記録タブ・全章） ---------- */
+function startDueOrderedSession() {
+  const keys = dueList().map(([k])=>k).sort((a,b)=>{
+    const [ca,qa]=a.split('-').map(Number), [cb,qb]=b.split('-').map(Number);
+    return ca!==cb ? ca-cb : qa-qb;
+  });
+  if (keys.length===0) return;
+  beginSession(keys, 'dueOrdered');
+}
+function updateDueOrderedUI() {
+  const info = document.getElementById('due-ordered-info');
+  const btn = document.getElementById('due-ordered-btn');
+  if (!info || !btn) return;
+  const n = dueList().length;
+  info.textContent = n>0
+    ? `復習あり（オレンジ枠）の問題だけを、章・Q番号の順に全章まとめて解けます。今は ${n}問。解いた問題は復習リストから外れるので、途中でやめても押し直せば残りの続きから解けます。`
+    : '今は復習ありの問題はありません。';
+  btn.disabled = n===0; btn.style.opacity = n===0 ? .4 : 1;
+  btn.textContent = n>0 ? `🔁 復習ありだけ順番に解く（${n}問）` : '🔁 復習ありだけ順番に解く';
+}
+function updateChapterSessionUI() {
+  const info = document.getElementById('ch-session-info');
+  if (!info) return;
+  const keys = chapterKeys(currentCh);
+  const c = CHAPTERS.find(x=>x.id===currentCh);
+  const doneN = keys.filter(k=>problems[k]).length;
+  const penN = keys.filter(k=>pendings[k]).length;
+  const todayN = keys.filter(k=>doneTodayKey(k)).length;
+  const firstOpen = keys.find(k=>!doneTodayKey(k));
+  info.textContent = `${c?.name}（全${keys.length}問）をQ1から順にセッション形式で解けます。記録済み ${doneN}問／今日解いた ${todayN}問${penN?`（うち解答を保存済み ${penN}問）`:''}。途中でやめても「続きから解く」で、今日まだ解いていない問題から再開できます。`;
+  const btn = document.getElementById('ch-continue-btn');
+  if (btn) {
+    if (firstOpen) {
+      btn.disabled = false; btn.style.opacity = 1;
+      btn.textContent = `⏩ 続きから解く（Q${firstOpen.split('-')[1]}から）`;
+    } else {
+      btn.disabled = true; btn.style.opacity = .4;
+      btn.textContent = '⏩ 続きから解く（今日は全問解きました🎉）';
+    }
+  }
+  updateDueOrderedUI();
+}
+function endSession() {
+  stopMockTimer();
+  session = null;
+  document.getElementById('session').classList.remove('open');
+  renderToday(); renderWeak(); renderRecord();
+}
+
+/* ---------- 模試タイマー（模擬1・模擬2の章セッション専用／本番形式 60問・90分） ---------- */
+const MOCK_SECONDS = 90 * 60;
+let mockTimer = null; // {remain(秒), endAt, intId, running, finished} ※保存しない（セッション中のみ有効）
+function isMockQueue(queue) {
+  if (!queue || queue.length === 0) return false;
+  const chs = new Set(queue.map(k => +k.split('-')[0]));
+  return chs.size === 1 && (chs.has(7) || chs.has(8)); // 7=模擬1, 8=模擬2
+}
+function fmtClock(sec) {
+  sec = Math.max(0, Math.ceil(sec));
+  return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
+}
+function setupMockTimer(queue) {
+  stopMockTimer();
+  if (!isMockQueue(queue)) return;
+  mockTimer = { remain: MOCK_SECONDS, endAt: Date.now() + MOCK_SECONDS * 1000, intId: null, running: true, finished: false };
+  document.getElementById('session-timer').classList.remove('hidden');
+  mockTimer.intId = setInterval(mockTimerTick, 250);
+  renderMockTimer();
+}
+function mockTimerTick() {
+  if (!mockTimer || !mockTimer.running) return;
+  mockTimer.remain = Math.max(0, (mockTimer.endAt - Date.now()) / 1000);
+  if (mockTimer.remain <= 0) {
+    mockTimer.remain = 0;
+    mockTimer.running = false;
+    mockTimer.finished = true;
+    if (mockTimer.intId) { clearInterval(mockTimer.intId); mockTimer.intId = null; }
+  }
+  renderMockTimer();
+}
+function renderMockTimer() {
+  if (!mockTimer) return;
+  const box = document.getElementById('session-timer');
+  document.getElementById('mock-timer-remain').textContent = fmtClock(mockTimer.remain);
+  document.getElementById('mock-timer-elapsed').textContent = `経過 ${fmtClock(MOCK_SECONDS - mockTimer.remain)}`;
+  box.classList.toggle('warn', !mockTimer.finished && mockTimer.remain < 600); // 残り10分未満で色を変える
+  box.classList.toggle('over', mockTimer.finished);
+  document.getElementById('mock-timer-done').classList.toggle('hidden', !mockTimer.finished);
+  document.getElementById('mock-timer-toggle').textContent =
+    mockTimer.running ? '⏸ 一時停止' : (mockTimer.remain >= MOCK_SECONDS ? '▶ スタート' : '▶ 再開');
+}
+function pauseMockTimer() {
+  if (!mockTimer || !mockTimer.running) return;
+  mockTimer.remain = Math.max(0, (mockTimer.endAt - Date.now()) / 1000);
+  mockTimer.running = false;
+  if (mockTimer.intId) { clearInterval(mockTimer.intId); mockTimer.intId = null; }
+  renderMockTimer();
+}
+function mockTimerToggle() {
+  if (!mockTimer || mockTimer.finished) return;
+  if (mockTimer.running) { pauseMockTimer(); return; }
+  mockTimer.endAt = Date.now() + mockTimer.remain * 1000;
+  mockTimer.running = true;
+  mockTimer.intId = setInterval(mockTimerTick, 250);
+  renderMockTimer();
+}
+function mockTimerReset() {
+  if (!mockTimer) return;
+  if (mockTimer.intId) clearInterval(mockTimer.intId);
+  mockTimer = { remain: MOCK_SECONDS, endAt: 0, intId: null, running: false, finished: false };
+  renderMockTimer();
+}
+function stopMockTimer() {
+  if (mockTimer?.intId) clearInterval(mockTimer.intId);
+  mockTimer = null;
+  const box = document.getElementById('session-timer');
+  if (box) { box.classList.add('hidden'); box.classList.remove('warn', 'over'); }
+}
+function sessionAnswer(result) {
+  if (viewing !== null) return;
+  const k = session.queue[session.idx];
+  if (result==='skip') { session.results.skip++; session.combo = 0; }
+  else {
+    const letters = pendings[k]?.ans?.join('・') || '';
+    applyResult(k, result);
+    if (letters && problems[k]) problems[k].ans = letters;
+    delete pendings[k];
+    session.results[result]++;
+    session.xp += XP_TABLE[result] || 0;
+    if (result==='correct') {
+      session.combo++;
+      session.bestCombo = Math.max(session.bestCombo, session.combo);
+      buzz(15);
+      floatText('+10 XP', '#e8930c');
+    } else {
+      session.combo = 0;
+      floatText('+2 XP', '#e8304f');
+    }
+    save(); renderPendingCards();
+  }
+  session.idx++;
+  loadSessionSel();
+  renderSession();
+}
+function loadSessionSel() {
+  if (!session) return;
+  const k = session.queue[session.idx];
+  session.sel = new Set(k ? (pendings[k]?.ans || []) : []);
+}
+function sessionToggleAns(L) { if (!session) return; session.sel.has(L)?session.sel.delete(L):session.sel.add(L); renderSessionAns(); }
+function renderSessionAns() {
+  const el = document.getElementById('session-ans-grid');
+  if (el && session) el.innerHTML = ANS_LETTERS.map(L=>
+    `<button class="ans-btn${session.sel.has(L)?' sel':''}" onclick="sessionToggleAns('${L}')">${L}</button>`).join('');
+  const b = document.getElementById('session-save-btn');
+  if (b && session) { const s = ANS_LETTERS.filter(L=>session.sel.has(L)); b.textContent = s.length ? `💾 保存して次へ（${s.join(' ')}）` : '💾 保存して次へ'; }
+}
+function sessionSaveAnswer() {
+  if (viewing !== null) return;
+  if (!session) return;
+  if (session.sel.size===0) { sessionAnswer('skip'); return; }
+  const k = session.queue[session.idx];
+  pendings[k] = { ans: ANS_LETTERS.filter(L=>session.sel.has(L)), date: today() };
+  session.results.saved++;
+  session.combo = 0;
+  save(); renderPendingCards();
+  session.idx++;
+  loadSessionSel();
+  renderSession();
+}
+function sessionGradeNow() { endSession(); startGrading(); }
+function sessionMemoInput(el) {
+  if (viewing !== null) return;
+  const k = session.queue[session.idx];
+  if (!problems[k]) return;
+  problems[k].memo = el.value;
+  save();
+}
+function renderSession() {
+  if (!session) return;
+  const total = session.queue.length;
+  const done = session.idx;
+  document.getElementById('session-count').textContent = done < total ? `${done+1} / ${total}` : `${total} / ${total}`;
+  const gel = document.getElementById('session-goal');
+  if (gel) { const gl = goalLeft(); gel.textContent = gl===null ? '' : (gl>0 ? `🎯 今日の目標まで あと${gl}問` : '🎯 今日の目標達成！'); }
+  document.getElementById('session-bar').style.width = `${(done/total)*100}%`;
+  const comboEl = document.getElementById('session-combo');
+  comboEl.textContent = (done < total && session.combo >= 2) ? `🔥 ${session.combo}連続正解！` : '';
+  const body = document.getElementById('session-body');
+
+  if (done >= total) {
+    pauseMockTimer(); // 全問終了したらタイマーはその時点の残り時間で止める（表示は残す）
+    const r = session.results;
+    document.getElementById('session-bar').style.width = '100%';
+    comboEl.textContent = '';
+    const newLevel = levelFromXp(totalXp());
+    const leveledUp = newLevel > session.startLevel;
+    const allCorrect = r.incorrect===0 && r.correct>0;
+    const doneTitle = allCorrect ? '全問正解！すごい！' : (session.type && session.type.startsWith('chapter') ? 'おつかれさま！' : '復習おつかれさま！');
+    body.innerHTML = `<div class="session-done">
+      <span class="done-emoji">${allCorrect?'🏆':'🎉'}</span>
+      <div style="font-size:19px;font-weight:800;color:#2b2b3a;margin-bottom:16px;font-family:'Zen Maru Gothic',sans-serif">${doneTitle}</div>
+      <div style="font-size:14px;color:#4a4a5a;line-height:2.1">
+        <span style="color:#0aa87e">○ 正解 ${r.correct}問</span>　
+        <span style="color:#e8304f">× 不正解 ${r.incorrect}問</span>
+        ${r.skip>0?`　<span style="color:#777">スキップ ${r.skip}問</span>`:''}<br>
+        <span style="color:#d98a06;font-weight:700">⭐ +${session.xp} XP</span>
+        ${session.bestCombo>=2?`　<span style="color:#d98a06;font-weight:700">🔥 最大${session.bestCombo}連続正解</span>`:''}
+      </div>
+      ${leveledUp?`<div><span class="levelup">LEVEL UP! Lv.${newLevel} ${rankName(newLevel)}</span></div>`:''}
+      ${r.saved>0?`<div style="font-size:13px;color:#2f5aa8;font-weight:700;margin-top:8px">💾 解答を保存 ${r.saved}問（答え合わせはまだ）</div>`:''}
+      ${r.incorrect>0?`<div style="font-size:12px;color:#d98a06;margin-top:12px">×だった問題は明日以降また出てきます</div>`:''}
+      ${pendingKeys().length>0?`<button class="primary-btn btn-blue" style="margin-top:24px;max-width:280px" onclick="sessionGradeNow()">▶ 今すぐまとめて答え合わせ（${pendingKeys().length}問）</button>`:''}
+      <button class="primary-btn btn-main" style="margin-top:28px;max-width:280px" onclick="endSession()">閉じる</button>
+    </div>`;
+    confetti(allCorrect ? 90 : 45);
+    if (leveledUp) setTimeout(()=>confetti(60), 500);
+    return;
+  }
+
+  const k = session.queue[done];
+  const [chNum, qNum] = k.split('-').map(Number);
+  const p = problems[k];
+  const c = CHAPTERS.find(x=>x.id===chNum);
+  const hist = (p?.history||[]).slice(-6).map(h=>h.result==='read'?'📖':h.result==='correct'?'○':'×').join(' ');
+  const ic = incCount(p);
+  body.innerHTML = `
+    <div class="session-q">
+      <div class="session-q-ch">${c?.name}　${c?.label}</div>
+      <div class="session-q-num">Q${qNum}</div>
+      <div class="session-q-meta">${p?`${'★'.repeat(p.level||0)}${'☆'.repeat(Math.max(0,4-(p.level||0)))}　履歴: ${hist||'なし'}${ic>0?`　<span style="color:#e8304f">×${ic}回</span>`:''}`:'🆕 はじめての問題'}</div>
+    </div>
+    ${p ? `<div class="session-memo">
+      <div class="session-memo-label">✏️ メモ（解き終わってから見る／編集できます）</div>
+      <input type="text" value="${(p.memo||'').replace(/"/g,'&quot;')}" placeholder="間違えたポイントを書く"
+        style="background:transparent;border:none;border-bottom:2px solid #efe6d4;border-radius:0;padding:6px 0;font-size:14px;width:100%;color:#2b2b3a"
+        oninput="sessionMemoInput(this)">
+    </div>` : ''}
+    <div style="text-align:center;font-size:12px;color:#666;margin-bottom:8px">解いたら、選んだ解答を保存。答え合わせはあとでまとめてできます${pendings[k]?'（保存済みの解答があります）':''}</div>
+    <div class="ans-grid" id="session-ans-grid"></div>
+    <div class="session-btns">
+      <button class="primary-btn btn-blue" id="session-save-btn" onclick="sessionSaveAnswer()">💾 保存して次へ</button>
+      <div style="text-align:center;font-size:11px;color:#9a8f7d">もう答え合わせ済みなら、その場で記録もできます</div>
+      <div class="session-row">
+        <button class="session-btn sb-correct" onclick="sessionAnswer('correct')">○ 正解</button>
+        <button class="session-btn sb-incorrect" onclick="sessionAnswer('incorrect')">× 不正解</button>
+      </div>
+      <button class="session-btn sb-skip" onclick="sessionAnswer('skip')">スキップ（あとで）</button>
+    </div>`;
+  renderSessionAns();
+}
+
+/* ---------- record ---------- */
+function renderRecord() {
+  document.getElementById('ch-btns').innerHTML=CHAPTERS.map(c=>{
+    const done=Object.values(problems).filter(p=>p.chapter===c.id).length;
+    return `<button class="ch-btn${c.id===currentCh?' active':''}" onclick="selectCh(${c.id})">${c.name}<small>${done}/${TOTALS[c.id]}</small></button>`;
+  }).join('');
+  document.getElementById('auto-next-toggle').checked = settings.autoNext;
+  syncTapModeSeg();
+  updateChapterSessionUI();
+  renderPendingCards();
+  renderQGrid();
+}
+function toggleAutoNext() {
+  if (viewing !== null) { document.getElementById('auto-next-toggle').checked = settings.autoNext; return; }
+  settings.autoNext = document.getElementById('auto-next-toggle').checked;
+  save();
+}
+function selectCh(id) {
+  currentCh=id; save();
+  renderRecord();
+}
+function renderQGrid() {
+  const el = document.getElementById('q-grid');
+  if (!el) return;
+  const total=TOTALS[currentCh];
+  el.innerHTML=Array.from({length:total},(_,i)=>{
+    const q=i+1, k=`${currentCh}-${q}`, p=problems[k], pen=pendings[k];
+    const last=p?.history?.[p.history.length-1];
+    let cls='', icon='';
+    if(p&&last){
+      if(last.result==='read'){cls='s-read';icon='📖';}
+      else if(last.result==='correct'){cls='s-correct';icon='○';}
+      else{cls='s-incorrect';icon='×';}
+    }
+    if(pen){cls='s-pending';icon=pen.ans.join('');}
+    if(p&&(p.level||0)>=3) cls+=' mastered';
+    if(p?.nextReview&&daysUntil(p.nextReview)<=0) cls+=' due';
+    return `<button class="q-btn ${cls}" onclick="qTap('${k}')"><span>${q}</span>${icon?`<span class="q-icon">${icon}</span>`:p?.memo?'<span class="q-icon">✏️</span>':''}</button>`;
+  }).join('');
+}
+
+function qTap(k) { if (viewing !== null) { openModal(k,'record'); return; } settings.tapMode==='answer' ? openAnsModal(k) : openModal(k,'record'); }
+function setTapMode(m) { if (viewing !== null) return; settings.tapMode=m; save(); syncTapModeSeg(); }
+function syncTapModeSeg() {
+  document.getElementById('tapmode-result')?.classList.toggle('on', settings.tapMode!=='answer');
+  document.getElementById('tapmode-answer')?.classList.toggle('on', settings.tapMode==='answer');
+}
+
+/* ---------- 解答入力 ---------- */
+function openAnsModal(k) {
+  ansKey = k;
+  ansSel = new Set(pendings[k]?.ans || []);
+  const [ch,q] = k.split('-');
+  const chName = CHAPTERS.find(c=>c.id===parseInt(ch))?.name;
+  document.getElementById('ans-title').textContent = `${chName} — Q${q}`;
+  renderAnsGrid();
+  document.getElementById('ans-modal').classList.add('open');
+}
+function renderAnsGrid() {
+  document.getElementById('ans-grid').innerHTML = ANS_LETTERS.map(L=>
+    `<button class="ans-btn${ansSel.has(L)?' sel':''}" onclick="toggleAnsLetter('${L}')">${L}</button>`).join('');
+}
+function toggleAnsLetter(L) { ansSel.has(L)?ansSel.delete(L):ansSel.add(L); renderAnsGrid(); }
+function saveAns(goNext) {
+  if (viewing !== null) return;
+  if (!ansKey) return;
+  if (ansSel.size===0) delete pendings[ansKey];
+  else pendings[ansKey] = { ans: ANS_LETTERS.filter(L=>ansSel.has(L)), date: today() };
+  save(); renderQGrid(); renderPendingCards();
+  const [ch,q] = ansKey.split('-').map(Number);
+  if (goNext && q < TOTALS[ch]) openAnsModal(`${ch}-${q+1}`);
+  else closeAnsModal();
+}
+function clearAns() {
+  if (viewing !== null) return;
+  if (!ansKey) return;
+  delete pendings[ansKey];
+  save(); renderQGrid(); renderPendingCards(); closeAnsModal();
+}
+function closeAnsModal() { document.getElementById('ans-modal').classList.remove('open'); ansKey=null; }
+function closeAnsModalOutside(e) { if(e.target===document.getElementById('ans-modal')) closeAnsModal(); }
+
+/* ---------- まとめて答え合わせ ---------- */
+function pendingKeys() {
+  return Object.keys(pendings).sort((a,b)=>{
+    const [c1,q1]=a.split('-').map(Number), [c2,q2]=b.split('-').map(Number);
+    return c1-c2 || q1-q2;
+  });
+}
+function renderPendingCards() {
+  const n = pendingKeys().length;
+  [['pending-card-today','pending-count-today'],['pending-card-record','pending-count-record']].forEach(([cid,nid])=>{
+    const c = document.getElementById(cid);
+    if (!c) return;
+    c.classList.toggle('hidden', n===0);
+    const ne = document.getElementById(nid);
+    if (ne) ne.textContent = `${n}問`;
+  });
+}
+function startGrading() {
+  if (viewing !== null) return;
+  const q = pendingKeys();
+  if (q.length===0) return;
+  grading = { queue:q, idx:0, results:{correct:0,incorrect:0,skip:0} };
+  document.getElementById('grading').classList.add('open');
+  renderGrading();
+}
+function endGrading() {
+  grading = null;
+  document.getElementById('grading').classList.remove('open');
+  renderQGrid(); renderToday(); renderPendingCards();
+}
+function renderGrading() {
+  if (!grading) return;
+  const total = grading.queue.length, done = grading.idx;
+  document.getElementById('grading-count').textContent = `${Math.min(done+1,total)} / ${total}`;
+  document.getElementById('grading-bar').style.width = `${(done/total)*100}%`;
+  const body = document.getElementById('grading-body');
+  if (done >= total) {
+    const r = grading.results;
+    document.getElementById('grading-bar').style.width = '100%';
+    body.innerHTML = `<div class="session-done">
+      <span class="done-emoji">📝</span>
+      <div style="font-size:19px;font-weight:800;color:#2b2b3a;margin-bottom:16px;font-family:'Zen Maru Gothic',sans-serif">答え合わせ完了！</div>
+      <div style="font-size:14px;color:#4a4a5a;line-height:2">
+        <span style="color:#0aa87e">○ 正解 ${r.correct}問</span>　
+        <span style="color:#e8304f">× 不正解 ${r.incorrect}問</span>
+        ${r.skip>0?`　<span style="color:#777">保留 ${r.skip}問</span>`:''}
+      </div>
+      ${r.incorrect>0?`<div style="font-size:12px;color:#d98a06;margin-top:10px">×だった問題は復習リストに入ります</div>`:''}
+      <button class="primary-btn btn-blue" style="margin-top:28px;max-width:280px" onclick="endGrading()">閉じる</button>
+    </div>`;
+    if (r.correct>0) confetti(35);
+    return;
+  }
+  const k = grading.queue[done];
+  const [ch,qn] = k.split('-').map(Number);
+  const c = CHAPTERS.find(x=>x.id===ch);
+  const pen = pendings[k];
+  const memo = problems[k]?.memo || '';
+  body.innerHTML = `
+    <div class="session-q">
+      <div class="session-q-ch">${c?.name}　${c?.label}</div>
+      <div class="session-q-num">Q${qn}</div>
+      <div style="font-size:16px;color:#2f5aa8;font-weight:800;margin-top:14px;letter-spacing:4px">あなたの解答: ${pen.ans.join(' ')}</div>
+    </div>
+    <div class="session-memo">
+      <div class="session-memo-label">✏️ メモ（間違えたポイントなど・任意）</div>
+      <input type="text" value="${memo.replace(/"/g,'&quot;')}" placeholder="例: 拡大変換とボクシングの優先順位"
+        style="background:transparent;border:none;border-bottom:2px solid #efe6d4;border-radius:0;padding:6px 0;font-size:14px;width:100%;color:#2b2b3a"
+        oninput="gradingMemoInput(this)">
+    </div>
+    <div style="text-align:center;font-size:12px;color:#666;margin-bottom:10px">問題集の解答ページと見比べて、結果をタップ</div>
+    <div class="session-btns">
+      <div class="session-row">
+        <button class="session-btn sb-correct" onclick="gradeAnswer('correct')">○ 正解</button>
+        <button class="session-btn sb-incorrect" onclick="gradeAnswer('incorrect')">× 不正解</button>
+      </div>
+      <button class="session-btn sb-skip" onclick="gradeAnswer('skip')">保留（あとで採点）</button>
+    </div>`;
+}
+function gradingMemoInput(el) {
+  const k = grading.queue[grading.idx];
+  if (!problems[k]) {
+    const [ch,q] = k.split('-').map(Number);
+    problems[k] = {chapter:ch,question:q,status:'read',level:0,nextReview:null,history:[]};
+  }
+  problems[k].memo = el.value; save();
+}
+function gradeAnswer(result) {
+  if (viewing !== null) return;
+  const k = grading.queue[grading.idx];
+  if (result==='skip') { grading.results.skip++; }
+  else {
+    const letters = pendings[k]?.ans?.join('・') || '';
+    applyResult(k, result);
+    if (problems[k]) problems[k].ans = letters;
+    delete pendings[k];
+    grading.results[result]++;
+    if (result==='correct') { buzz(15); floatText('+10 XP', '#e8930c'); }
+    save();
+  }
+  grading.idx++;
+  renderGrading();
+}
+
+/* ---------- weak ---------- */
+function renderWeak() {
+  const weak = weakList();
+  document.getElementById('weak-count').textContent = `${weak.length}問`;
+  const listEl = document.getElementById('weak-list');
+  const btn = document.getElementById('weak-session-btn');
+  if (weak.length===0) {
+    listEl.innerHTML = '<div style="color:#666;font-size:13px;text-align:center;padding:16px 0">苦手問題はありません（×が付いた問題がここに並びます）</div>';
+    btn.disabled=true; btn.style.opacity=.4;
+  } else {
+    btn.disabled=false; btn.style.opacity=1;
+    btn.textContent = `▶ 苦手だけ集中復習（${weak.length}問）`;
+    listEl.innerHTML = weak.slice(0,30).map(([k,p])=>{
+      const c=CHAPTERS.find(x=>x.id===p.chapter);
+      const ic=incCount(p);
+      return `<button class="review-item" onclick="openModal('${k}')">
+        <div><span style="font-size:13px;color:#2b2b3a">${c?.name} — Q${p.question}</span>
+        <div style="font-size:11px;color:#666;margin-top:2px">${'★'.repeat(p.level||0)}${'☆'.repeat(Math.max(0,4-(p.level||0)))}${p.memo?` ✏️ ${p.memo.length>16?p.memo.slice(0,16)+'…':p.memo}`:''}</div></div>
+        <span class="review-badge" style="color:#e8304f;background:#ffe0e7">×${ic}回</span>
+      </button>`;
+    }).join('');
+  }
+  // memo list
+  const memos = Object.entries(problems).filter(([,p])=>p.memo&&p.memo.trim());
+  const memoEl = document.getElementById('memo-list');
+  if (memos.length===0) {
+    memoEl.innerHTML = '<div style="color:#666;font-size:13px;text-align:center;padding:16px 0">メモはまだありません。<br>間違えた理由を一言残すと、直前の見直しリストになります。</div>';
+  } else {
+    memoEl.innerHTML = CHAPTERS.map(c=>{
+      const chMemos = memos.filter(([,p])=>p.chapter===c.id).sort((a,b)=>a[1].question-b[1].question);
+      if (chMemos.length===0) return '';
+      return `<div style="font-size:11px;color:#e8304f;font-weight:700;margin:12px 0 6px">${c.name} ${c.label}</div>` +
+        chMemos.map(([k,p])=>{
+          const last=p.history?.[p.history.length-1];
+          const sl=!last?'':last.result==='read'?'📖':last.result==='correct'?'○':'×';
+          return `<button class="review-item" onclick="openModal('${k}')" style="align-items:flex-start">
+            <div style="flex:1"><span style="font-size:12px;color:#8a8578">Q${p.question} ${sl}</span>
+            <div style="font-size:13px;color:#3d3d4d;margin-top:2px;line-height:1.5">${p.memo}</div></div>
+          </button>`;
+        }).join('');
+    }).join('');
+  }
+}
+
+/* ---------- progress ---------- */
+function chapterAccuracy(chId) {
+  let ok=0, ans=0;
+  Object.values(problems).filter(p=>p.chapter===chId).forEach(p=>{
+    (p.history||[]).forEach(h=>{ if(h.result==='correct'){ok++;ans++;} else if(h.result==='incorrect'){ans++;} });
+  });
+  return ans>0 ? Math.round(ok/ans*100) : null;
+}
+function renderProgress() {
+  document.getElementById('ch-progress').innerHTML=CHAPTERS.map(c=>{
+    const probs=Object.values(problems).filter(p=>p.chapter===c.id);
+    const total=TOTALS[c.id];
+    const read=probs.filter(p=>p.status==='read'||p.status==='practiced').length;
+    const practiced=probs.filter(p=>p.status==='practiced').length;
+    const mastered=probs.filter(p=>(p.level||0)>=3).length;
+    const rP=total>0?(read/total)*100:0, pP=total>0?(practiced/total)*100:0, mP=total>0?(mastered/total)*100:0;
+    const acc=chapterAccuracy(c.id);
+    return `<div class="prog-row">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:13px;color:#4a4a5a">${c.name} <span style="color:#666;font-size:11px">${c.label}</span></span><span style="font-size:11px;color:#8a8578">${read}/${total}問${acc!==null?`　正答率 <b style="color:${acc>=63?'#2ee6bd':'#e8304f'}">${acc}%</b>`:''}</span></div>
+      <div class="bar-wrap"><div class="bar" style="width:${rP}%;background:#f0a500"></div></div>
+      <div class="bar-wrap" style="height:5px"><div class="bar" style="width:${pP}%;background:#4a6fa5"></div></div>
+      <div class="bar-wrap" style="height:4px"><div class="bar" style="width:${mP}%;background:#00d4a3"></div></div>
+      <div style="font-size:10px;color:#666;margin-top:3px">2周目: ${practiced}問 ／ 習得済み: ${mastered}問</div>
+    </div>`;
+  }).join('');
+  const ap=Object.values(problems);
+  let ok=0, ans=0;
+  ap.forEach(p=>(p.history||[]).forEach(h=>{ if(h.result==='correct'){ok++;ans++;} else if(h.result==='incorrect'){ans++;} }));
+  const overallAcc = ans>0?Math.round(ok/ans*100):null;
+  document.getElementById('progress-stats').innerHTML=[
+    {label:'1周目完了',value:ap.filter(p=>p.status==='read'||p.status==='practiced').length},
+    {label:'2周目以降',value:ap.filter(p=>p.status==='practiced').length},
+    {label:'習得済み(Lv3+)',value:ap.filter(p=>(p.level||0)>=3).length},
+    {label:'試験まで',value:daysUntil(settings.examDate)!==null?`${Math.max(0,daysUntil(settings.examDate))}日`:'—'},
+  ].map(s=>`<div class="stat-box"><div class="stat-val" style="font-size:20px">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('');
+  const pl = document.getElementById('pass-line');
+  if (overallAcc!==null) {
+    const over = overallAcc>=63;
+    pl.innerHTML = `<div style="font-size:12px;color:#8a8578;margin-bottom:4px">通算正答率（合格ライン 63%）</div>
+      <div class="bar-wrap" style="height:10px;position:relative;overflow:visible">
+        <div class="bar" style="width:${overallAcc}%;background:${over?'linear-gradient(90deg,#00d4a3,#2ee6bd)':'linear-gradient(90deg,#e94560,#ff5c7a)'};height:10px;border-radius:4px"></div>
+        <div style="position:absolute;left:63%;top:-2px;bottom:-2px;width:2px;background:#ffb340"></div>
+      </div>
+      <div style="font-size:12px;color:${over?'#2ee6bd':'#e8304f'};font-weight:700;margin-top:6px">${overallAcc}%${over?'　合格ライン超え 🎉':'　あと'+(63-overallAcc)+'pt'}</div>`;
+  } else pl.innerHTML='';
+}
+
+/* ---------- data ---------- */
+function renderData() {
+  document.getElementById('export-text').value=JSON.stringify(exportPayload());
+  document.getElementById('exam-date-input').value = settings.examDate || '';
+}
+function saveExamDate() {
+  if (viewing !== null) { showDataMsg(false,'過去シーズンの閲覧中は変更できません。現在のシーズンに切り替えてください。'); return; }
+  const v = document.getElementById('exam-date-input').value;
+  if (v) { settings.examDate = v; save(); renderHeader(); renderToday(); showDataMsg(true,`試験日を ${v} に設定しました。`); }
+}
+function copyExportText() {
+  const ta=document.getElementById('export-text');
+  const txt=ta.value;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(
+      ()=>showDataMsg(true,'コピーしました！メモアプリ等に貼り付けて保存してください。'),
+      ()=>{ ta.select(); ta.setSelectionRange(0,999999); showDataMsg(true,'テキストを選択しました。長押し→コピーで保存してください。'); }
+    );
+  } else {
+    ta.select(); ta.setSelectionRange(0,999999);
+    try{document.execCommand('copy');showDataMsg(true,'コピーしました！');}catch{showDataMsg(true,'テキストを選択しました。長押し→コピーで保存してください。');}
+  }
+}
+function doImport(text) {
+  if (viewing !== null) { showDataMsg(false,'過去シーズンの閲覧中は復元できません。現在のシーズンに切り替えてから実行してください。'); return false; }
+  try {
+    const parsed=JSON.parse(text.trim());
+    if(!parsed.problems) throw new Error();
+    problems=parsed.problems;
+    pendings=parsed.pendings||{};
+    if(parsed.lastCh) currentCh=parsed.lastCh;
+    if(parsed.settings) settings={...settings,...parsed.settings};
+    if(parsed.season!==undefined) { season=parsed.season; pastSeasons=Array.isArray(parsed.pastSeasons)?parsed.pastSeasons:[]; }
+    migrate();
+    const n=Object.keys(problems).length;
+    showDataMsg(true,`復元しました！（${n}問分の記録）`); renderData(); renderToday(); renderHeader(); renderSeasonUI();
+    return true;
+  } catch { showDataMsg(false,'データが正しくありません。ファイルが途中で切れていないか確認してください。'); return false; }
+}
+function importData() {
+  if (doImport(document.getElementById('import-text').value)) {
+    document.getElementById('import-text').value='';
+  }
+}
+function importFromFile(input) {
+  const f = input.files && input.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => { doImport(r.result); input.value=''; };
+  r.onerror = () => showDataMsg(false,'ファイルを読み込めませんでした。');
+  r.readAsText(f);
+}
+function downloadExport() {
+  const blob = new Blob([JSON.stringify(exportPayload())], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `java-silver-data-${today()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(a.href);
+  showDataMsg(true,'バックアップファイルを保存しました。');
+}
+function showDataMsg(ok,text) {
+  const el=document.getElementById('data-msg');
+  el.className='msg-box';
+  el.style.background=ok?'#00d4a320':'#e9456020';
+  el.style.border=`1px solid ${ok?'#00d4a3':'#e94560'}`;
+  el.style.color=ok?'#2ee6bd':'#e8304f';
+  el.textContent=text;
+  setTimeout(()=>el.classList.add('hidden'),3000);
+}
+
+function renderHeader() {
+  const d = daysUntil(settings.examDate);
+  const el = document.getElementById('days-left');
+  if (d===null) { el.textContent=''; return; }
+  if (d < 0) { el.textContent = '試験日が過ぎました（データタブで変更できます）'; return; }
+  const exam = new Date(settings.examDate);
+  const wd = ['日','月','火','水','木','金','土'][exam.getDay()];
+  el.innerHTML = `試験日 ${settings.examDate}（${wd}）` + (isSprint() ? '<span class="sprint-badge">🔥 直前モード</span>' : '');
+}
+
+/* ---------- scope checklist（試験範囲チェック） ---------- */
+const SCOPE_KEY = "java-silver-scope-v1";
+const SCOPE = [
+ {topic:"Javaの概要と簡単なJavaプログラムの作成", book:1, items:[
+  {id:"1-1", name:"mainメソッドを持つ実行可能なプログラム", what:"プログラムの入口。JVMはまずこのメソッドを探して、ここから実行を始める。", why:"Javaは「どこから実行するか」をこの形に固定している。実行できるプログラムにするには、この通りに書く必要がある。", trap:"static がない・戻り値が void でない main は、コンパイルが通っても実行できない。"},
+  {id:"1-2", name:"コマンドラインでのコンパイルと実行", what:"javac でソースコードを .class（バイトコード）に変換し、java コマンドで JVM がそれを実行する仕組み。", why:"バイトコードという中間形式にすることで、OSが違っても同じ .class ファイルが動く。", trap:"通常は java に拡張子を付けないが、java Test.java と書くとその場でコンパイルして実行する（Java 11からのソースファイルモード。.class ファイルは残らない）。コマンドライン引数は args[0] から入り、無いのに読むと実行時例外。"},
+  {id:"1-3", name:"パッケージの使用（宣言とインポート）", what:"package はクラスをグループ分けする仕組み、import は他のパッケージのクラスを短い名前で使うための宣言。", why:"クラス名の衝突を避け、クラスが「何の集まりか」を表すため。", trap:"package 宣言は先頭に1つだけ。同名クラスを2つの * インポートから使うと曖昧でエラー。java.lang は import 不要。"}
+ ]},
+ {topic:"Javaの基本データ型と文字列の操作", book:2, items:[
+  {id:"2-1", name:"変数の宣言および初期化と変数のスコープ", what:"変数はデータを入れる箱。型で「何が入るか」が決まり、スコープは「その箱が見える範囲」。", why:"型で間違いを早く見つけ、スコープで影響範囲を狭くして、プログラムを壊れにくくするため。", trap:"フィールドはデフォルト値で初期化されるが、ローカル変数は初期化しないと使えない（コンパイルエラー）。"},
+  {id:"2-2", name:"ローカル変数型推論（var）", star:true, what:"右辺の式からコンパイラが型を決めてくれる、ローカル変数専用の書き方。", why:"型名の繰り返しを減らしてコードを読みやすくするため。型が無くなるわけではない。", trap:"初期化なし・null 代入・フィールド・引数・戻り値には使えない。決まった型は後から変えられない。"},
+  {id:"2-3", name:"文字列の作成と操作（テキスト・ブロックを含む）", star:true, what:"String は文字の並びを表す不変のクラス。テキストブロックは複数行の文字列をそのまま書ける記法。", why:"文字列は最もよく使うデータなので専用の書き方があり、改行を含む文章を読みやすく書く記法も用意された。", trap:"String のメソッドは元の文字列を変えず新しい文字列を返す。戻り値を受け取らないと何も起きない。== は中身でなく参照の比較。"},
+  {id:"2-4", name:"配列（一次元・二次元）の宣言、インスタンス化、初期化および使用", what:"同じ型のデータを並べ、番号（インデックス）で出し入れする仕組み。", why:"複数の値をひとまとまりとして扱うため。長さは作ったときに決まる。", trap:"length はメソッドではなくフィールド（括弧なし）。int a[], b; と書くと b は配列にならない。"},
+  {id:"2-5", name:"ArrayList の使用", what:"要素の数を後から増やしたり減らしたりできるリスト。", why:"配列は長さが固定なので、増減するデータを扱うときに使う。", trap:"remove(1) は「値の1」ではなく「インデックス1」を消す。size() はメソッド。"}
+ ]},
+ {topic:"演算子と制御構造", book:3, items:[
+  {id:"3-0", name:"演算子そのもの", extra:true, what:"計算や比較を行う記号。式の「値」と「型」を決める、プログラムの基本部品。", why:"値同士の関係や変化を表すため。", trap:"i++ は使ってから増え、++i は増えてから使う。&& は右辺を評価しないことがある。byte 同士の演算結果は int になる。"},
+  {id:"3-1", name:"分岐文（if、if/else、switch）の使用", what:"条件によって実行する処理を分ける文。", why:"状況ごとに違う動きをさせるため。", trap:"if の条件は boolean のみ。switch に long・double・boolean は使えない。break がないと次の case に処理が落ちる。"},
+  {id:"3-2", name:"繰り返し文（do/while、while、for、拡張for）の使用", what:"同じ処理を、条件が続く間くり返す文。", why:"決まった回数や条件での反復を、同じコードを何度も書かずに済ませるため。", trap:"do-while は条件が false でも最低1回は実行される。拡張for のループ変数を書き換えても元の配列は変わらない。"},
+  {id:"3-3", name:"break、continue を使用した制御", what:"ループの流れを途中で変える文。break は脱出、continue はその周回だけ飛ばす。", why:"「条件を満たしたら終わり」「この回は処理しない」を自然に書くため。", trap:"ラベルなしでは一番内側のループにだけ効く。外側を抜けたいときはラベルを付ける。"},
+  {id:"3-4", name:"switch 式の使用", star:true, what:"switch を「値を返す式」として書く新しい形。case は -> でつなぐ。", why:"従来の switch は break の書き忘れで下に落ちる事故が多く、値を返すのに一旦変数を経由する必要もあったため。", trap:"式として使うときは全ケースの網羅が必須。ブロックで値を返すときは yield を使う。"}
+ ]},
+ {topic:"クラスの定義とインスタンスの使用", book:4, items:[
+  {id:"4-1", name:"クラスの定義とインスタンス化とオブジェクトのライフサイクル", what:"クラスはオブジェクトの設計図。new で実体が生まれ、参照がなくなると GC（ガベージコレクション）の対象になる。", why:"データと処理を「モノ」としてひとまとめに扱う、オブジェクト指向の出発点。", trap:"初期化の順序は「親クラス→フィールドや初期化ブロック→コンストラクタ」。GC のタイミングは保証されず、System.gc() はお願いにすぎない。"},
+  {id:"4-2", name:"メソッドとコンストラクタの作成", what:"コンストラクタは new の瞬間に呼ばれる初期化専用の処理。メソッドはオブジェクトの振る舞い。", why:"オブジェクトが「作られた直後から正しい状態」であることを保証するため。", trap:"戻り値の型を書くとコンストラクタではなく普通のメソッドになる。コンストラクタを1つでも書くと、デフォルトコンストラクタは付かなくなる。"},
+  {id:"4-3", name:"メソッドのオーバーロード", what:"同じ名前で、引数（数・型・順序）の違うメソッドを複数用意すること。", why:"同じ働きのメソッドに、渡すデータごとに別名を付けなくて済むようにするため。", trap:"戻り値だけが違うものは作れない。呼び出しの解決は「完全一致→拡大変換→ボクシング→可変長引数」の順に優先される。"},
+  {id:"4-4", name:"static 変数と static メソッド", what:"インスタンスではなく、クラス自体に属する変数・メソッド。", why:"全オブジェクトで共有したいデータや、インスタンスを作らずに使う道具メソッドのため。", trap:"static メソッドの中からは、インスタンス変数や this に直接触れない。"},
+  {id:"4-5", name:"アクセス修飾子の使用", what:"メンバーを「どこから見えるか」決める制限（public / protected / なし / private）。", why:"外から勝手に書き換えられないようにして、オブジェクト内部の正しさを守るため（カプセル化）。", trap:"別パッケージの継承先から protected に触れるのは「自分の型の参照」経由だけ。"},
+  {id:"4-6", name:"instanceof のパターン・マッチング", star:true, what:"型を調べると同時に、その型の変数として取り出せる書き方（if (o instanceof String s) の形）。", why:"従来は instanceof で調べてからキャストする二度手間だったのを、1回で済ませるため。", trap:"パターン変数が使えるのは「型が一致すると確実に言える範囲」だけ。|| の右側では使えない。null は常に false。"},
+  {id:"4-7", name:"レコード・クラスの作成と使用", star:true, what:"値を運ぶだけのクラスを短く書ける仕組み。フィールド・コンストラクタ・equals などが自動で作られる。", why:"データを入れるだけのクラスに毎回必要だった定型コードをなくすため。", trap:"中身は書き換えられない（final）。アクセサは getX ではなくフィールド名そのまま。継承はできない。"}
+ ]},
+ {topic:"継承とインタフェースの使用", book:5, items:[
+  {id:"5-1", name:"スーパークラスとサブクラスの作成と使用", what:"既存のクラスの性質を引き継いで、新しいクラスを作ること（継承）。", why:"共通部分を親に寄せて、子では差分だけを書くため。", trap:"継承できる親は1つだけ。コンストラクタは継承されない。親のコンストラクタは super() で最初に呼ばれる。"},
+  {id:"5-2", name:"抽象クラスの作成と継承", what:"中身のないメソッド（抽象メソッド）を持てる、継承専用のクラス。", why:"子クラスに「この処理は必ず用意しろ」と強制しつつ、共通の処理は親に置くため。", trap:"new でインスタンス化できない。抽象メソッドに final や private は付けられない。"},
+  {id:"5-3", name:"メソッドのオーバーライド", what:"親のメソッドを、子クラスで同じ名前・引数のまま書き換えること。", why:"基本は親の動きを使い、必要なクラスだけ振る舞いを変えるため。", trap:"アクセス修飾子を狭くできない。親より広いチェック例外は投げられない。戻り値は子の型に変えてよい。"},
+  {id:"5-4", name:"参照型のキャストとポリモーフィックなメソッド呼び出し", what:"参照の型を変えて見せるのがキャスト。同じ呼び出しでも実体のクラスによって動きが変わるのがポリモーフィズム。", why:"親の型でひとまとめに扱いながら、中身ごとに違う動きをさせるため。", trap:"メソッドは「実体のクラス」で決まるが、フィールドは「参照変数の型」で決まる。実体と違う型へキャストすると実行時に ClassCastException。"},
+  {id:"5-5", name:"final クラスの作成と使用", what:"継承を禁止する印を付けたクラス（String など）。", why:"設計を固定して、書き換えによる事故を防ぐため。", trap:"final の変数も再代入不可。ただし参照型の場合、参照先の中身までは固定されない。"},
+  {id:"5-6", name:"インタフェースの作成と実装", what:"「何ができるか」の約束事だけを集めたもの。実装の中身はクラス側が書く。", why:"継承と違って複数付けられ、クラス同士をゆるくつなぐため。", trap:"メソッドは暗黙で public abstract、変数は public static final の定数になる。実装するとき public を弱めるとエラー。"},
+  {id:"5-7", name:"デフォルト・メソッドとプライベート・メソッドの使用", what:"インタフェースに実装そのものを持たせる仕組み（default）と、その内部専用の補助メソッド（private）。", why:"インタフェースに後からメソッドを足しても、既存の実装クラスを壊さないため。", trap:"同じ default が2つのインタフェースで衝突したら、クラス側で書き換えて解決が必須。クラスのメソッドは default より優先される。default メソッドは Java 8、private メソッドは Java 9から。"},
+  {id:"5-8", name:"シール・クラスの作成と使用", star:true, what:"継承できるクラスを permits で限定したクラス。", why:"「この型の種類はこれだけ」と閉じることで、switch 式などの網羅チェックを効かせるため。", trap:"継承する側は final / sealed / non-sealed のいずれかの宣言が必須。permits にないクラスは継承できない。"}
+ ]},
+ {topic:"例外処理", book:6, items:[
+  {id:"6-1", name:"例外処理の仕組みとチェック例外、非チェック例外、エラーの違い", what:"想定外の事態を「例外オブジェクト」として投げ、通常の処理を中断して知らせる仕組み。", why:"正常な処理のコードと、異常時の対応を分けて書くため。", trap:"チェック例外は catch か throws が必須。RuntimeException 系は任意。Error は JVM の危機で、catch (Exception) では捕まらない。throw は「投げる行為」、throws は「投げるかもの宣言」。"},
+  {id:"6-2", name:"try-catch 文による例外処理", what:"例外が起きうる処理を try で囲み、起きたら catch で受け止める。finally は後始末。", why:"プログラムを落とさずに、回復処理や後片付けをするため。", trap:"catch は子クラスの例外から先に書く。親を先に書くと到達不能でコンパイルエラー。finally は return の前にも実行される。"},
+  {id:"6-3", name:"try-with-resources 文による例外処理", what:"ファイルなど「閉じる必要がある資源」を、終わったら自動で閉じてくれる try の形。", why:"close の書き忘れで資源が枯渇する事故を防ぐため。", trap:"close は開いた順の逆順。本体で例外が出たときはそちらが優先され、close の例外は抑制（suppressed）される。すでに作ってある変数をそのままリソースに書けるのは Java 9から。"},
+  {id:"6-4", name:"カスタム例外の作成", what:"自分のプログラム専用に作る例外クラス。", why:"「何が起きたか」を、例外の型の名前そのもので伝えるため。", trap:"Exception を継承するとチェック例外、RuntimeException を継承すると非チェック例外になる。"},
+  {id:"6-5", name:"multi-catch 句の使用", what:"複数の種類の例外を、1つの catch でまとめて受ける書き方（catch (A | B e) の形）。", why:"同じ対応でよい例外ごとに、同じ処理を何度も書かなくて済むため。", trap:"親子関係にある例外同士は並べられない。例外変数は暗黙で final 扱い。"}
+ ]}
+];
+let scopeState = {r:{}, f:0};
+let scopeOpen = null;
+function loadScope() {
+  try { const raw = localStorage.getItem(SCOPE_KEY); if (raw) scopeState = Object.assign({r:{}, f:0}, JSON.parse(raw)); } catch(e) {}
+}
+function saveScope() { if (viewing !== null) return; localStorage.setItem(SCOPE_KEY, JSON.stringify(scopeState)); }
+function setScopeFilter(f) { scopeState.f = f; saveScope(); renderScope(); }
+function toggleScopeItem(id) { scopeOpen = (scopeOpen === id) ? null : id; renderScope(); }
+function setScopeRating(id, v) {
+  if (viewing !== null) return;
+  if (scopeState.r[id] === v) delete scopeState.r[id]; else scopeState.r[id] = v;
+  saveScope(); renderScope();
+}
+function renderScope() {
+  const c = {ok:0, weak:0, total:0};
+  SCOPE.forEach(t => t.items.forEach(it => {
+    if (it.extra) return;
+    c.total++;
+    if (scopeState.r[it.id] === 1) c.ok++;
+    if (scopeState.r[it.id] === 2) c.weak++;
+  }));
+  const pct = c.total ? Math.round(c.ok / c.total * 100) : 0;
+  document.getElementById('scope-summary').innerHTML =
+    `<div style="font-size:14px;font-weight:700;color:#2b2b3a">言える ${c.ok} / ${c.total} ・ あやしい ${c.weak} ・ 未確認 ${c.total - c.ok - c.weak}</div>` +
+    `<div class="sc-bar"><div class="sc-bar-fill" style="width:${pct}%"></div></div>` +
+    (c.weak > 0 ? `<div style="font-size:11px;color:#B02547">あやしい項目は、模試の解き直しと前日の見直しで優先しよう。</div>` : ``);
+  document.getElementById('sc-filter-all').classList.toggle('active', scopeState.f === 0);
+  document.getElementById('sc-filter-weak').classList.toggle('active', scopeState.f === 1);
+  let html = '';
+  SCOPE.forEach((t, ti) => {
+    const items = t.items.filter(it => scopeState.f === 0 || scopeState.r[it.id] === 2);
+    if (!items.length) return;
+    const off = t.items.filter(it => !it.extra);
+    const okN = off.filter(it => scopeState.r[it.id] === 1).length;
+    html += `<div class="card"><div class="card-title sc-topic-head"><span>主題${ti+1}：${t.topic}</span><span class="sc-book">黒本${t.book}章 ・ 言える ${okN}/${off.length}</span></div>`;
+    items.forEach(it => {
+      const r = scopeState.r[it.id] || 0;
+      const open = scopeOpen === it.id;
+      html += `<div class="sc-item"><div class="sc-item-head" onclick="toggleScopeItem('${it.id}')">` +
+        `<div class="sc-dot ${r===1?'ok':r===2?'weak':''}"></div>` +
+        `<div class="sc-name">${it.id} ${it.name}${it.star?' <span class="sc-star">★SE17新範囲</span>':''}${it.extra?' <span class="sc-extra">補足</span>':''}</div>` +
+        `<div style="color:#B0A58F;font-size:12px">${open?'▾':'▸'}</div></div>`;
+      if (open) {
+        html += `<div class="sc-body">` +
+          `<div class="sc-q">何の機能？</div><div>${it.what}</div>` +
+          `<div class="sc-q">なんで書く？</div><div>${it.why}</div>` +
+          `<div class="sc-q">試験の引っかけ</div><div class="sc-trap">${it.trap}</div>` +
+          `<div class="sc-rate"><button class="${r===1?'on-ok':''}" onclick="setScopeRating('${it.id}',1)">言える</button>` +
+          `<button class="${r===2?'on-weak':''}" onclick="setScopeRating('${it.id}',2)">あやしい</button></div></div>`;
+      }
+      html += `</div>`;
+    });
+    html += `</div>`;
+  });
+  if (!html) html = `<div class="card"><div style="font-size:13px;color:#8a8578">あやしい項目はまだありません。各項目を開いて「あやしい」を付けると、ここに集まります。</div></div>`;
+  document.getElementById('scope-list').innerHTML = html;
+}
+
+load();
+loadScope();
+renderSeasonUI();
+renderHeader();
+renderToday();
+</script>
+</body>
+</html>

@@ -47,7 +47,7 @@
   .xp-bar { height: 100%; border-radius: 6px; background: linear-gradient(90deg, #FFB340, #FF5C7A); transition: width .8s cubic-bezier(.2,.8,.2,1); }
 
   .tabs { display: flex; gap: 3px; background: #ffffff; border: 2px solid #F3E7D3; border-radius: 14px; padding: 4px; margin-bottom: 16px; position: sticky; top: 8px; z-index: 50; box-shadow: 0 4px 0 #F3E7D3; }
-  .tab { flex: 1; padding: 9px 2px; background: transparent; color: #B0A58F; border: none; border-radius: 10px; cursor: pointer; font-size: 12px; font-family: inherit; font-weight: 900; transition: all .2s; }
+  .tab { flex: 1; padding: 12px 2px; background: transparent; color: #B0A58F; border: none; border-radius: 10px; cursor: pointer; font-size: 12px; font-family: inherit; font-weight: 900; transition: all .2s; }
   .tab.active { background: linear-gradient(135deg, #FF5C7A, #FF9E3D); color: #fff; box-shadow: 0 4px 10px #FF5C7A55; }
   .card { background: #ffffff; border: 2px solid #F3E7D3; border-radius: 18px; padding: 16px; margin-bottom: 12px; box-shadow: 0 4px 0 #F3E7D3; }
   .card-title { font-size: 12px; color: #9a8f7d; margin-bottom: 10px; font-weight: 900; letter-spacing: 1px; }
@@ -58,7 +58,7 @@
   .stat-label { font-size: 10px; color: #B0A58F; margin-top: 2px; font-weight: 700; }
   .quick-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
   .ch-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
-  .ch-btn { padding: 7px 11px; border-radius: 999px; border: 2px solid #F3E7D3; cursor: pointer; font-size: 12px; font-family: inherit; background: #FFFDF8; color: #8a7f6d; transition: all .2s; font-weight: 900; }
+  .ch-btn { padding: 10px 13px; border-radius: 999px; border: 2px solid #F3E7D3; cursor: pointer; font-size: 12px; font-family: inherit; background: #FFFDF8; color: #8a7f6d; transition: all .2s; font-weight: 900; }
   .ch-btn small { font-weight: 700; color: #C4B797; margin-left: 3px; }
   .ch-btn.active { background: linear-gradient(135deg, #FF5C7A, #FF9E3D); color: #fff; border-color: transparent; box-shadow: 0 4px 10px #FF5C7A55; }
   .ch-btn.active small { color: #FFE3EC; }
@@ -111,7 +111,7 @@
   .switch input:checked + .slider { background: #FF5C7A; }
   .switch input:checked + .slider:before { transform: translateX(18px); background: #fff; }
   .seg { display: flex; gap: 4px; background: #FFF3E0; border-radius: 10px; padding: 3px; }
-  .seg button { flex: 1; padding: 8px 4px; border: none; border-radius: 8px; background: none; color: #B0A58F; font-size: 12px; font-family: inherit; cursor: pointer; font-weight: 900; }
+  .seg button { flex: 1; padding: 11px 4px; border: none; border-radius: 8px; background: none; color: #B0A58F; font-size: 12px; font-family: inherit; cursor: pointer; font-weight: 900; }
   .seg button.on { background: #5B8DEF; color: #fff; }
   .q-btn.s-pending { background: #E1EBFF; color: #2F5AA8; border-color: #7AA2E8; }
   .ans-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 18px; }
@@ -136,7 +136,7 @@
   .mock-timer-time { font-size: 32px; font-weight: 900; color: #2b2b3a; line-height: 1; font-variant-numeric: tabular-nums; }
   .mock-timer-elapsed { font-size: 12px; font-weight: 700; color: #9a8f7d; font-variant-numeric: tabular-nums; }
   .mock-timer-btns { display: flex; gap: 8px; justify-content: center; margin-top: 8px; }
-  .mock-timer-btn { background: #FFF6E9; border: 2px solid #F3E7D3; color: #8a8578; border-radius: 999px; padding: 6px 16px; font-size: 12px; font-weight: 900; font-family: inherit; cursor: pointer; transition: transform .12s; }
+  .mock-timer-btn { background: #FFF6E9; border: 2px solid #F3E7D3; color: #8a8578; border-radius: 999px; padding: 9px 18px; font-size: 12px; font-weight: 900; font-family: inherit; cursor: pointer; transition: transform .12s; }
   .mock-timer-btn:active { transform: scale(.96); }
   .mock-timer.warn { border-color: #FFB340; background: #FFFAEC; }
   .mock-timer.warn .mock-timer-time { color: #D98A06; }
@@ -167,15 +167,18 @@
   .sc-bar { height: 12px; background: #F7EFDD; border-radius: 8px; overflow: hidden; margin: 8px 0 4px; }
   .sc-bar-fill { height: 100%; background: linear-gradient(90deg, #00d4a3, #4a6fa5); border-radius: 8px; transition: width .3s; }
   .sc-filter { display: flex; gap: 8px; margin-top: 10px; }
-  .sc-filter button { flex: 1; padding: 8px; border-radius: 10px; border: 2px solid #EFE6D4; background: #fff; color: #8a8578; font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer; }
+  .sc-filter button { flex: 1; padding: 11px; border-radius: 10px; border: 2px solid #EFE6D4; background: #fff; color: #8a8578; font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer; }
   .sc-filter button.active { background: #2b2b3a; color: #fff; border-color: #2b2b3a; }
   .sc-topic-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
   .sc-book { font-size: 10px; font-weight: 900; color: #2f5aa8; background: #4a6fa51c; border: 1px solid #4a6fa555; border-radius: 20px; padding: 2px 8px; white-space: nowrap; }
   .sc-item { border-top: 2px solid #F7EFDD; padding: 10px 2px; }
   .sc-item-head { display: flex; align-items: center; gap: 8px; cursor: pointer; }
-  .sc-dot { width: 12px; height: 12px; border-radius: 50%; background: #E5DCC8; flex-shrink: 0; }
-  .sc-dot.ok { background: #00d4a3; }
+  .sc-dot { width: 16px; height: 16px; border-radius: 50%; background: #E5DCC8; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; color: #fff; line-height: 1; }
+  .sc-dot.ok { background: #00b386; }
   .sc-dot.weak { background: #FF5C7A; }
+  .sc-state { font-size: 10px; font-weight: 900; border-radius: 20px; padding: 2px 8px; white-space: nowrap; }
+  .sc-state.ok { color: #067a5e; background: #d9f7ec; border: 1px solid #2bd9a9; }
+  .sc-state.weak { color: #b02547; background: #ffe0e7; border: 1px solid #ff7a93; }
   .sc-name { font-size: 14px; font-weight: 700; color: #2b2b3a; flex: 1; line-height: 1.5; }
   .sc-star { color: #f0a500; font-size: 12px; }
   .sc-extra { font-size: 9px; font-weight: 900; color: #8a8578; background: #F7EFDD; border-radius: 6px; padding: 1px 5px; }
@@ -259,6 +262,7 @@
   <div id="tab-today">
     <div class="stats-grid" id="today-stats"></div>
     <div id="today-goal"></div>
+    <div id="today-next"></div>
     <div class="card" id="session-card">
       <div class="card-title">復習セッション</div>
       <div id="session-summary" style="font-size:13px;color:#4a4a5a;line-height:1.7;margin-bottom:12px"></div>
@@ -314,7 +318,7 @@
         <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:#777"><div style="width:12px;height:12px;background:#f0a50026;border:1px solid #f0a50077;border-radius:3px"></div>読んだ</div>
         <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:#777"><div style="width:12px;height:12px;background:#00d4a326;border:1px solid #00d4a377;border-radius:3px"></div>正解</div>
         <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:#777"><div style="width:12px;height:12px;background:#e9456026;border:1px solid #e9456077;border-radius:3px"></div>不正解</div>
-        <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:#777"><div style="width:12px;height:12px;border-radius:3px;box-shadow:0 0 0 2px #f0a500"></div>復習あり</div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:#777"><div style="width:12px;height:12px;border-radius:3px;box-shadow:0 0 0 2px #f0a500"></div>↻ 復習あり</div>
         <div style="display:flex;align-items:center;gap:4px;font-size:11px;color:#777"><div style="width:12px;height:12px;background:#4a6fa526;border:1px solid #4a6fa577;border-radius:3px"></div>解答入力済み</div>
       </div>
       <div class="q-grid" id="q-grid"></div>
@@ -350,6 +354,7 @@
     </div>
     <div class="card">
       <div class="card-title" style="margin-bottom:12px">全体サマリ</div>
+      <div id="season-overall" style="margin-bottom:14px"></div>
       <div class="stats-grid-2" id="progress-stats"></div>
       <div id="pass-line" style="margin-top:14px"></div>
     </div>
@@ -893,9 +898,9 @@ function renderToday() {
     list.innerHTML = review.map(([k,p])=>{
       const c=CHAPTERS.find(x=>x.id===p.chapter);
       const over=daysUntil(p.nextReview);
-      const col=over<0?'#e8304f':'#ffb340';
-      const bg=over<0?'#2a0a10':'#2a1f00';
-      const label=over<0?`${Math.abs(over)}日遅れ`:'今日';
+      const col=over<0?'#c21847':'#9a6200';
+      const bg=over<0?'#FFE0E7':'#FFF3C4';
+      const label=over<0?`⏰ ${Math.abs(over)}日遅れ`:'📅 今日が期限';
       const last=p.history?.[p.history.length-1];
       const sl=last?.result==='read'?'📖':last?.result==='correct'?'○':'×';
       const ic=incCount(p);
@@ -924,6 +929,43 @@ function renderToday() {
   }
   document.getElementById('pace-card').innerHTML = paceHtml;
   renderPendingCards();
+  renderTodayNext();
+}
+
+/* ---------- 今日の「つづき」（表示専用：次に解く問題の案内） ---------- */
+function nextUntouchedToday() {
+  for (const c of CHAPTERS) {
+    for (let q = 1; q <= TOTALS[c.id]; q++) {
+      const k = `${c.id}-${q}`;
+      if (!doneTodayKey(k)) return { ch: c, q, k };
+    }
+  }
+  return null;
+}
+function renderTodayNext() {
+  const el = document.getElementById('today-next');
+  if (!el) return;
+  if (viewing !== null) { el.innerHTML = ''; return; }
+  const nx = nextUntouchedToday();
+  if (!nx) {
+    el.innerHTML = `<div class="card" style="display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:14px;font-weight:800;color:#2b2b3a">⏩ つづき</div>
+      <div style="font-size:12px;color:#8a7f6d;font-weight:700">今日は全問に手をつけました 🎉</div></div>`;
+    return;
+  }
+  el.innerHTML = `<div class="card" style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+    <div>
+      <div style="font-size:14px;font-weight:800;color:#2b2b3a">⏩ つづきはここから</div>
+      <div style="font-size:12px;color:#8a7f6d;font-weight:700;margin-top:2px">次の問題：${nx.ch.name} — Q${nx.q}（今日まだ解いていない最初の問題）</div>
+    </div>
+    <button onclick="goNextProblem(${nx.ch.id})" style="flex-shrink:0;border:none;background:linear-gradient(135deg,#FF5C7A,#FF9E3D);color:#fff;border-radius:10px;padding:12px 16px;font-size:13px;font-weight:900;font-family:inherit;cursor:pointer">この章から解く</button>
+  </div>`;
+}
+function goNextProblem(chId) {
+  if (viewing !== null) return;
+  selectCh(chId);
+  switchTab('record');
+  startChapterSession(true);
 }
 
 /* ---------- session ---------- */
@@ -1263,7 +1305,9 @@ function renderQGrid() {
     }
     if(pen){cls='s-pending';icon=pen.ans.join('');}
     if(p&&(p.level||0)>=3) cls+=' mastered';
-    if(p?.nextReview&&daysUntil(p.nextReview)<=0) cls+=' due';
+    const isDue = !!(p?.nextReview&&daysUntil(p.nextReview)<=0);
+    if(isDue) cls+=' due';
+    if(isDue && !pen) icon = icon ? `${icon}↻` : '↻';
     return `<button class="q-btn ${cls}" onclick="qTap('${k}')"><span>${q}</span>${icon?`<span class="q-icon">${icon}</span>`:p?.memo?'<span class="q-icon">✏️</span>':''}</button>`;
   }).join('');
 }
@@ -1486,6 +1530,18 @@ function renderProgress() {
   let ok=0, ans=0;
   ap.forEach(p=>(p.history||[]).forEach(h=>{ if(h.result==='correct'){ok++;ans++;} else if(h.result==='incorrect'){ans++;} }));
   const overallAcc = ans>0?Math.round(ok/ans*100):null;
+  const so = document.getElementById('season-overall');
+  if (so) {
+    const totalAll = Object.values(TOTALS).reduce((a,b)=>a+b,0);
+    const solved = ap.filter(p=>p.status==='read'||p.status==='practiced').length;
+    const sPct = totalAll>0 ? Math.round(solved/totalAll*100) : 0;
+    so.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">
+        <span style="font-size:13px;font-weight:900;color:#4a4a5a">シーズン全体の進み具合</span>
+        <span style="font-size:12px;color:#8a7f6d;font-weight:700">解いた <b style="color:#2b2b3a;font-size:15px">${solved}</b> / ${totalAll}問（${sPct}%）</span>
+      </div>
+      <div class="bar-wrap" style="height:10px"><div class="bar" style="width:${sPct}%;background:linear-gradient(90deg,#FFB340,#FF5C7A)"></div></div>
+      <div style="font-size:11px;color:#8a7f6d;font-weight:700">残り ${totalAll - solved}問${overallAcc!==null?`　／　通算正答率 ${overallAcc}%`:''}</div>`;
+  }
   document.getElementById('progress-stats').innerHTML=[
     {label:'1周目完了',value:ap.filter(p=>p.status==='read'||p.status==='practiced').length},
     {label:'2周目以降',value:ap.filter(p=>p.status==='practiced').length},
@@ -1500,7 +1556,7 @@ function renderProgress() {
         <div class="bar" style="width:${overallAcc}%;background:${over?'linear-gradient(90deg,#00d4a3,#2ee6bd)':'linear-gradient(90deg,#e94560,#ff5c7a)'};height:10px;border-radius:4px"></div>
         <div style="position:absolute;left:63%;top:-2px;bottom:-2px;width:2px;background:#ffb340"></div>
       </div>
-      <div style="font-size:12px;color:${over?'#2ee6bd':'#e8304f'};font-weight:700;margin-top:6px">${overallAcc}%${over?'　合格ライン超え 🎉':'　あと'+(63-overallAcc)+'pt'}</div>`;
+      <div style="font-size:12px;color:${over?'#067a5e':'#c21847'};font-weight:700;margin-top:6px">${overallAcc}%${over?'　✓ 合格ライン超え 🎉':'　✗ あと'+(63-overallAcc)+'pt（合格ラインまで）'}</div>`;
   } else pl.innerHTML='';
 }
 
@@ -1675,8 +1731,9 @@ function renderScope() {
       const r = scopeState.r[it.id] || 0;
       const open = scopeOpen === it.id;
       html += `<div class="sc-item"><div class="sc-item-head" onclick="toggleScopeItem('${it.id}')">` +
-        `<div class="sc-dot ${r===1?'ok':r===2?'weak':''}"></div>` +
+        `<div class="sc-dot ${r===1?'ok':r===2?'weak':''}">${r===1?'✓':r===2?'!':''}</div>` +
         `<div class="sc-name">${it.id} ${it.name}${it.star?' <span class="sc-star">★SE17新範囲</span>':''}${it.extra?' <span class="sc-extra">補足</span>':''}</div>` +
+        (r===1?`<span class="sc-state ok">✓ 言える</span>`:r===2?`<span class="sc-state weak">! あやしい</span>`:'') +
         `<div style="color:#B0A58F;font-size:12px">${open?'▾':'▸'}</div></div>`;
       if (open) {
         html += `<div class="sc-body">` +
