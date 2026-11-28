@@ -15,6 +15,10 @@
   .header-title { font-size: 25px; font-weight: 900; color: #2b2b3a; }
   .header-sub { font-size: 12px; color: #9a8f7d; margin-top: 2px; margin-bottom: 14px; font-weight: 700; }
   .sprint-badge { display: inline-block; font-size: 10px; font-weight: 900; color: #B97A0A; border: 2px solid #F5C542; background: #FFF3C4; border-radius: 20px; padding: 1px 8px; margin-left: 6px; vertical-align: 2px; animation: pulseGlow 1.6s ease-in-out infinite; }
+  /* season */
+  .season-badge { display: inline-block; font-size: 11px; font-weight: 900; color: #B97A0A; background: #FFF3C4; border: 2px solid #F5C542; border-radius: 999px; padding: 2px 10px; margin-bottom: 10px; }
+  #seg-season button.on { background: linear-gradient(135deg, #FF5C7A, #FF9E3D); color: #fff; }
+  .modal-btn:disabled { opacity: .45; cursor: default; }
   @keyframes pulseGlow { 0%,100% { box-shadow: 0 0 0 0 #F5C54200; } 50% { box-shadow: 0 0 10px 1px #F5C54288; } }
 
   /* ---------- hero ---------- */
@@ -236,6 +240,9 @@
     <div class="header-title">Study Tracker <span style="font-size:13px;color:#e8304f;vertical-align:3px">v3</span></div>
     <div class="header-sub" id="days-left"></div>
   </div>
+
+  <div><span class="season-badge" id="season-badge"></span></div>
+  <div class="seg" id="seg-season" style="margin-bottom:12px"></div>
 
   <div class="hero" id="hero"></div>
 
@@ -488,6 +495,9 @@ let currentCh = 1;
 let modalKey = null;
 let modalSource = null; // 'record' なら連続入力の対象
 let settings = { examDate: "2026-11-28", autoNext: true, tapMode: "result", dailyGoals: {} };
+let season = 2;          // 現在のシーズン番号（KEY内に保存）
+let pastSeasons = [];    // [{season, problems, pendings, scope}] アーカイブ
+let viewing = null;      // null = 現在のシーズン / 数値 = 閲覧中の過去シーズン（閲覧のみ）
 let session = null; // {queue, idx, results:{correct,incorrect,skip}, combo, bestCombo, xp, startLevel}
 let ansKey = null;
 let ansSel = new Set();
@@ -509,7 +519,7 @@ function nextReviewDate(level) {
   return nr;
 }
 
-function save() { localStorage.setItem(KEY, JSON.stringify({problems, pendings, lastCh:currentCh, settings})); }
+function save() { if (viewing !== null) return; localStorage.setItem(KEY, JSON.stringify({problems, pendings, lastCh:currentCh, settings, season, pastSeasons})); }
 
 function migrate() {
   Object.keys(problems).forEach(k => {
@@ -522,17 +532,72 @@ function migrate() {
 }
 
 function load() {
+  let raw = null;
   try {
     const r = localStorage.getItem(KEY);
-    if (r) {
-      const p = JSON.parse(r);
-      problems = p.problems || {};
-      pendings = p.pendings || {};
-      currentCh = p.lastCh || 1;
-      if (p.settings) settings = {...settings, ...p.settings};
-    }
+    if (r) raw = JSON.parse(r);
   } catch {}
+  if (raw) {
+    problems = raw.problems || {};
+    pendings = raw.pendings || {};
+    currentCh = raw.lastCh || 1;
+    if (raw.settings) settings = {...settings, ...raw.settings};
+    if (raw.season !== undefined) {
+      season = raw.season;
+      pastSeasons = Array.isArray(raw.pastSeasons) ? raw.pastSeasons : [];
+    } else {
+      // シーズン移行：season未定義の旧データは、既存の記録（範囲チェック含む）をシーズン1としてアーカイブし、シーズン2を空で開始する
+      let scopeRaw = null;
+      try { const s = localStorage.getItem(SCOPE_KEY); if (s) scopeRaw = JSON.parse(s); } catch {}
+      const hasData = Object.keys(problems).length > 0 || Object.keys(scopeRaw?.r || {}).length > 0;
+      season = 2;
+      pastSeasons = hasData ? [{ season: 1, problems, pendings, scope: scopeRaw || {r:{}, f:0} }] : [];
+      if (hasData) {
+        problems = {}; pendings = {}; currentCh = 1;
+        try { localStorage.setItem(SCOPE_KEY, JSON.stringify({r:{}, f:0})); } catch {}
+      }
+    }
+  }
   migrate();
+}
+
+/* ---------- シーズン表示切替（過去シーズンは閲覧のみ。記録は常に現在のシーズン） ---------- */
+function setViewSeason(n) {
+  if (n === viewing) { renderSeasonUI(); return; }
+  if (n === null) {
+    viewing = null;
+    load(); loadScope(); // 保存済みの現シーズンデータを読み直す
+  } else {
+    const p = pastSeasons.find(x => x.season === n);
+    if (!p) return;
+    viewing = n;
+    problems = p.problems || {};
+    pendings = p.pendings || {};
+    scopeState = Object.assign({r:{}, f:0}, p.scope || {});
+  }
+  renderSeasonUI();
+  renderHeader();
+  const active = ['today','record','weak','progress','scope','data'].find(t => !document.getElementById('tab-'+t).classList.contains('hidden'));
+  if (active) switchTab(active); else renderToday();
+}
+function renderSeasonUI() {
+  const seg = document.getElementById('seg-season');
+  if (seg) {
+    const past = pastSeasons.slice().sort((a, b) => b.season - a.season);
+    seg.innerHTML = [`<button class="${viewing === null ? 'on' : ''}" onclick="setViewSeason(null)">シーズン${season}（現在）</button>`]
+      .concat(past.map(p => `<button class="${viewing === p.season ? 'on' : ''}" onclick="setViewSeason(${p.season})">シーズン${p.season}</button>`)).join("");
+    seg.style.display = past.length ? '' : 'none';
+  }
+  const badge = document.getElementById('season-badge');
+  if (badge) badge.textContent = viewing === null
+    ? `シーズン${season} ・ まっさらから再スタート中`
+    : `シーズン${viewing}（アーカイブ）を表示中 ・ 閲覧のみ`;
+}
+function exportPayload() {
+  if (viewing !== null) {
+    try { const p = JSON.parse(localStorage.getItem(KEY) || 'null'); if (p) return p; } catch {}
+  }
+  return {problems, pendings, lastCh:currentCh, settings, season, pastSeasons};
 }
 
 /* ---------- XP / レベル / ストリーク ---------- */
@@ -624,11 +689,16 @@ function openModal(k, source) {
   if (pen) { ansEl.textContent = `あなたの解答: ${pen.ans.join(' ')}`; ansEl.classList.remove('hidden'); }
   else ansEl.classList.add('hidden');
   document.getElementById('modal').classList.add('open');
+  const ro = viewing !== null;
+  document.querySelectorAll('#modal .modal-btn').forEach(b => b.disabled = ro);
+  document.getElementById('modal-memo').disabled = ro;
+  if (ro) document.getElementById('modal-sub').textContent += '（シーズン' + viewing + 'の記録 ・ 閲覧のみ）';
 }
 function closeModal() { document.getElementById('modal').classList.remove('open'); modalKey=null; modalSource=null; }
 function closeModalOutside(e) { if(e.target===document.getElementById('modal')) closeModal(); }
 
 function saveMemo() {
+  if (viewing !== null) return;
   if (!modalKey) return;
   const memo = document.getElementById('modal-memo').value;
   if (!problems[modalKey]) {
@@ -641,6 +711,7 @@ function saveMemo() {
 }
 
 function applyResult(k, result) {
+  if (viewing !== null) return;
   const ch = parseInt(k.split('-')[0]);
   const q = parseInt(k.split('-')[1]);
   if (result === 'reset') { delete problems[k]; return; }
@@ -656,6 +727,7 @@ function applyResult(k, result) {
 }
 
 function setResult(result) {
+  if (viewing !== null) return;
   if(!modalKey) return;
   const k = modalKey, src = modalSource;
   const pen = pendings[k];
@@ -715,6 +787,7 @@ function goalLeft() {
   return Math.max(0, goal - todayRecordedEntries().count);
 }
 function editTodayGoal() {
+  if (viewing !== null) return;
   const cur = todayGoalTarget();
   const v = prompt('今日の目標（問題数）を入力してください。空欄にすると予定表のデフォルトに戻ります', cur===null?'':cur);
   if (v === null) return;
@@ -861,6 +934,7 @@ function allKeys() {
   return ks;
 }
 function beginSession(queue, type) {
+  if (viewing !== null) return;
   session = { queue, idx: 0, results:{correct:0,incorrect:0,skip:0,saved:0}, combo:0, bestCombo:0, xp:0, startLevel: levelFromXp(totalXp()), type, sel: new Set() };
   loadSessionSel();
   document.getElementById('session').classList.add('open');
@@ -1020,6 +1094,7 @@ function stopMockTimer() {
   if (box) { box.classList.add('hidden'); box.classList.remove('warn', 'over'); }
 }
 function sessionAnswer(result) {
+  if (viewing !== null) return;
   const k = session.queue[session.idx];
   if (result==='skip') { session.results.skip++; session.combo = 0; }
   else {
@@ -1058,6 +1133,7 @@ function renderSessionAns() {
   if (b && session) { const s = ANS_LETTERS.filter(L=>session.sel.has(L)); b.textContent = s.length ? `💾 保存して次へ（${s.join(' ')}）` : '💾 保存して次へ'; }
 }
 function sessionSaveAnswer() {
+  if (viewing !== null) return;
   if (!session) return;
   if (session.sel.size===0) { sessionAnswer('skip'); return; }
   const k = session.queue[session.idx];
@@ -1071,6 +1147,7 @@ function sessionSaveAnswer() {
 }
 function sessionGradeNow() { endSession(); startGrading(); }
 function sessionMemoInput(el) {
+  if (viewing !== null) return;
   const k = session.queue[session.idx];
   if (!problems[k]) return;
   problems[k].memo = el.value;
@@ -1163,6 +1240,7 @@ function renderRecord() {
   renderQGrid();
 }
 function toggleAutoNext() {
+  if (viewing !== null) { document.getElementById('auto-next-toggle').checked = settings.autoNext; return; }
   settings.autoNext = document.getElementById('auto-next-toggle').checked;
   save();
 }
@@ -1190,8 +1268,8 @@ function renderQGrid() {
   }).join('');
 }
 
-function qTap(k) { settings.tapMode==='answer' ? openAnsModal(k) : openModal(k,'record'); }
-function setTapMode(m) { settings.tapMode=m; save(); syncTapModeSeg(); }
+function qTap(k) { if (viewing !== null) { openModal(k,'record'); return; } settings.tapMode==='answer' ? openAnsModal(k) : openModal(k,'record'); }
+function setTapMode(m) { if (viewing !== null) return; settings.tapMode=m; save(); syncTapModeSeg(); }
 function syncTapModeSeg() {
   document.getElementById('tapmode-result')?.classList.toggle('on', settings.tapMode!=='answer');
   document.getElementById('tapmode-answer')?.classList.toggle('on', settings.tapMode==='answer');
@@ -1213,6 +1291,7 @@ function renderAnsGrid() {
 }
 function toggleAnsLetter(L) { ansSel.has(L)?ansSel.delete(L):ansSel.add(L); renderAnsGrid(); }
 function saveAns(goNext) {
+  if (viewing !== null) return;
   if (!ansKey) return;
   if (ansSel.size===0) delete pendings[ansKey];
   else pendings[ansKey] = { ans: ANS_LETTERS.filter(L=>ansSel.has(L)), date: today() };
@@ -1222,6 +1301,7 @@ function saveAns(goNext) {
   else closeAnsModal();
 }
 function clearAns() {
+  if (viewing !== null) return;
   if (!ansKey) return;
   delete pendings[ansKey];
   save(); renderQGrid(); renderPendingCards(); closeAnsModal();
@@ -1247,6 +1327,7 @@ function renderPendingCards() {
   });
 }
 function startGrading() {
+  if (viewing !== null) return;
   const q = pendingKeys();
   if (q.length===0) return;
   grading = { queue:q, idx:0, results:{correct:0,incorrect:0,skip:0} };
@@ -1316,6 +1397,7 @@ function gradingMemoInput(el) {
   problems[k].memo = el.value; save();
 }
 function gradeAnswer(result) {
+  if (viewing !== null) return;
   const k = grading.queue[grading.idx];
   if (result==='skip') { grading.results.skip++; }
   else {
@@ -1424,10 +1506,11 @@ function renderProgress() {
 
 /* ---------- data ---------- */
 function renderData() {
-  document.getElementById('export-text').value=JSON.stringify({problems,pendings,lastCh:currentCh,settings});
+  document.getElementById('export-text').value=JSON.stringify(exportPayload());
   document.getElementById('exam-date-input').value = settings.examDate || '';
 }
 function saveExamDate() {
+  if (viewing !== null) { showDataMsg(false,'過去シーズンの閲覧中は変更できません。現在のシーズンに切り替えてください。'); return; }
   const v = document.getElementById('exam-date-input').value;
   if (v) { settings.examDate = v; save(); renderHeader(); renderToday(); showDataMsg(true,`試験日を ${v} に設定しました。`); }
 }
@@ -1445,6 +1528,7 @@ function copyExportText() {
   }
 }
 function doImport(text) {
+  if (viewing !== null) { showDataMsg(false,'過去シーズンの閲覧中は復元できません。現在のシーズンに切り替えてから実行してください。'); return false; }
   try {
     const parsed=JSON.parse(text.trim());
     if(!parsed.problems) throw new Error();
@@ -1452,9 +1536,10 @@ function doImport(text) {
     pendings=parsed.pendings||{};
     if(parsed.lastCh) currentCh=parsed.lastCh;
     if(parsed.settings) settings={...settings,...parsed.settings};
+    if(parsed.season!==undefined) { season=parsed.season; pastSeasons=Array.isArray(parsed.pastSeasons)?parsed.pastSeasons:[]; }
     migrate();
     const n=Object.keys(problems).length;
-    showDataMsg(true,`復元しました！（${n}問分の記録）`); renderData(); renderToday(); renderHeader();
+    showDataMsg(true,`復元しました！（${n}問分の記録）`); renderData(); renderToday(); renderHeader(); renderSeasonUI();
     return true;
   } catch { showDataMsg(false,'データが正しくありません。ファイルが途中で切れていないか確認してください。'); return false; }
 }
@@ -1472,7 +1557,7 @@ function importFromFile(input) {
   r.readAsText(f);
 }
 function downloadExport() {
-  const blob = new Blob([JSON.stringify({problems,pendings,lastCh:currentCh,settings})], {type:'application/json'});
+  const blob = new Blob([JSON.stringify(exportPayload())], {type:'application/json'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `java-silver-data-${today()}.json`;
@@ -1556,10 +1641,11 @@ let scopeOpen = null;
 function loadScope() {
   try { const raw = localStorage.getItem(SCOPE_KEY); if (raw) scopeState = Object.assign({r:{}, f:0}, JSON.parse(raw)); } catch(e) {}
 }
-function saveScope() { localStorage.setItem(SCOPE_KEY, JSON.stringify(scopeState)); }
+function saveScope() { if (viewing !== null) return; localStorage.setItem(SCOPE_KEY, JSON.stringify(scopeState)); }
 function setScopeFilter(f) { scopeState.f = f; saveScope(); renderScope(); }
 function toggleScopeItem(id) { scopeOpen = (scopeOpen === id) ? null : id; renderScope(); }
 function setScopeRating(id, v) {
+  if (viewing !== null) return;
   if (scopeState.r[id] === v) delete scopeState.r[id]; else scopeState.r[id] = v;
   saveScope(); renderScope();
 }
@@ -1610,6 +1696,7 @@ function renderScope() {
 
 load();
 loadScope();
+renderSeasonUI();
 renderHeader();
 renderToday();
 </script>
