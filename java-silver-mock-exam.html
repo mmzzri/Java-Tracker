@@ -101,6 +101,21 @@
   .unit-row .u-name { line-height: 1.5; }
   .unit-row .u-meta { flex-shrink: 0; text-align: right; font-size: 11px; color: #9a8f7d; line-height: 1.6; }
   .unit-row .u-meta .u-pct { font-size: 14px; font-weight: 900; }
+  .unit-row.done { border-color: #2BD9A9; background: #E9FBF4; }
+  .unit-row .u-done-mark { color: #0A8A68; font-weight: 900; font-size: 11px; }
+  .prog-wrap { height: 12px; background: #F6EDD9; border-radius: 6px; overflow: hidden; margin: 6px 0 16px; }
+  .prog-bar { height: 100%; background: linear-gradient(90deg, #5B8DEF, #2BD9A9); border-radius: 6px; transition: width .6s cubic-bezier(.2,.8,.2,1); }
+  /* season */
+  .season-badge { display: inline-block; font-size: 11px; font-weight: 900; color: #B97A0A; background: #FFF3C4; border: 2px solid #F5C542; border-radius: 999px; padding: 2px 10px; margin: -8px 0 16px; }
+  /* trap notes */
+  .note-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 2px solid #F7EFDD; }
+  .note-row:last-child { border-bottom: none; }
+  .note-date { font-size: 10px; color: #B0A58F; font-weight: 900; letter-spacing: 1px; margin-bottom: 2px; }
+  .note-text { font-size: 13px; color: #4a4a5a; font-weight: 700; line-height: 1.7; }
+  .note-del { flex-shrink: 0; border: 2px solid #F3E7D3; background: #ffffff; color: #B0A58F; border-radius: 10px; padding: 4px 10px; font-size: 11px; font-weight: 900; cursor: pointer; font-family: inherit; }
+  .note-add { display: flex; gap: 8px; margin-top: 14px; }
+  .note-add input { flex: 1; min-width: 0; padding: 11px 12px; border: 2px solid #F3E7D3; border-radius: 12px; font-size: 13px; font-family: inherit; font-weight: 700; color: #2b2b3a; background: #FFFDF8; }
+  .note-add button { flex-shrink: 0; padding: 11px 16px; border: none; border-radius: 12px; color: #fff; font-size: 13px; font-weight: 900; cursor: pointer; font-family: inherit; background: linear-gradient(135deg, #FF5C7A, #FF9E3D); box-shadow: 0 4px 0 #D63A54; }
   .hidden { display: none; }
 
   /* ---------- PC向けレスポンシブ（768px以上） ---------- */
@@ -144,6 +159,7 @@
     <div class="header-label">Java SE 17 Silver</div>
     <div class="header-title">初見問題 模擬試験</div>
     <div class="header-sub">オリジナル116問・本番想定の時間訓練用</div>
+    <div><span class="season-badge" id="season-badge"></span></div>
 
     <div class="card">
       <div class="cfg-label" style="margin-top:0">モード</div>
@@ -186,8 +202,12 @@
 
     <div class="card" id="history-card">
       <div class="card-title">これまでの結果</div>
+      <div class="seg" id="seg-season" style="margin-bottom:10px"></div>
       <div id="history-list"></div>
     </div>
+
+    <button class="ghost-btn" onclick="openNotes()">📝 引っかけノート（間違えやすいポイント）</button>
+    <div style="height:8px"></div>
   </div>
 
   <!-- ===== EXAM ===== -->
@@ -276,6 +296,22 @@
       <div style="font-size:12px;color:#9a8f7d;margin-top:12px">1問90秒は本番ペースの目安です。この結果は通常の履歴には保存されず、単元の進み具合だけに記録されます。</div>
     </div>
     <button class="primary-btn" onclick="backToConfig()">単元選択に戻る</button>
+    <div style="height:20px"></div>
+  </div>
+
+  <!-- ===== NOTES ===== -->
+  <div id="view-notes" class="hidden">
+    <div class="header-label">Trap Notes</div>
+    <div class="header-title" style="font-size:18px">引っかけノート</div>
+    <div class="header-sub">間違えやすいポイントの1行メモ。解く前に眺めて思い出す用。</div>
+    <div class="card">
+      <div id="notes-list"></div>
+      <div class="note-add">
+        <input type="text" id="note-input" placeholder="引っかけポイントを1行で追加">
+        <button onclick="addNote()">追加</button>
+      </div>
+    </div>
+    <button class="primary-btn" onclick="backToConfig()">最初に戻る</button>
     <div style="height:20px"></div>
   </div>
 </div>
@@ -3006,17 +3042,100 @@ const esc = s => s==null?"":String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;")
 const fmt = ms => { const t=Math.floor(ms/1000); return `${Math.floor(t/60)}:${String(t%60).padStart(2,"0")}`; };
 const shuffle = a => { const x=[...a]; for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]];} return x; };
 
-/* ---------- storage（HKEYの中身: {history:[...], unitStats:{...}}。従来の配列形式も読み込める） ---------- */
+/* ---------- storage（HKEYの中身: {history, unitStats, season, pastSeasons, notes}。従来の配列形式も読み込める） ---------- */
+const DEFAULT_NOTES = [
+  { date: "2026-11-28", text: "ラベル付きcontinueは外側ループの次の周へ進み、内側はその時点で捨てる。ラベルなしは一番内側のループだけが対象。" },
+  { date: "2026-11-28", text: "try-with-resourcesのcloseは宣言の逆順に実行される。本体とcloseの両方で例外が出たら、本体の例外が主でclose側は抑制（suppressed）される。" },
+  { date: "2026-11-28", text: "\"\"は空文字で、数字の間にスペースは入らない。数値は文字列化されてそのまま連結される。" }
+];
 function loadStore() {
+  let store = { history: [], unitStats: {} };
   try {
     const raw = JSON.parse(localStorage.getItem(HKEY) || "null");
-    if (Array.isArray(raw)) return { history: raw, unitStats: {} };
-    if (raw && typeof raw === "object") return { history: Array.isArray(raw.history) ? raw.history : [], unitStats: raw.unitStats || {} };
+    if (Array.isArray(raw)) store = { history: raw, unitStats: {} };
+    else if (raw && typeof raw === "object") store = {
+      history: Array.isArray(raw.history) ? raw.history : [],
+      unitStats: raw.unitStats || {},
+      season: raw.season,
+      pastSeasons: raw.pastSeasons,
+      notes: raw.notes
+    };
   } catch {}
-  return { history: [], unitStats: {} };
+  // シーズン移行：season未定義の旧データは、既存の記録をシーズン1としてアーカイブし、シーズン2を空で開始する
+  if (store.season === undefined) {
+    const hasData = store.history.length > 0 || Object.keys(store.unitStats || {}).length > 0;
+    store.pastSeasons = hasData ? [{ season: 1, history: store.history, unitStats: store.unitStats }] : [];
+    store.season = 2;
+    store.history = [];
+    store.unitStats = {};
+  }
+  if (!Array.isArray(store.pastSeasons)) store.pastSeasons = [];
+  if (!Array.isArray(store.notes)) store.notes = DEFAULT_NOTES.map(n => ({ ...n }));
+  return store;
 }
 function saveStore(store) {
   try { localStorage.setItem(HKEY, JSON.stringify(store)); } catch {}
+}
+
+/* ---------- シーズン表示切替（過去シーズンは閲覧のみ。演習の記録は常に現在のシーズン） ---------- */
+let viewSeason = null; // null = 現在のシーズン
+function displayData() {
+  const s = loadStore();
+  if (viewSeason !== null) {
+    const p = (s.pastSeasons || []).find(x => x.season === viewSeason);
+    if (p) return { season: p.season, history: Array.isArray(p.history) ? p.history : [], unitStats: p.unitStats || {}, past: true };
+  }
+  return { season: s.season, history: s.history, unitStats: s.unitStats, past: false };
+}
+function setViewSeason(n) {
+  viewSeason = n;
+  renderSeasonUI();
+  renderHistory();
+  renderUnitList();
+}
+function renderSeasonUI() {
+  const s = loadStore();
+  const seg = document.getElementById("seg-season");
+  if (seg) {
+    const past = (s.pastSeasons || []).slice().sort((a, b) => b.season - a.season);
+    seg.innerHTML = [`<button class="${viewSeason === null ? 'on' : ''}" onclick="setViewSeason(null)">シーズン${s.season}（現在）</button>`]
+      .concat(past.map(p => `<button class="${viewSeason === p.season ? 'on' : ''}" onclick="setViewSeason(${p.season})">シーズン${p.season}</button>`)).join("");
+    seg.style.display = past.length ? "" : "none";
+  }
+  const badge = document.getElementById("season-badge");
+  if (badge) badge.textContent = viewSeason === null
+    ? `シーズン${s.season} ・ レベル0から再スタート中`
+    : `シーズン${viewSeason}（アーカイブ）を表示中`;
+}
+
+/* ---------- 引っかけノート ---------- */
+function openNotes() { renderNotes(); showView("notes"); }
+function renderNotes() {
+  const notes = loadStore().notes || [];
+  const el = document.getElementById("notes-list");
+  el.innerHTML = notes.length ? notes.map((n, i) =>
+    `<div class="note-row"><div><div class="note-date">${esc(n.date)}</div><div class="note-text">${esc(n.text)}</div></div><button class="note-del" onclick="deleteNote(${i})">削除</button></div>`
+  ).join("") : '<div style="font-size:12px;color:#B0A58F">まだメモがありません</div>';
+}
+function addNote() {
+  const inp = document.getElementById("note-input");
+  const text = (inp.value || "").trim();
+  if (!text) return;
+  const store = loadStore();
+  store.notes = store.notes || [];
+  const d = new Date();
+  const ds = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  store.notes.push({ date: ds, text });
+  saveStore(store);
+  inp.value = "";
+  renderNotes();
+}
+function deleteNote(i) {
+  const store = loadStore();
+  if (!Array.isArray(store.notes)) return;
+  store.notes.splice(i, 1);
+  saveStore(store);
+  renderNotes();
 }
 
 /* ---------- config ---------- */
@@ -3059,7 +3178,8 @@ function toggleCat(i) {
 }
 
 function renderHistory() {
-  const hist = loadStore().history;
+  renderSeasonUI();
+  const hist = displayData().history;
   const el = document.getElementById("history-list");
   if (hist.length===0) { el.innerHTML = '<div style="font-size:12px;color:#B0A58F">まだ記録がありません</div>'; return; }
   el.innerHTML = hist.slice(-6).reverse().map(h=>
@@ -3086,7 +3206,7 @@ function startExam() {
   timerId = setInterval(tickTimers, 500);
 }
 function showView(name) {
-  ["config","exam","review","result","pace-result","unit-result"].forEach(v=>document.getElementById("view-"+v).classList.toggle("hidden", v!==name));
+  ["config","exam","review","result","pace-result","unit-result","notes"].forEach(v=>document.getElementById("view-"+v).classList.toggle("hidden", v!==name));
   window.scrollTo(0,0);
 }
 const EXAM3_LIMIT_MS = 90*60*1000; // 本番形式（模試モード＋第3セット）の制限時間90分
@@ -3390,8 +3510,17 @@ function unitPool(unitId) {
   return [...pick(QUESTIONS), ...pick(QUESTIONS2), ...pick(QUESTIONS3), ...pick(QUESTIONS_PACE)];
 }
 function renderUnitList() {
-  const stats = loadStore().unitStats;
-  let html = "";
+  const data = displayData();
+  const stats = data.unitStats;
+  // まっさら一巡の進捗（完了 = その単元の全問題数を解き終えた）
+  let doneCount = 0;
+  for (const u of UNITS) {
+    const st = stats[u.id];
+    if (st && st.done >= unitPool(u.id).length) doneCount++;
+  }
+  const totalUnits = UNITS.length;
+  const progPct = totalUnits ? Math.round(doneCount / totalUnits * 100) : 0;
+  let html = `<div style="font-size:12px;color:#9a8f7d;font-weight:900;letter-spacing:1px">まっさら一巡 ${doneCount}/${totalUnits}単元（${progPct}%）${data.past ? `　— シーズン${data.season}の記録（閲覧のみ）` : ''}</div><div class="prog-wrap"><div class="prog-bar" style="width:${progPct}%"></div></div>`;
   for (const ch of Object.keys(UNIT_CHAPTERS)) {
     const units = UNITS.filter(u => u.id.split("-")[0] === ch);
     if (!units.length) continue;
@@ -3399,10 +3528,11 @@ function renderUnitList() {
     html += units.map(u => {
       const n = unitPool(u.id).length;
       const st = stats[u.id];
+      const complete = !!st && st.done >= n;
       const meta = st && st.done > 0
         ? `<span class="u-pct" style="color:${Math.round(st.ok / st.done * 100) >= 65 ? '#0A8A68' : '#D81B4C'}">${Math.round(st.ok / st.done * 100)}%</span><br>解いた ${st.done}問`
         : `未実施`;
-      return `<button class="unit-row" onclick="startUnit('${u.id}')" ${n === 0 ? 'disabled style="opacity:.4"' : ''}><span class="u-name">${esc(u.name)}<br><span style="font-size:11px;color:#9a8f7d">全${n}問</span></span><span class="u-meta">${meta}</span></button>`;
+      return `<button class="unit-row${complete ? ' done' : ''}" ${data.past || n === 0 ? 'disabled' : `onclick="startUnit('${u.id}')"`} ${n === 0 ? 'style="opacity:.4"' : ''}><span class="u-name">${esc(u.name)}${complete ? ' <span class="u-done-mark">✓ 一巡完了</span>' : ''}<br><span style="font-size:11px;color:#9a8f7d">全${n}問</span></span><span class="u-meta">${meta}</span></button>`;
     }).join("");
   }
   document.getElementById("unit-list").innerHTML = html;
